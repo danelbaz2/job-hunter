@@ -1,0 +1,114 @@
+.card {
+  position: relative;
+  background: var(--surface);
+  border: 1px solid var(--divider);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  padding: 20px 24px 22px;
+  cursor: pointer;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
+
+.card:hover {
+  transform: translateY(-6px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--accent-600);
+}
+
+.bookmark {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  color: var(--neutral-400);
+  border-radius: var(--radius-md);
+  z-index: 1;
+}
+
+.bookmarkSaved {
+  color: var(--accent-400);
+}
+
+.topRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.identity {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.avatar {
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  border-radius: var(--radius-sm);
+  background: var(--accent-900);
+  color: var(--accent-300);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 500;
+  font-size: 18px;
+}
+
+.title {
+  font-size: 17px;
+  font-weight: 500;
+  margin: 0 0 2px;
+}
+
+.company {
+  font-size: 13px;
+  color: var(--neutral-400);
+}
+
+.meta {
+  font-size: 13px;
+  color: var(--neutral-500);
+  margin-bottom: 14px;
+}
+
+.tags {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.tag {
+  font-size: 13px;
+  padding: 4px 12px;
+  border-radius: var(--radius-pill);
+  border: 1px solid transparent;
+}
+
+.tagAccent {
+  background: color-mix(in srgb, var(--accent-500) 18%, transparent);
+  color: var(--accent-200);
+  border-color: var(--accent-500);
+}
+
+.tagOutline {
+  color: var(--neutral-300);
+  border-color: var(--neutral-700);
+}
+
+.tagNeutral {
+  background: var(--neutral-900);
+  color: var(--neutral-400);
+  border-color: var(--neutral-800);
+}

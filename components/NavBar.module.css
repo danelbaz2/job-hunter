@@ -1,0 +1,45 @@
+.nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 22px 64px;
+  border-bottom: 1px solid var(--divider);
+}
+
+.brand {
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.links {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+}
+
+.link {
+  font-size: 14px;
+  color: var(--neutral-300);
+  text-decoration: none;
+}
+
+.linkActive {
+  color: var(--text);
+  font-weight: 500;
+}
+
+.iconButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md);
+  border: none;
+  background: transparent;
+  color: var(--neutral-300);
+}
+
+.iconButton:hover {
+  color: var(--text);
+}

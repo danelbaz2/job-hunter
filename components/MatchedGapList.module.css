@@ -1,0 +1,25 @@
+.section {
+  margin-bottom: 24px;
+}
+
+.sectionTitle {
+  font-size: 14px;
+  color: var(--neutral-400);
+  margin-bottom: 12px;
+}
+
+.point {
+  margin-bottom: 14px;
+}
+
+.claim {
+  font-size: 13.5px;
+  color: var(--text);
+}
+
+.quote {
+  font-size: 11.5px;
+  font-style: italic;
+  color: var(--neutral-500);
+  margin-top: 2px;
+}

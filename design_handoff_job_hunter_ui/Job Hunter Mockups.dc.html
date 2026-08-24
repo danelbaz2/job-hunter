@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="_ds/nocturne-04fad15a-3d23-406d-8f50-921a83b254d5/styles.css">
+  <script src="_ds/nocturne-04fad15a-3d23-406d-8f50-921a83b254d5/_ds_bundle.js"></script>
+  <style>
+    body{margin:0;background:var(--color-bg);color:var(--color-text);font-family:var(--font-body)}
+    a{color:var(--color-accent-400)}
+    a:hover{color:var(--color-accent-300)}
+    .switcher{position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:var(--space-2);padding:var(--space-3) var(--space-4);background:var(--color-neutral-900);border-bottom:1px solid var(--color-divider)}
+    .switcher b{font-size:13px;color:var(--color-neutral-400);margin-right:var(--space-3)}
+    .switcher a{font-size:13px;padding:var(--space-1) var(--space-3);border-radius:var(--radius-sm);color:var(--color-neutral-300);text-decoration:none}
+    .switcher a:hover{background:color-mix(in srgb, var(--color-accent) 16%, transparent);color:var(--color-accent-200)}
+    .screen{min-height:100vh;box-sizing:border-box;border-bottom:1px solid var(--color-divider)}
+    .avatar{width:44px;height:44px;border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:500;flex:none;background:var(--color-accent-900);color:var(--color-accent-300)}
+    .chip-row{display:flex;flex-wrap:wrap;gap:var(--space-3)}
+    .icon{flex:none}
+    .bar-track{height:8px;border-radius:999px;background:var(--color-neutral-800)}
+    .bar-fill{height:100%;border-radius:999px;background:var(--color-accent-500)}
+    .big-input{font-size:17px !important;padding:16px 18px !important;border-radius:var(--radius-md) !important}
+    select.big-input{appearance:none}
+    .pill-choice{padding:12px 20px;border-radius:999px;border:1px solid var(--color-neutral-700);font-size:15px;cursor:pointer;transition:all .15s ease;background:transparent;color:var(--color-neutral-300)}
+    .pill-choice:hover{border-color:var(--color-neutral-500)}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .spinner{width:40px;height:40px;border-radius:50%;border:3px solid var(--color-neutral-700);border-top-color:var(--color-accent-400);animation:spin 0.9s linear infinite}
+  </style>
+</helmet>
+
+<nav class="switcher">
+  <b>Mockups</b>
+  <a href="#setup">1. Search setup</a>
+  <a href="#results">2. Results</a>
+</nav>
+
+<!-- SCREEN 1 — SEARCH SETUP -->
+<section class="screen" id="setup" data-screen-label="Search setup">
+  <nav class="nav">
+    <span class="nav-brand">Job Hunter</span>
+    <a href="#setup" aria-current="page">Search</a>
+    <a href="{{ resultsHref }}" onClick="{{ goResults }}">Results</a>
+    <a href="{{ savedHref }}" onClick="{{ goSaved }}">Saved ({{ savedCount }})</a>
+    <button type="button" class="btn btn-ghost btn-icon" aria-label="Account"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.5-7 8-7s8 3 8 7"/></svg></button>
+  </nav>
+
+  <sc-if value="{{ notSearching }}" hint-placeholder-val="{{ true }}">
+    <div style="padding:64px 64px 96px;max-width:1400px;margin:0 auto">
+      <h1 style="font-family:var(--font-heading);font-weight:var(--font-heading-weight);font-size:56px;line-height:1.08;margin:0 0 20px;max-width:22ch">What are you looking for?</h1>
+      <p style="font-size:19px;line-height:1.6;color:var(--color-neutral-400);margin:0 0 56px;max-width:60ch">Tell us where, what, and how senior — plus your resume — and we'll score every open role in Israel against it.</p>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:40px 48px;align-items:start">
+        <div class="field">
+          <label style="font-size:15px" for="loc">Location</label>
+          <select class="input big-input" id="loc">
+            <option>Tel Aviv</option>
+            <option>Ramat Gan / Bnei Brak</option>
+            <option>Herzliya</option>
+            <option>Haifa</option>
+            <option>Remote (Israel)</option>
+            <option>Anywhere in Israel</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label style="font-size:15px">Seniority</label>
+          <div class="chip-row">
+            <sc-for list="{{ seniorityOptions }}" as="opt" hint-placeholder-count="4">
+              <button type="button" class="pill-choice" style="{{ opt.style }}" onClick="{{ opt.onSelect }}">{{ opt.label }}</button>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+
+      <div class="field" style="margin-top:48px">
+        <label style="font-size:15px">Domain</label>
+        <div class="chip-row" style="margin-top:8px">
+          <span class="tag tag-accent" style="font-size:14px;padding:10px 18px">Backend</span>
+          <span class="tag tag-accent" style="font-size:14px;padding:10px 18px">Full-Stack</span>
+          <span class="tag tag-outline" style="font-size:14px;padding:10px 18px">Frontend</span>
+          <span class="tag tag-outline" style="font-size:14px;padding:10px 18px">Data / ML</span>
+          <span class="tag tag-outline" style="font-size:14px;padding:10px 18px">DevOps / Infra</span>
+          <span class="tag tag-outline" style="font-size:14px;padding:10px 18px">Product</span>
+          <span class="tag tag-outline" style="font-size:14px;padding:10px 18px">Design</span>
+          <span class="tag tag-outline" style="font-size:14px;padding:10px 18px">QA</span>
+        </div>
+        <p style="font-size:13px;color:var(--color-neutral-500);margin:12px 0 0">Filled tags are selected. Pick as many as apply.</p>
+      </div>
+
+      <div class="field" style="margin-top:48px">
+        <label style="font-size:15px">Resume</label>
+        <div class="chip-row" style="margin-top:8px;margin-bottom:16px">
+          <button type="button" class="pill-choice" style="{{ uploadTabStyle }}" onClick="{{ selectUploadMode }}">Upload file</button>
+          <button type="button" class="pill-choice" style="{{ pasteTabStyle }}" onClick="{{ selectPasteMode }}">Paste text</button>
+        </div>
+
+        <sc-if value="{{ isUploadMode }}" hint-placeholder-val="{{ true }}">
+          <div style="border:1px dashed var(--color-neutral-600);border-radius:var(--radius-lg);padding:56px 40px;text-align:center;background:var(--color-neutral-900)">
+            <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--color-accent-400);margin-bottom:16px"><path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/><path d="M7 9l5-5 5 5"/><path d="M12 4v13"/></svg>
+            <div style="font-weight:500;font-size:18px">Drag your resume here, or <span style="color:var(--color-accent-400);text-decoration:underline">browse</span></div>
+            <div style="font-size:14px;color:var(--color-neutral-500);margin-top:8px">PDF or DOCX, parsed to text on upload</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;margin-top:16px;padding:14px 20px;background:var(--color-accent-900);border-radius:var(--radius-md)">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-accent-300)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" class="icon"><path d="m9 18 6-6-6-6"/></svg>
+            <span style="font-size:15px;color:var(--color-accent-200)">resume_dana_levi.pdf uploaded — 2 pages parsed</span>
+          </div>
+        </sc-if>
+        <sc-if value="{{ isPasteMode }}" hint-placeholder-val="{{ false }}">
+          <textarea class="input big-input" rows="8" placeholder="Paste your resume text here...">Dana Levi — Senior Backend Engineer
+5+ years building Node.js services for e-commerce platforms. Led design and delivery of a checkout service handling 2M+ daily transactions. Comfortable owning a service end to end, from design through production.</textarea>
+        </sc-if>
+      </div>
+
+      <button type="button" class="btn btn-primary" style="margin-top:56px;font-size:17px;padding:18px 36px" onClick="{{ startSearch }}">Find matching jobs<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></button>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ searching }}" hint-placeholder-val="{{ false }}">
+    <div style="padding:120px 64px;max-width:900px;margin:0 auto;text-align:center">
+      <div class="spinner" style="margin:0 auto 32px"></div>
+      <h1 style="font-family:var(--font-heading);font-weight:var(--font-heading-weight);font-size:32px;margin:0 0 16px">Searching for your next role…</h1>
+      <div style="display:grid;gap:10px;max-width:420px;margin:32px auto 0;text-align:left">
+        <div style="font-size:14px;color:var(--color-neutral-300)">✓ Checked AllJobs.co.il</div>
+        <div style="font-size:14px;color:var(--color-neutral-300)">✓ Checked Drushim</div>
+        <div style="font-size:14px;color:var(--color-neutral-300)">✓ Checked Indeed-Israel</div>
+        <div style="font-size:14px;color:var(--color-neutral-500)">⚠ LinkedIn unavailable this run</div>
+        <div style="font-size:14px;color:var(--color-neutral-300)">✓ Scoring fit against your resume</div>
+      </div>
+    </div>
+  </sc-if>
+</section>
+
+<!-- SCREEN 2 — RESULTS GRID + FULL-PAGE DETAIL -->
+<section class="screen" id="results" data-screen-label="Results">
+  <nav class="nav">
+    <span class="nav-brand">Job Hunter</span>
+    <a href="#setup">Search</a>
+    <a href="{{ resultsHref }}" onClick="{{ goResults }}">Results</a>
+    <a href="{{ savedHref }}" onClick="{{ goSaved }}">Saved ({{ savedCount }})</a>
+    <button type="button" class="btn btn-ghost btn-icon" aria-label="Account"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.5-7 8-7s8 3 8 7"/></svg></button>
+  </nav>
+
+  <sc-if value="{{ showGrid }}" hint-placeholder-val="{{ true }}">
+    <div style="padding:56px 64px 96px;max-width:1500px;margin:0 auto">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:var(--space-4);flex-wrap:wrap;margin-bottom:12px">
+        <div>
+          <h1 style="font-family:var(--font-heading);font-weight:var(--font-heading-weight);font-size:34px;margin:0 0 14px">{{ gridTitle }}</h1>
+          <div class="chip-row">
+            <span class="tag tag-neutral">Tel Aviv</span>
+            <span class="tag tag-neutral">Backend · Full-Stack</span>
+            <span class="tag tag-neutral">Senior</span>
+          </div>
+        </div>
+        <a href="#setup" class="btn btn-ghost">Edit search</a>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:10px;margin:28px 0 32px;padding:14px 18px;background:var(--color-neutral-900);border:1px solid var(--color-divider);border-radius:var(--radius-sm);font-size:13.5px;color:var(--color-neutral-300)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-accent-400)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" class="icon"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>
+        Checked AllJobs, Drushim and Indeed-Israel · LinkedIn was unavailable this run, so its listings are missing.
+      </div>
+
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;margin-bottom:32px;padding-bottom:24px;border-bottom:1px solid var(--color-divider)">
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+          <span style="font-size:13px;color:var(--color-neutral-500)">Source:</span>
+          <sc-for list="{{ sourceOptions }}" as="src" hint-placeholder-count="3">
+            <span class="tag {{ src.tagClass }}" style="cursor:pointer" onClick="{{ src.onToggle }}">{{ src.name }}</span>
+          </sc-for>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px">
+          <span style="font-size:13px;color:var(--color-neutral-500)">Sort by:</span>
+          <div class="seg">
+            <label class="seg-opt"><input type="radio" name="sort" checked="{{ sortByScore }}" onChange="{{ sortByScoreFn }}"/>Fit score</label>
+            <label class="seg-opt"><input type="radio" name="sort" checked="{{ sortByDate }}" onChange="{{ sortByDateFn }}"/>Newest</label>
+          </div>
+        </div>
+      </div>
+
+      <sc-if value="{{ hasResults }}" hint-placeholder-val="{{ true }}">
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:36px 28px">
+          <sc-for list="{{ visibleJobs }}" as="job" hint-placeholder-count="6">
+            <div
+              style="position:relative;background:var(--color-surface);border:1px solid var(--color-divider);border-radius:var(--radius-lg);padding:20px 22px 24px;cursor:pointer;box-shadow:var(--shadow-md);transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease"
+              style-hover="transform:translateY(-6px);box-shadow:var(--shadow-lg);border-color:var(--color-accent-600)"
+              onClick="{{ job.onOpen }}">
+              <button type="button" class="btn btn-ghost btn-icon" aria-label="Save" onClick="{{ job.onToggleSave }}" style="position:absolute;top:14px;left:14px;width:32px;height:32px">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="{{ job.bookmarkFill }}" stroke="{{ job.bookmarkStroke }}" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21 12 16l-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+              </button>
+              <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding-left:36px">
+                <div style="display:flex;align-items:center;gap:14px;min-width:0">
+                  <div class="avatar" style="width:48px;height:48px;font-size:17px">{{ job.initial }}</div>
+                  <div style="min-width:0">
+                    <div style="font-weight:500;font-size:17px;line-height:1.3">{{ job.title }}</div>
+                    <div style="font-size:13px;color:var(--color-neutral-400);margin-top:3px">{{ job.company }}</div>
+                  </div>
+                </div>
+                <div style="flex:none;background:{{ job.scoreBg }};color:{{ job.scoreText }};border:1px solid {{ job.scoreBorder }};border-radius:999px;padding:6px 14px;font-size:16px;font-weight:600">{{ job.score }}%</div>
+              </div>
+              <div style="font-size:13px;color:var(--color-neutral-500);margin-top:16px">{{ job.location }} · {{ job.postedLabel }}</div>
+              <div class="chip-row" style="margin-top:16px">
+                <span class="tag tag-accent" style="font-size:11px">{{ job.matchedCount }} matched</span>
+                <span class="tag tag-outline" style="font-size:11px">{{ job.gapCount }} gaps</span>
+                <sc-if value="{{ job.aiFailed }}" hint-placeholder-val="{{ false }}">
+                  <span class="tag tag-neutral" style="font-size:11px">Skills-fit unavailable</span>
+                </sc-if>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ noResults }}" hint-placeholder-val="{{ false }}">
+        <div style="text-align:center;padding:96px 24px;border:1px dashed var(--color-neutral-700);border-radius:var(--radius-lg)">
+          <div style="font-size:20px;font-weight:500;margin-bottom:10px">No listings match these filters</div>
+          <p style="font-size:15px;color:var(--color-neutral-400);max-width:46ch;margin:0 auto 24px">Try turning a source back on, or broaden your search criteria.</p>
+          <button type="button" class="btn btn-secondary" onClick="{{ resetSources }}">Reset filters</button>
+        </div>
+      </sc-if>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ viewJob }}" hint-placeholder-val="{{ false }}">
+    <div style="padding:56px 64px 96px;max-width:1400px;margin:0 auto">
+      <button type="button" class="btn btn-ghost" onClick="{{ closeDetail }}" style="margin-bottom:32px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>Back to results</button>
+
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:32px;flex-wrap:wrap">
+        <div style="display:flex;gap:24px;align-items:center">
+          <div class="avatar" style="width:64px;height:64px;font-size:22px">{{ viewJob.initial }}</div>
+          <div>
+            <h1 style="font-family:var(--font-heading);font-weight:var(--font-heading-weight);font-size:38px;margin:0 0 8px">{{ viewJob.title }}</h1>
+            <div style="font-size:17px;color:var(--color-neutral-400)">{{ viewJob.company }} · {{ viewJob.location }}</div>
+            <div class="chip-row" style="margin-top:14px">
+              <span class="tag tag-neutral">Full-time</span>
+              <span class="tag tag-neutral">Via {{ viewJob.source }}</span>
+              <span class="tag tag-neutral">{{ viewJob.postedLabel }}</span>
+            </div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:16px">
+          <button type="button" class="btn btn-secondary" onClick="{{ viewJob.onToggleSave }}">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="{{ viewJob.bookmarkFill }}" stroke="{{ viewJob.bookmarkStroke }}" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21 12 16l-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+            {{ viewJob.saveLabel }}
+          </button>
+          <div style="flex:none;background:{{ viewJob.scoreBg }};color:{{ viewJob.scoreText }};border:1px solid {{ viewJob.scoreBorder }};border-radius:999px;padding:16px 28px;text-align:center">
+            <div style="font-size:32px;font-weight:600;line-height:1">{{ viewJob.score }}%</div>
+            <div style="font-size:11px;margin-top:4px;opacity:.85">fit score</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1.4fr 1fr;gap:56px;margin-top:56px;align-items:start">
+        <div>
+          <h2 style="font-family:var(--font-heading);font-weight:var(--font-heading-weight);font-size:22px;margin:0 0 16px">About this role</h2>
+          <p style="font-size:16px;line-height:1.7;color:var(--color-neutral-300);max-width:70ch">{{ viewJob.description }}</p>
+
+          <h2 style="font-family:var(--font-heading);font-weight:var(--font-heading-weight);font-size:22px;margin:40px 0 16px">Requirements</h2>
+          <div style="display:grid;gap:12px">
+            <sc-for list="{{ viewJob.requirements }}" as="req" hint-placeholder-count="4">
+              <div style="display:flex;gap:10px;font-size:15px;line-height:1.6;color:var(--color-neutral-300)"><span style="color:var(--color-accent-400)">—</span>{{ req }}</div>
+            </sc-for>
+          </div>
+
+          <h2 style="font-family:var(--font-heading);font-weight:var(--font-heading-weight);font-size:22px;margin:40px 0 16px">Fit breakdown</h2>
+          <div style="display:grid;gap:16px;max-width:520px">
+            <div>
+              <div style="display:flex;justify-content:space-between;font-size:14px;margin-bottom:4px"><span>Location</span><span>{{ viewJob.subLocation }}%</span></div>
+              <div class="bar-track"><div class="bar-fill" style="width:{{ viewJob.subLocation }}%"></div></div>
+            </div>
+            <div>
+              <div style="display:flex;justify-content:space-between;font-size:14px;margin-bottom:4px"><span>Domain</span><span>{{ viewJob.subDomain }}%</span></div>
+              <div class="bar-track"><div class="bar-fill" style="width:{{ viewJob.subDomain }}%"></div></div>
+            </div>
+            <div>
+              <div style="display:flex;justify-content:space-between;font-size:14px;margin-bottom:4px"><span>Seniority</span><span>{{ viewJob.subSeniority }}%</span></div>
+              <div class="bar-track"><div class="bar-fill" style="width:{{ viewJob.subSeniority }}%"></div></div>
+            </div>
+            <sc-if value="{{ viewJob.aiOk }}" hint-placeholder-val="{{ true }}">
+              <div>
+                <div style="display:flex;justify-content:space-between;font-size:14px;margin-bottom:4px"><span>Skills fit (AI)</span><span>{{ viewJob.subSkills }}%</span></div>
+                <div class="bar-track"><div class="bar-fill" style="width:{{ viewJob.subSkills }}%"></div></div>
+              </div>
+            </sc-if>
+            <sc-if value="{{ viewJob.aiFailed }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;gap:10px;padding:14px 16px;background:var(--color-neutral-900);border:1px solid var(--color-divider);border-radius:var(--radius-md)">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--color-neutral-400)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex:none;margin-top:2px"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>
+                <span style="font-size:13.5px;color:var(--color-neutral-400);line-height:1.5">Skills-fit check unavailable — the AI service didn't respond for this listing. The score above reflects location, domain and seniority only.</span>
+              </div>
+            </sc-if>
+          </div>
+        </div>
+
+        <div>
+          <div class="card elev-sm" style="padding:28px;position:sticky;top:88px">
+            <a href="{{ viewJob.url }}" target="_blank" rel="noopener" class="btn btn-primary btn-block" style="font-size:16px;padding:16px">Apply on {{ viewJob.source }}<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7"/><path d="M7 7h10v10"/></svg></a>
+            <p style="font-size:12px;color:var(--color-neutral-500);margin:12px 0 28px">Opens the original listing on {{ viewJob.source }} in a new tab.</p>
+
+            <div class="card-kicker" style="color:var(--color-accent-300)">Matched — {{ viewJob.matchedCount }}</div>
+            <div style="display:grid;gap:14px;margin-top:10px">
+              <sc-for list="{{ viewJob.matchedPoints }}" as="pt" hint-placeholder-count="3">
+                <div style="display:flex;gap:8px">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-accent-400)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" class="icon" style="margin-top:1px"><path d="M20 6 9 17l-5-5"/></svg>
+                  <div>
+                    <div style="font-size:13.5px;line-height:1.4">{{ pt.text }}</div>
+                    <div style="font-size:11.5px;color:var(--color-neutral-500);font-style:italic;margin-top:3px">From listing: "{{ pt.quote }}"</div>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+
+            <div class="card-kicker" style="margin-top:24px">Gaps — {{ viewJob.gapCount }}</div>
+            <div style="display:grid;gap:14px;margin-top:10px">
+              <sc-for list="{{ viewJob.gapPoints }}" as="pt" hint-placeholder-count="2">
+                <div style="display:flex;gap:8px">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-neutral-500)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" class="icon" style="margin-top:1px"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                  <div>
+                    <div style="font-size:13.5px;line-height:1.4;color:var(--color-neutral-300)">{{ pt.text }}</div>
+                    <div style="font-size:11.5px;color:var(--color-neutral-500);font-style:italic;margin-top:3px">From listing: "{{ pt.quote }}"</div>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+</section>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = {
+    viewId: null,
+    seniority: 'Senior',
+    resumeMode: 'upload',
+    searching: false,
+    navView: 'results',
+    sources: { 'AllJobs': true, 'Drushim': true, 'Indeed-Israel': true },
+    sortBy: 'score',
+    savedIds: []
+  };
+
+  seniorityLevels = ['Junior', 'Mid-Level', 'Senior', 'Team Lead'];
+
+  jobsData = [
+    { id: 1, initial: 'W', company: 'Wix', title: 'Senior Backend Engineer', location: 'Tel Aviv · Hybrid', score: 94, source: 'AllJobs', url: 'https://www.alljobs.co.il/', postedDaysAgo: 2, subLocation: 100, subDomain: 100, subSeniority: 100, subSkills: 88, aiFailed: false,
+      description: 'Own core checkout and payments services handling millions of daily transactions. Work closely with product and infra to design, ship and operate backend systems end to end.',
+      requirements: ['5+ years backend engineering experience, Node.js or similar', 'Track record owning services from design through production', 'Comfortable with high-throughput, transactional systems', 'GraphQL experience is a plus'],
+      matchedPoints: [
+        { text: '5+ years building backend services in Node.js, matching the core stack requirement', quote: 'Looking for 5+ years of experience with Node.js or similar backend stacks' },
+        { text: 'Experience owning a service from design through production', quote: 'Own your service end-to-end, from design through production' },
+        { text: 'Based in Tel Aviv, listing\'s on-site/hybrid location', quote: 'Hybrid, Tel Aviv office' },
+        { text: 'Worked at similar e-commerce scale (millions of requests/day)', quote: 'Our checkout service handles millions of transactions daily' } ],
+      gapPoints: [ { text: 'Listing lists GraphQL as a plus — not mentioned in resume', quote: 'GraphQL experience is a plus' } ] },
+    { id: 2, initial: 'M', company: 'monday.com', title: 'Backend Team Lead', location: 'Tel Aviv · Hybrid', score: 87, source: 'Drushim', url: 'https://www.drushim.co.il/', postedDaysAgo: 5, subLocation: 100, subDomain: 100, subSeniority: 75, subSkills: 72, aiFailed: false,
+      description: 'Lead a team of backend engineers building the platform services behind our core product. Balance hands-on architecture work with mentoring and delivery ownership.',
+      requirements: ['5+ years backend engineering, 1+ years leading engineers', 'Strong Node.js and distributed systems background', 'Experience with event-driven architecture (Kafka or similar)', 'Based in or willing to work hybrid from Tel Aviv'],
+      matchedPoints: [
+        { text: '5+ years building backend services in Node.js', quote: 'Strong Node.js and distributed systems background required' },
+        { text: 'Experience owning a service from design through production', quote: 'End-to-end ownership of platform services' },
+        { text: 'Based in Tel Aviv, listing\'s on-site/hybrid location', quote: 'Hybrid role based out of our Tel Aviv office' } ],
+      gapPoints: [
+        { text: 'Listing asks for prior people-management experience — resume shows senior IC roles only', quote: '1+ years leading or mentoring engineers' },
+        { text: 'No mention of Kafka or event-driven architecture, listed as a plus', quote: 'Experience with Kafka or similar event-driven systems is a plus' } ] },
+    { id: 3, initial: 'G', company: 'Global-e', title: 'Full-Stack Developer', location: 'Petah Tikva · On-site', score: 81, source: 'Indeed-Israel', url: 'https://il.indeed.com/', postedDaysAgo: 1, subLocation: 60, subDomain: 100, subSeniority: 100, subSkills: 70, aiFailed: false,
+      description: 'Build customer-facing and internal tools across our cross-border commerce platform, working across the full stack from React frontends to Node.js services.',
+      requirements: ['Full-stack experience: React + Node.js', 'Senior-level scope, comfortable owning features end to end', 'E-commerce or payments domain experience preferred', '.NET experience a plus'],
+      matchedPoints: [
+        { text: 'Full-stack experience across React and Node.js', quote: 'Work across the stack: React on the front-end, Node.js services on the back-end' },
+        { text: 'Senior-level scope matching the listing', quote: 'Own features end-to-end at a senior level' },
+        { text: 'Domain experience in e-commerce/payments', quote: 'E-commerce or payments background preferred' } ],
+      gapPoints: [
+        { text: 'Listing is on-site in Petah Tikva; resume states Tel Aviv as home base', quote: 'On-site, our Petah Tikva office' },
+        { text: 'No .NET experience, which the listing also accepts', quote: '.NET experience is a plus' },
+        { text: 'TypeScript not explicitly listed on resume', quote: 'TypeScript across our codebase' } ] },
+    { id: 4, initial: 'R', company: 'Riskified', title: 'Senior Software Engineer, Risk Platform', location: 'Tel Aviv · Hybrid', score: 76, source: 'AllJobs', url: 'https://www.alljobs.co.il/', postedDaysAgo: 8, subLocation: 100, subDomain: 60, subSeniority: 100, subSkills: 62, aiFailed: false,
+      description: 'Build the backend services powering real-time fraud decisioning across a high-volume transactional pipeline, working closely with data science.',
+      requirements: ['Senior backend engineering experience', 'High-throughput, low-latency systems background', 'Python experience for the scoring service', 'Fraud/risk domain experience a plus'],
+      matchedPoints: [
+        { text: 'Senior backend scope matching the listing', quote: 'Senior engineer to own parts of our risk platform' },
+        { text: 'Based in Tel Aviv, listing\'s hybrid location', quote: 'Hybrid, Tel Aviv HQ' },
+        { text: 'Experience with high-throughput transactional systems', quote: 'Our platform scores transactions in real time at high volume' } ],
+      gapPoints: [
+        { text: 'Domain tagged as fraud/risk — resume shows e-commerce, not risk-specific', quote: 'Fraud or risk domain experience is a plus' },
+        { text: 'No mention of machine-learning-adjacent data pipelines', quote: 'Work alongside our data science team on scoring pipelines' },
+        { text: 'Python not listed; listing prefers it for the risk-scoring service', quote: 'Python experience preferred for the scoring service' } ] },
+    { id: 5, initial: 'F', company: 'Fiverr', title: 'Backend Engineer, Payments', location: 'Tel Aviv · Remote (Israel)', score: 68, source: 'Drushim', url: 'https://www.drushim.co.il/', postedDaysAgo: 3, subLocation: 100, subDomain: 60, subSeniority: 60, subSkills: null, aiFailed: true,
+      description: 'Join the payments team building the infrastructure behind seller payouts and buyer transactions across dozens of countries and currencies.',
+      requirements: ['2-4 years backend engineering experience', 'Node.js or Ruby background', 'Interest in payments infrastructure', 'Remote-friendly, Israel-based'],
+      matchedPoints: [
+        { text: 'Backend experience in Node.js', quote: 'Node.js or Ruby experience' },
+        { text: 'Remote-friendly, matches listing\'s flexibility', quote: 'Remote-friendly for Israel-based candidates' } ],
+      gapPoints: [
+        { text: 'Listing is mid-level scope; resume reads senior — may be overqualified', quote: '2-4 years of backend engineering experience' },
+        { text: 'No direct payments-domain experience on resume', quote: 'Interest in payments infrastructure a plus' } ] },
+    { id: 6, initial: 'L', company: 'Lightricks', title: 'Server-Side Engineer', location: 'Jerusalem · On-site', score: 54, source: 'Indeed-Israel', url: 'https://il.indeed.com/', postedDaysAgo: 11, subLocation: 40, subDomain: 60, subSeniority: 75, subSkills: 40, aiFailed: false,
+      description: 'Build server-side infrastructure supporting our consumer media apps, from media processing pipelines to the services behind in-app experiences.',
+      requirements: ['Senior backend engineering experience', 'AWS required', 'C++ or mobile-adjacent backend experience a plus', 'On-site in Jerusalem'],
+      matchedPoints: [ { text: 'Senior-level backend scope', quote: 'Senior server-side engineer' } ],
+      gapPoints: [
+        { text: 'On-site in Jerusalem; resume states Tel Aviv, same-country relocation likely needed', quote: 'On-site role, Jerusalem office' },
+        { text: 'Domain is consumer media/ML tooling, not resume\'s e-commerce focus', quote: 'Support our consumer media applications' },
+        { text: 'No C++ or mobile-adjacent backend experience listed', quote: 'C++ experience is a plus' },
+        { text: 'AWS listed as required; resume mentions only GCP', quote: 'AWS experience required' } ] }
+  ];
+
+  scoreStyle(score) {
+    if (score >= 85) return { scoreBg: 'rgba(34,197,94,0.16)', scoreText: '#4ade80', scoreBorder: 'rgba(74,222,128,0.4)' };
+    if (score >= 65) return { scoreBg: 'rgba(245,158,11,0.16)', scoreText: '#fbbf24', scoreBorder: 'rgba(251,191,36,0.4)' };
+    return { scoreBg: 'rgba(239,68,68,0.16)', scoreText: '#f87171', scoreBorder: 'rgba(248,113,113,0.4)' };
+  }
+
+  toggleSave(id) {
+    const has = this.state.savedIds.includes(id);
+    this.setState({ savedIds: has ? this.state.savedIds.filter(x => x !== id) : [...this.state.savedIds, id] });
+  }
+
+  renderVals() {
+    const s = this.state;
+
+    const seniorityOptions = this.seniorityLevels.map(label => {
+      const selected = s.seniority === label;
+      return {
+        label,
+        style: selected
+          ? 'background:color-mix(in srgb, var(--color-accent) 18%, transparent);border-color:var(--color-accent-500);color:var(--color-accent-200)'
+          : '',
+        onSelect: () => this.setState({ seniority: label })
+      };
+    });
+
+    const isUploadMode = s.resumeMode === 'upload';
+    const isPasteMode = s.resumeMode === 'paste';
+    const tabSelectedStyle = 'background:color-mix(in srgb, var(--color-accent) 18%, transparent);border-color:var(--color-accent-500);color:var(--color-accent-200)';
+
+    const jobs = this.jobsData.map(j => {
+      const saved = s.savedIds.includes(j.id);
+      return {
+        ...j,
+        ...this.scoreStyle(j.score),
+        matchedCount: j.matchedPoints.length,
+        gapCount: j.gapPoints.length,
+        aiOk: !j.aiFailed,
+        postedLabel: j.postedDaysAgo === 1 ? '1 day ago' : j.postedDaysAgo + ' days ago',
+        saved,
+        saveLabel: saved ? 'Saved' : 'Save',
+        bookmarkFill: saved ? 'var(--color-accent-400)' : 'none',
+        bookmarkStroke: saved ? 'var(--color-accent-400)' : 'var(--color-neutral-400)',
+        onOpen: () => this.setState({ viewId: j.id }),
+        onToggleSave: (e) => { e.stopPropagation(); this.toggleSave(j.id); }
+      };
+    });
+
+    let visibleJobs = jobs.filter(j => s.sources[j.source]);
+    visibleJobs = visibleJobs.slice().sort((a, b) => s.sortBy === 'score' ? b.score - a.score : a.postedDaysAgo - b.postedDaysAgo);
+
+    const savedJobs = jobs.filter(j => j.saved);
+    const activeList = s.navView === 'saved' ? savedJobs : visibleJobs;
+
+    const sourceNames = ['AllJobs', 'Drushim', 'Indeed-Israel'];
+    const sourceOptions = sourceNames.map(name => ({
+      name,
+      tagClass: s.sources[name] ? 'tag-accent' : 'tag-outline',
+      onToggle: () => this.setState({ sources: { ...s.sources, [name]: !s.sources[name] } })
+    }));
+
+    const viewJobBase = s.viewId ? jobs.find(j => j.id === s.viewId) : null;
+
+    return {
+      seniorityOptions,
+      isUploadMode, isPasteMode,
+      uploadTabStyle: isUploadMode ? tabSelectedStyle : '',
+      pasteTabStyle: isPasteMode ? tabSelectedStyle : '',
+      selectUploadMode: () => this.setState({ resumeMode: 'upload' }),
+      selectPasteMode: () => this.setState({ resumeMode: 'paste' }),
+      notSearching: !s.searching,
+      searching: s.searching,
+      startSearch: () => {
+        this.setState({ searching: true });
+        window.setTimeout(() => {
+          this.setState({ searching: false, navView: 'results' });
+          window.location.hash = '#results';
+        }, 1700);
+      },
+      resultsHref: '#results',
+      savedHref: '#results',
+      goResults: () => this.setState({ navView: 'results', viewId: null }),
+      goSaved: () => this.setState({ navView: 'saved', viewId: null }),
+      savedCount: savedJobs.length,
+      gridTitle: s.navView === 'saved' ? 'Saved jobs' : '42 matches for your search',
+      sourceOptions,
+      sortByScore: s.sortBy === 'score',
+      sortByDate: s.sortBy === 'date',
+      sortByScoreFn: () => this.setState({ sortBy: 'score' }),
+      sortByDateFn: () => this.setState({ sortBy: 'date' }),
+      visibleJobs: activeList,
+      hasResults: activeList.length > 0,
+      noResults: activeList.length === 0,
+      resetSources: () => this.setState({ sources: { 'AllJobs': true, 'Drushim': true, 'Indeed-Israel': true } }),
+      showGrid: !viewJobBase,
+      viewJob: viewJobBase,
+      closeDetail: () => this.setState({ viewId: null })
+    };
+  }
+}
+</script>
+</body>
+</html>
