@@ -1,0 +1,41 @@
+.text {
+  font-size: 16px;
+  max-width: 70ch;
+  color: var(--neutral-300);
+  line-height: 1.6;
+  white-space: pre-wrap;
+  margin: 0;
+}
+
+.clamped {
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: none;
+  background: transparent;
+  color: var(--accent-400);
+  font-size: 13.5px;
+  padding: 0;
+  margin-top: 10px;
+}
+
+.toggle:hover {
+  color: var(--accent-300);
+}
+
+.chevronDown {
+  transform: rotate(-90deg);
+  transition: transform 0.15s ease;
+}
+
+.chevronUp {
+  transform: rotate(90deg);
+  transition: transform 0.15s ease;
+}

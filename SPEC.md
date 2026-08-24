@@ -24,7 +24,8 @@ Use this reason to break ties: when a design choice is ambiguous, prefer whateve
 
 ## Part 3 — Architectural guidance
 
-- Stack: Next.js app, Postgres (Neon/Supabase free tier) for storage, Auth.js with Google as the only provider, deployed on Vercel.
+- Stack: Next.js app, Postgres (Neon/Supabase free tier) for storage, Auth.js for authentication, deployed on Vercel.
+- Auth supports two paths: Google OAuth, and email/password (Auth.js Credentials provider). Passwords are salted and hashed (scrypt) before storage — the app never stores or logs a plaintext password. Password-reset-by-email is out of scope for v1 (no email-sending provider is set up) — an account created with a forgotten password has no self-service recovery yet.
 - Reach job data entirely through Apify actors: dedicated actors for AllJobs.co.il and Drushim (the two dominant Israeli job boards, neither of which exposes an official API), plus LinkedIn and Indeed.co.il actors filtered to Israel for broader coverage. Access every source only through a single job-source adapter layer — do not let scoring or UI code call Apify directly.
 - Resume input: accept PDF/DOCX upload, parse to plain text on the server, and run the same analysis pipeline as pasted text. Output stays text-only (gap analysis, suggested rewritten bullets) — no regenerated document file.
 - AI calls (skills-fit scoring, gap analysis, resume suggestions) go through OpenRouter, using a free-tier model (e.g. `meta-llama/llama-3.3-70b-instruct:free`), swappable via config without code changes.
@@ -45,3 +46,4 @@ Before considering v1 done: the user enters their own real resume and real searc
 - The same job can appear from multiple sources with slightly different text (duplicate listings) — dedupe by a reasonable key (title + company + location) before scoring, or the user sees the same job twice with different scores.
 - A listing can go stale (position filled/removed) between fetch and display — don't cache listings indefinitely without a freshness check.
 - AI-suggested resume edits can overstate the user's experience — the suggestion must stay truthful to what's in the original resume, never invent qualifications.
+- A Google-linked account and a password-created account can collide on the same email — decide and document which one wins (or link them) rather than leaving two silent accounts for one person.

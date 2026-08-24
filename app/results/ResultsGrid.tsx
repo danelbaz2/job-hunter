@@ -50,11 +50,11 @@ export function ResultsGrid({
           <h1>{heading}</h1>
           {summary && (
             <div className={styles.summaryTags}>
-              <span className={styles.summaryTag}>{summary.location}</span>
+              <span className={styles.summaryTag}>{summary.locations.join(' · ')}</span>
               {summary.domains.length > 0 && (
                 <span className={styles.summaryTag}>{summary.domains.join(' · ')}</span>
               )}
-              <span className={styles.summaryTag}>{summary.seniority}</span>
+              <span className={styles.summaryTag}>{summary.seniorities.join(' · ')}</span>
             </div>
           )}
         </div>

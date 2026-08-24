@@ -15,15 +15,22 @@ const SENIORITY_KEYWORDS: Record<Seniority, string[]> = {
 
 const ALL_SENIORITY_KEYWORDS = Object.values(SENIORITY_KEYWORDS).flat();
 
-export function scoreLocation(userLocation: string, listingLocation: string): number {
-  const user = userLocation.trim().toLowerCase();
+/** Multi-select: a listing fits if it matches ANY of the user's chosen locations — take the best sub-score. */
+export function scoreLocation(userLocations: string[], listingLocation: string): number {
   const listing = listingLocation.trim().toLowerCase();
-  if (!user || !listing) return 50;
-  if (listing.includes('remote') || user.includes('remote')) return 100;
-  if (listing === user || listing.includes(user) || user.includes(listing)) return 100;
-  // Same-country-different-city (this project is Israel-scoped, so any non-exact match
-  // that isn't clearly a different country still counts as a partial fit — SPEC.md Part 2).
-  return 60;
+  if (userLocations.length === 0 || !listing) return 50;
+
+  return Math.max(
+    ...userLocations.map((loc) => {
+      const user = loc.trim().toLowerCase();
+      if (!user) return 50;
+      if (listing.includes('remote') || user.includes('remote')) return 100;
+      if (listing === user || listing.includes(user) || user.includes(listing)) return 100;
+      // Same-country-different-city (this project is Israel-scoped, so any non-exact match
+      // that isn't clearly a different country still counts as a partial fit — SPEC.md Part 2).
+      return 60;
+    })
+  );
 }
 
 export function scoreDomain(userDomains: string[], listing: RawListing): number {
@@ -33,9 +40,12 @@ export function scoreDomain(userDomains: string[], listing: RawListing): number 
   return matches ? 100 : 0;
 }
 
-export function scoreSeniority(userSeniority: Seniority, listing: RawListing): number {
+/** Multi-select: a listing fits if it matches ANY of the user's chosen seniority levels. */
+export function scoreSeniority(userSeniorities: Seniority[], listing: RawListing): number {
+  if (userSeniorities.length === 0) return 50;
+
   const haystack = `${listing.title} ${listing.rawText}`.toLowerCase();
-  const userKeywords = SENIORITY_KEYWORDS[userSeniority];
+  const userKeywords = userSeniorities.flatMap((s) => SENIORITY_KEYWORDS[s]);
 
   if (userKeywords.some((kw) => haystack.includes(kw))) return 100;
 

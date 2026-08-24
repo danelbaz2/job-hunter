@@ -9,10 +9,12 @@ Multi-platform job matching app for Israel: aggregates listings via Apify scrape
 - Never let scoring or AI output claim a match/gap point that isn't actually present in the source listing text. Hallucinated fit claims break the app's entire value.
 - Apify calls cost money per result. Never request more results than the current task needs — default to small, bounded pulls (see SPEC.md Part 4/5).
 - Never invent qualifications in a resume suggestion. Suggestions must stay truthful to what's already in the user's resume.
+- Never store or log a plaintext password. Hash with scrypt (salted) before it touches the database.
 
 ## Standards and processes
 
-- Stack: Next.js, Postgres (Neon/Supabase), Auth.js (Google only), deployed on Vercel.
+- Stack: Next.js, Postgres (Neon/Supabase), Auth.js (Google OAuth + email/password via Credentials provider), deployed on Vercel.
+- One email can only be claimed by one auth method: whichever the account was created with wins. A Google sign-in attempt on a password-only email, or a password sign-in on a Google-only email, fails with a generic message pointing at the right method — never silently create a second account for the same email.
 - All job sourcing goes through Apify actors (AllJobs, Drushim, LinkedIn, Indeed-Israel) behind one adapter layer. Scoring/UI code never calls Apify directly — swap actors without touching callers.
 - Deterministic scoring (location, domain, seniority) is plain code, not an AI call. Only skills/resume-language fit goes through the OpenRouter AI call. Don't move deterministic scoring into a prompt "for simplicity" — it stops being testable.
 - Resume flow is upload (PDF/DOCX) → parse to text → same pipeline as pasted text → text output only. No document regeneration; don't add file-output generation without discussing scope first.

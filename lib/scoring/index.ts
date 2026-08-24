@@ -51,11 +51,11 @@ export interface ScoredListing {
 
 export async function scoreListing(
   listing: RawListing,
-  criteria: { location: string; domains: string[]; seniority: Seniority; resumeText: string }
+  criteria: { locations: string[]; domains: string[]; seniorities: Seniority[]; resumeText: string }
 ): Promise<ScoredListing> {
-  const locationScore = scoreLocation(criteria.location, listing.location);
+  const locationScore = scoreLocation(criteria.locations, listing.location);
   const domainScore = scoreDomain(criteria.domains, listing);
-  const seniorityScore = scoreSeniority(criteria.seniority, listing);
+  const seniorityScore = scoreSeniority(criteria.seniorities, listing);
   const skills = await scoreSkillsFit(criteria.resumeText, listing);
 
   const overallScore = computeOverallScore({

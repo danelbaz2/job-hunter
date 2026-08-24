@@ -18,10 +18,13 @@
   border-color: var(--accent-600);
 }
 
+.topBar {
+  display: flex;
+  justify-content: flex-end;
+  margin: -6px -8px 4px 0;
+}
+
 .bookmark {
-  position: absolute;
-  top: 14px;
-  left: 14px;
   width: 32px;
   height: 32px;
   display: flex;
@@ -31,7 +34,11 @@
   background: transparent;
   color: var(--neutral-400);
   border-radius: var(--radius-md);
-  z-index: 1;
+}
+
+.bookmark:hover {
+  color: var(--text);
+  background: var(--neutral-900);
 }
 
 .bookmarkSaved {
@@ -64,6 +71,15 @@
   justify-content: center;
   font-weight: 500;
   font-size: 18px;
+}
+
+.avatarImg {
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  border-radius: var(--radius-sm);
+  object-fit: contain;
+  background: #fff;
 }
 
 .title {

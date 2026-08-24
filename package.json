@@ -12,24 +12,23 @@
     "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
+    "@auth/drizzle-adapter": "^1.7.4",
+    "apify-client": "^2.12.0",
+    "drizzle-orm": "^0.36.0",
+    "mammoth": "^1.8.0",
     "next": "^15.0.0",
+    "next-auth": "5.0.0-beta.25",
+    "postgres": "^3.4.4",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "next-auth": "5.0.0-beta.25",
-    "@auth/drizzle-adapter": "^1.7.4",
-    "drizzle-orm": "^0.36.0",
-    "postgres": "^3.4.4",
-    "apify-client": "^2.12.0",
-    "pdf-parse": "^1.1.1",
-    "mammoth": "^1.8.0",
+    "unpdf": "^1.8.1",
     "zod": "^3.23.8"
   },
   "devDependencies": {
-    "typescript": "^5.6.0",
     "@types/node": "^22.7.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
-    "@types/pdf-parse": "^1.1.4",
-    "drizzle-kit": "^0.27.0"
+    "drizzle-kit": "^0.27.0",
+    "typescript": "^5.6.0"
   }
 }

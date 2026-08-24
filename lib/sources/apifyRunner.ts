@@ -16,11 +16,17 @@ function getClient(): ApifyClient {
  * Runs one Apify actor and maps its dataset items to RawListing.
  * Never throws to the caller — a failed source degrades to status 'failed' with
  * an empty list (CLAUDE.md: degrade visibly, don't drop results silently).
+ *
+ * `limit` is enforced here too, independent of whatever result-count field was set in
+ * `input` — a wrong/ignored field name on the actor's side (already happened once: LinkedIn's
+ * actor doesn't recognize `maxItems` and ran to ~285 results before this existed) must not
+ * turn into 285 downstream OpenRouter calls.
  */
 export async function runActor(
   source: Source,
   actorId: string | undefined,
   input: Record<string, unknown>,
+  limit: number,
   mapItem: (item: Record<string, unknown>) => RawListing | null
 ): Promise<SourceFetchResult> {
   if (!actorId) {
@@ -28,8 +34,9 @@ export async function runActor(
   }
   try {
     const run = await getClient().actor(actorId).call(input);
-    const { items } = await getClient().dataset(run.defaultDatasetId).listItems();
+    const { items } = await getClient().dataset(run.defaultDatasetId).listItems({ limit });
     const listings = items
+      .slice(0, limit)
       .map((item) => mapItem(item as Record<string, unknown>))
       .filter((x): x is RawListing => x !== null);
     return { listings, status: 'ok' };

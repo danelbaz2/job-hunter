@@ -8,8 +8,12 @@ export async function parseResumeFile(file: File): Promise<{ text: string; unrea
 
   let text = '';
   if (name.endsWith('.pdf')) {
-    const pdfParse = (await import('pdf-parse')).default;
-    const result = await pdfParse(buffer);
+    // pdf-parse bundles an unmaintained ~2017 pdf.js that fails ("bad XRef entry") on
+    // modern PDFs using cross-reference streams — i.e. most PDFs exported by current
+    // Word/Google Docs/Pages. unpdf wraps current pdf.js and handles them correctly.
+    const { extractText, getDocumentProxy } = await import('unpdf');
+    const doc = await getDocumentProxy(new Uint8Array(buffer));
+    const result = await extractText(doc, { mergePages: true });
     text = result.text;
   } else if (name.endsWith('.docx')) {
     const mammoth = await import('mammoth');

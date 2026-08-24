@@ -26,7 +26,7 @@ export function ResumeInput({
 
   return (
     <div>
-      <div className={pillStyles.pillRow} style={{ marginBottom: 16 }}>
+      <div className={pillStyles.pillRow} style={{ marginBottom: 10 }}>
         <button
           type="button"
           className={`${pillStyles.pill} ${mode === 'upload' ? pillStyles.pillSelected : ''}`}

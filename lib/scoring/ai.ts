@@ -25,8 +25,9 @@ If you cannot find a real quote for a point, omit that point entirely rather tha
  */
 export async function scoreSkillsFit(resumeText: string, listing: RawListing): Promise<SkillsFitResult> {
   const apiKey = process.env.OPENROUTER_API_KEY;
-  const model = process.env.OPENROUTER_MODEL ?? 'meta-llama/llama-3.3-70b-instruct:free';
+  const model = process.env.OPENROUTER_MODEL ?? 'nvidia/nemotron-3-super-120b-a12b:free';
   if (!apiKey) {
+    console.error('[scoring:ai] OPENROUTER_API_KEY is not set');
     return { skillsScore: null, matchedPoints: [], gapPoints: [], aiFailed: true };
   }
 
@@ -40,6 +41,10 @@ export async function scoreSkillsFit(resumeText: string, listing: RawListing): P
       body: JSON.stringify({
         model,
         response_format: { type: 'json_object' },
+        // Tested at effort=none vs default: identical scores/quote quality, ~85% fewer
+        // tokens and far lower latency — this task is extraction/comparison, not the kind
+        // of multi-step logic reasoning mode is for.
+        reasoning: { enabled: false },
         messages: [
           { role: 'system', content: SYSTEM_PROMPT },
           {
@@ -51,12 +56,17 @@ export async function scoreSkillsFit(resumeText: string, listing: RawListing): P
     });
 
     if (!res.ok) {
+      const body = await res.text().catch(() => '');
+      console.error(`[scoring:ai] OpenRouter returned ${res.status} for model "${model}": ${body}`);
       return { skillsScore: null, matchedPoints: [], gapPoints: [], aiFailed: true };
     }
 
     const data = await res.json();
     const content = data.choices?.[0]?.message?.content;
-    if (!content) return { skillsScore: null, matchedPoints: [], gapPoints: [], aiFailed: true };
+    if (!content) {
+      console.error('[scoring:ai] OpenRouter response had no message content', JSON.stringify(data));
+      return { skillsScore: null, matchedPoints: [], gapPoints: [], aiFailed: true };
+    }
 
     const parsed = JSON.parse(content) as {
       skillsScore?: number;
@@ -79,6 +89,17 @@ export async function scoreSkillsFit(resumeText: string, listing: RawListing): P
       typeof parsed.skillsScore === 'number' ? Math.max(0, Math.min(100, Math.round(parsed.skillsScore))) : null;
 
     if (skillsScore === null) {
+      console.error('[scoring:ai] response had no valid numeric skillsScore', content);
+      return { skillsScore: null, matchedPoints: [], gapPoints: [], aiFailed: true };
+    }
+
+    // SPEC.md Part 2, criterion 5: a listing must always show at least one matched point.
+    // Seen for real on Hebrew-language listings — the model returned quotes that didn't
+    // verify verbatim (likely answering in English), so every point got filtered out above,
+    // leaving a confident score with zero supporting evidence. Treat that as a failed call
+    // rather than show an unsupported number — never a score standing alone with no "why".
+    if (matchedPoints.length === 0) {
+      console.error('[scoring:ai] no matched points survived quote verification — treating as failed', content);
       return { skillsScore: null, matchedPoints: [], gapPoints: [], aiFailed: true };
     }
 

@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import styles from './JobCard.module.css';
 import { ScoreBadge } from './ScoreBadge';
 import { BookmarkIcon } from './icons';
@@ -9,6 +10,7 @@ import { daysAgoLabel } from '@/lib/formatDate';
 import type { SearchResultItem } from '@/types/domain';
 
 export function JobCard({ job }: { job: SearchResultItem }) {
+  const router = useRouter();
   const [saved, setSaved] = useState(job.saved);
   const [pending, setPending] = useState(false);
 
@@ -20,9 +22,11 @@ export function JobCard({ job }: { job: SearchResultItem }) {
     const next = !saved;
     setSaved(next);
     try {
-      await fetch(`/api/jobs/${job.id}/save`, {
+      const res = await fetch(`/api/jobs/${job.id}/save`, {
         method: next ? 'POST' : 'DELETE',
       });
+      if (!res.ok) throw new Error('save failed');
+      router.refresh(); // updates the nav bar's "Saved (N)" count
     } catch {
       setSaved(!next);
     } finally {
@@ -32,17 +36,25 @@ export function JobCard({ job }: { job: SearchResultItem }) {
 
   return (
     <Link href={`/jobs/${job.id}`} className={styles.card}>
-      <button
-        className={`${styles.bookmark} ${saved ? styles.bookmarkSaved : ''}`}
-        onClick={toggleSave}
-        aria-label={saved ? 'Remove from saved' : 'Save job'}
-      >
-        <BookmarkIcon />
-      </button>
+      <div className={styles.topBar}>
+        <button
+          type="button"
+          className={`${styles.bookmark} ${saved ? styles.bookmarkSaved : ''}`}
+          onClick={toggleSave}
+          aria-label={saved ? 'Remove from saved' : 'Save job'}
+        >
+          <BookmarkIcon filled={saved} />
+        </button>
+      </div>
 
       <div className={styles.topRow}>
         <div className={styles.identity}>
-          <span className={styles.avatar}>{job.company.charAt(0).toUpperCase() || '?'}</span>
+          {job.companyLogoUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={job.companyLogoUrl} alt="" className={styles.avatarImg} />
+          ) : (
+            <span className={styles.avatar}>{job.company.charAt(0).toUpperCase() || '?'}</span>
+          )}
           <div>
             <h3 className={styles.title}>{job.title}</h3>
             <div className={styles.company}>{job.company}</div>

@@ -1,7 +1,18 @@
 import { db } from './client';
 import { searches, searchResults, savedJobs } from './schema';
-import { eq, inArray } from 'drizzle-orm';
+import { eq, inArray, desc } from 'drizzle-orm';
 import type { SearchResultItem, SearchSummary, Source } from '@/types/domain';
+
+/** Nav bar only shows "Results" once a search has actually been run — see it link there. */
+export async function getLatestSearchId(userId: string): Promise<string | null> {
+  const [latest] = await db
+    .select({ id: searches.id })
+    .from(searches)
+    .where(eq(searches.userId, userId))
+    .orderBy(desc(searches.createdAt))
+    .limit(1);
+  return latest?.id ?? null;
+}
 
 function toItem(row: typeof searchResults.$inferSelect, saved: boolean): SearchResultItem {
   return {
@@ -11,6 +22,7 @@ function toItem(row: typeof searchResults.$inferSelect, saved: boolean): SearchR
     url: row.url,
     title: row.title,
     company: row.company,
+    companyLogoUrl: row.companyLogoUrl,
     location: row.location,
     postedAt: row.postedAt ? row.postedAt.toISOString() : null,
     description: row.description,
@@ -42,8 +54,8 @@ export async function getSearchWithResults(
   return {
     summary: {
       id: search.id,
-      location: search.location,
-      seniority: search.seniority as SearchSummary['seniority'],
+      locations: search.locations,
+      seniorities: search.seniorities as SearchSummary['seniorities'],
       domains: search.domains,
       sourceStatus: search.sourceStatus as SearchSummary['sourceStatus'],
     },

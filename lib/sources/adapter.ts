@@ -6,7 +6,7 @@ import type { RawListing } from './types';
 import type { Source, SourceStatus } from '@/types/domain';
 
 export interface FetchListingsParams {
-  location: string;
+  locations: string[];
   domains: string[];
 }
 
@@ -30,13 +30,28 @@ function dedupeKey(l: RawListing): string {
  * The single entry point to job data (CLAUDE.md: scoring/UI code never calls Apify directly).
  * Bounds results per source (SPEC.md Part 5 — Apify is pay-per-result) and dedupes listings
  * that appear from more than one source under the same title+company+location.
+ *
+ * `onSourceSettled` fires as each source's actor call resolves (not just once all four are
+ * done) — the search-progress UI uses it to check off platforms as they finish.
  */
-export async function fetchListings(params: FetchListingsParams): Promise<FetchListingsResult> {
+export async function fetchListings(
+  params: FetchListingsParams,
+  onSourceSettled?: (source: Source, status: 'ok' | 'failed') => void
+): Promise<FetchListingsResult> {
   const limit = Number(process.env.APIFY_RESULTS_PER_SOURCE ?? 5);
   const sources = Object.keys(FETCHERS) as Source[];
+  // Actors take a single location string each; multi-location selection is joined here for
+  // the actor's own (best-effort) filter — deterministic scoring against every selected
+  // location afterward is what's actually authoritative (lib/scoring/deterministic.ts).
+  const location = params.locations.join(', ');
 
   const results = await Promise.all(
-    sources.map((source) => FETCHERS[source]({ ...params, limit }))
+    sources.map((source) =>
+      FETCHERS[source]({ location, domains: params.domains, limit }).then((result) => {
+        onSourceSettled?.(source, result.status);
+        return result;
+      })
+    )
   );
 
   const sourceStatus = {} as SourceStatus;

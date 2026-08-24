@@ -1,0 +1,1 @@
+ALTER TABLE "search_result" ADD COLUMN "companyLogoUrl" text;

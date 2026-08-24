@@ -7,6 +7,7 @@ export interface RawListing {
   url: string;
   title: string;
   company: string;
+  companyLogoUrl: string | null;
   location: string;
   postedAt: string | null;
   description: string;

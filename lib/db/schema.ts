@@ -18,6 +18,8 @@ export const users = pgTable('user', {
   email: text('email').notNull().unique(),
   emailVerified: timestamp('emailVerified', { mode: 'date' }),
   image: text('image'),
+  // Null for a Google-only account. Scrypt salt:hash — never a plaintext password.
+  passwordHash: text('passwordHash'),
 });
 
 export const accounts = pgTable(
@@ -67,8 +69,8 @@ export const searches = pgTable('search', {
   userId: uuid('userId')
     .notNull()
     .references(() => users.id, { onDelete: 'cascade' }),
-  location: text('location').notNull(),
-  seniority: text('seniority').notNull(),
+  locations: jsonb('locations').$type<string[]>().notNull(),
+  seniorities: jsonb('seniorities').$type<string[]>().notNull(),
   domains: jsonb('domains').$type<string[]>().notNull(),
   resumeText: text('resumeText').notNull(),
   resumeMode: text('resumeMode').$type<'upload' | 'paste'>().notNull(),
@@ -87,6 +89,7 @@ export const searchResults = pgTable('search_result', {
   url: text('url').notNull(),
   title: text('title').notNull(),
   company: text('company').notNull(),
+  companyLogoUrl: text('companyLogoUrl'),
   location: text('location').notNull(),
   postedAt: timestamp('postedAt', { mode: 'date' }),
   description: text('description').notNull(),
@@ -109,7 +112,6 @@ export const searchResults = pgTable('search_result', {
 export const savedJobs = pgTable(
   'saved_job',
   {
-    id: uuid('id').defaultRandom().primaryKey(),
     userId: uuid('userId')
       .notNull()
       .references(() => users.id, { onDelete: 'cascade' }),

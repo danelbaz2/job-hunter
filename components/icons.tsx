@@ -2,9 +2,9 @@
 
 type IconProps = { size?: number; className?: string };
 
-export function BookmarkIcon({ size = 20, className }: IconProps & { filled?: boolean }) {
+export function BookmarkIcon({ size = 20, className, filled = false }: IconProps & { filled?: boolean }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 256 256" fill="none" className={className}>
+    <svg width={size} height={size} viewBox="0 0 256 256" fill={filled ? 'currentColor' : 'none'} className={className}>
       <path
         d="M184 32H72a8 8 0 0 0-8 8v176a8 8 0 0 0 12.31 6.74L128 181.7l51.69 41a8 8 0 0 0 12.31-6.7V40a8 8 0 0 0-8-8Z"
         stroke="currentColor"
@@ -70,6 +70,34 @@ export function ArrowUpRightIcon({ size = 16, className }: IconProps) {
         strokeLinecap="round"
         strokeLinejoin="round"
         fill="none"
+      />
+    </svg>
+  );
+}
+
+export function HouseIcon({ size = 22, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className}>
+      <path d="M4 21V8l8-5 8 5v13" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M9 21v-8h6v8" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+export function CheckIcon({ size = 18, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className}>
+      <path d="M20 6 9 17l-5-5" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+export function GoogleIcon({ size = 18, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" className={className}>
+      <path
+        fill="#EA4335"
+        d="M12 10.2v3.9h5.5c-.24 1.28-1.7 3.75-5.5 3.75-3.31 0-6.01-2.74-6.01-6.12S8.69 5.6 12 5.6c1.89 0 3.16.8 3.88 1.49l2.65-2.55C16.9 2.9 14.68 2 12 2 6.98 2 2.9 6.03 2.9 11.05S6.98 20.1 12 20.1c6.93 0 8.86-4.85 8.86-7.35 0-.5-.06-.88-.13-1.25H12z"
       />
     </svg>
   );

@@ -5,17 +5,24 @@ import { searches, searchResults } from '@/lib/db/schema';
 import { fetchListings } from '@/lib/sources/adapter';
 import { scoreListing } from '@/lib/scoring';
 import { parseResumeFile } from '@/lib/resume/parse';
-import type { Seniority } from '@/types/domain';
+import { parseDateOrNull } from '@/lib/formatDate';
+import type { Seniority, Source } from '@/types/domain';
 
+/**
+ * Streams newline-delimited progress events instead of one final JSON blob, so the search
+ * UI can check off each source as its Apify actor call actually finishes, and show a
+ * "Scoring fit…" step before the final result — rather than a single fixed-duration spinner.
+ */
 export async function POST(req: Request) {
   const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json({ error: 'Not signed in' }, { status: 401 });
   }
+  const userId = session.user.id;
 
   const form = await req.formData();
-  const location = String(form.get('location') ?? '');
-  const seniority = String(form.get('seniority') ?? '') as Seniority;
+  const locations = JSON.parse(String(form.get('locations') ?? '[]')) as string[];
+  const seniorities = JSON.parse(String(form.get('seniorities') ?? '[]')) as Seniority[];
   const domains = JSON.parse(String(form.get('domains') ?? '[]')) as string[];
   const resumeMode = String(form.get('resumeMode') ?? 'paste') as 'upload' | 'paste';
 
@@ -40,54 +47,76 @@ export async function POST(req: Request) {
     }
   }
 
-  if (!location || !seniority) {
-    return NextResponse.json({ error: 'Location and seniority are required' }, { status: 400 });
+  if (locations.length === 0 || seniorities.length === 0) {
+    return NextResponse.json({ error: 'Pick at least one location and seniority level' }, { status: 400 });
   }
 
-  const { listings, sourceStatus } = await fetchListings({ location, domains });
+  const encoder = new TextEncoder();
+  const stream = new ReadableStream({
+    async start(controller) {
+      const send = (event: object) => controller.enqueue(encoder.encode(JSON.stringify(event) + '\n'));
 
-  const [search] = await db
-    .insert(searches)
-    .values({
-      userId: session.user.id,
-      location,
-      seniority,
-      domains,
-      resumeText,
-      resumeMode,
-      sourceStatus,
-    })
-    .returning();
+      try {
+        const { listings, sourceStatus } = await fetchListings(
+          { locations, domains },
+          (source: Source, status) => send({ type: 'source', source, status })
+        );
 
-  const scored = await Promise.all(
-    listings.map((listing) => scoreListing(listing, { location, domains, seniority, resumeText }))
-  );
+        send({ type: 'scoring' });
 
-  if (scored.length > 0) {
-    await db.insert(searchResults).values(
-      scored.map((s) => ({
-        searchId: search.id,
-        source: s.listing.source,
-        externalId: s.listing.externalId,
-        url: s.listing.url,
-        title: s.listing.title,
-        company: s.listing.company,
-        location: s.listing.location,
-        postedAt: s.listing.postedAt ? new Date(s.listing.postedAt) : null,
-        description: s.listing.description,
-        requirements: s.listing.requirements,
-        rawText: s.listing.rawText,
-        locationScore: s.locationScore,
-        domainScore: s.domainScore,
-        seniorityScore: s.seniorityScore,
-        skillsScore: s.skillsScore,
-        aiFailed: s.aiFailed,
-        overallScore: s.overallScore,
-        matchedPoints: s.matchedPoints,
-        gapPoints: s.gapPoints,
-      }))
-    );
-  }
+        const [search] = await db
+          .insert(searches)
+          .values({
+            userId,
+            locations,
+            seniorities,
+            domains,
+            resumeText,
+            resumeMode,
+            sourceStatus,
+          })
+          .returning();
 
-  return NextResponse.json({ searchId: search.id });
+        const scored = await Promise.all(
+          listings.map((listing) => scoreListing(listing, { locations, domains, seniorities, resumeText }))
+        );
+
+        if (scored.length > 0) {
+          await db.insert(searchResults).values(
+            scored.map((s) => ({
+              searchId: search.id,
+              source: s.listing.source,
+              externalId: s.listing.externalId,
+              url: s.listing.url,
+              title: s.listing.title,
+              company: s.listing.company,
+              companyLogoUrl: s.listing.companyLogoUrl,
+              location: s.listing.location,
+              postedAt: parseDateOrNull(s.listing.postedAt),
+              description: s.listing.description,
+              requirements: s.listing.requirements,
+              rawText: s.listing.rawText,
+              locationScore: s.locationScore,
+              domainScore: s.domainScore,
+              seniorityScore: s.seniorityScore,
+              skillsScore: s.skillsScore,
+              aiFailed: s.aiFailed,
+              overallScore: s.overallScore,
+              matchedPoints: s.matchedPoints,
+              gapPoints: s.gapPoints,
+            }))
+          );
+        }
+
+        send({ type: 'done', searchId: search.id });
+      } catch (err) {
+        console.error('[api/search] search pipeline failed', err);
+        send({ type: 'error', message: 'Search failed — please try again.' });
+      } finally {
+        controller.close();
+      }
+    },
+  });
+
+  return new Response(stream, { headers: { 'Content-Type': 'application/x-ndjson' } });
 }

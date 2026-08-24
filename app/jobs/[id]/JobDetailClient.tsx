@@ -6,6 +6,8 @@ import styles from './JobDetail.module.css';
 import { ScoreBadge } from '@/components/ScoreBadge';
 import { FitBreakdown } from '@/components/FitBreakdown';
 import { MatchedGapList } from '@/components/MatchedGapList';
+import { CollapsibleText } from '@/components/CollapsibleText';
+import { CollapsibleList } from '@/components/CollapsibleList';
 import { ChevronLeftIcon, BookmarkIcon, ArrowUpRightIcon } from '@/components/icons';
 import { daysAgoLabel } from '@/lib/formatDate';
 import { SOURCE_LABELS, type SearchResultItem } from '@/types/domain';
@@ -18,7 +20,9 @@ export function JobDetailClient({ job }: { job: SearchResultItem }) {
     const next = !saved;
     setSaved(next);
     try {
-      await fetch(`/api/jobs/${job.id}/save`, { method: next ? 'POST' : 'DELETE' });
+      const res = await fetch(`/api/jobs/${job.id}/save`, { method: next ? 'POST' : 'DELETE' });
+      if (!res.ok) throw new Error('save failed');
+      router.refresh(); // updates the nav bar's "Saved (N)" count
     } catch {
       setSaved(!next);
     }
@@ -32,7 +36,12 @@ export function JobDetailClient({ job }: { job: SearchResultItem }) {
 
       <div className={styles.header}>
         <div className={styles.identity}>
-          <span className={styles.avatar}>{job.company.charAt(0).toUpperCase() || '?'}</span>
+          {job.companyLogoUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={job.companyLogoUrl} alt="" className={styles.avatarImg} />
+          ) : (
+            <span className={styles.avatar}>{job.company.charAt(0).toUpperCase() || '?'}</span>
+          )}
           <div>
             <h1 className={styles.title}>{job.title}</h1>
             <div className={styles.subline}>
@@ -51,7 +60,7 @@ export function JobDetailClient({ job }: { job: SearchResultItem }) {
             className={`${styles.saveButton} ${saved ? styles.saveButtonSaved : ''}`}
             onClick={toggleSave}
           >
-            <BookmarkIcon /> {saved ? 'Saved' : 'Save'}
+            <BookmarkIcon filled={saved} /> {saved ? 'Saved' : 'Save'}
           </button>
           <ScoreBadge score={job.overallScore} size="detail" />
         </div>
@@ -59,18 +68,14 @@ export function JobDetailClient({ job }: { job: SearchResultItem }) {
 
       <div className={styles.columns}>
         <div>
-          <h2 className={styles.h2}>About this role</h2>
-          <p className={styles.body}>{job.description}</p>
-
-          <h2 className={styles.h2}>Requirements</h2>
-          <ul className={styles.reqList}>
-            {job.requirements.map((r, i) => (
-              <li key={i}>{r}</li>
-            ))}
-          </ul>
-
           <h2 className={styles.h2}>Fit breakdown</h2>
           <FitBreakdown job={job} />
+
+          <h2 className={styles.h2}>About this role</h2>
+          <CollapsibleText text={job.description} />
+
+          <h2 className={styles.h2}>Requirements</h2>
+          <CollapsibleList items={job.requirements} listClassName={styles.reqList} />
         </div>
 
         <div className={styles.sticky}>

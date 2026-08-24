@@ -1,4 +1,8 @@
+'use client';
+
+import { useState } from 'react';
 import styles from './MatchedGapList.module.css';
+import { ChevronLeftIcon } from './icons';
 import type { MatchPoint } from '@/types/domain';
 
 /**
@@ -23,10 +27,23 @@ function List({ title, points }: { title: string; points: MatchPoint[] }) {
 }
 
 export function MatchedGapList({ matched, gaps }: { matched: MatchPoint[]; gaps: MatchPoint[] }) {
+  const [expanded, setExpanded] = useState(false);
+
   return (
     <div>
-      <List title="Matched" points={matched} />
-      <List title="Gaps" points={gaps} />
+      <button type="button" className={styles.toggle} onClick={() => setExpanded((v) => !v)}>
+        <span>
+          {matched.length} matched · {gaps.length} gaps
+        </span>
+        <ChevronLeftIcon className={expanded ? styles.chevronUp : styles.chevronDown} />
+      </button>
+
+      {expanded && (
+        <div className={styles.details}>
+          <List title="Matched" points={matched} />
+          <List title="Gaps" points={gaps} />
+        </div>
+      )}
     </div>
   );
 }

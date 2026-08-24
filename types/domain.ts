@@ -35,6 +35,7 @@ export const SOURCE_LABELS: Record<Source, string> = {
 };
 
 export type SourceStatus = Record<Source, 'ok' | 'failed'>;
+export type SourceProgress = Record<Source, 'pending' | 'ok' | 'failed'>;
 
 export interface MatchPoint {
   text: string;
@@ -49,6 +50,7 @@ export interface SearchResultItem {
   url: string;
   title: string;
   company: string;
+  companyLogoUrl: string | null;
   location: string;
   postedAt: string | null;
   description: string;
@@ -70,8 +72,8 @@ export interface SearchResultItem {
 
 export interface SearchSummary {
   id: string;
-  location: string;
-  seniority: Seniority;
+  locations: string[];
+  seniorities: Seniority[];
   domains: string[];
   sourceStatus: SourceStatus;
 }
