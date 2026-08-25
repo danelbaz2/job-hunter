@@ -1,30 +1,18 @@
-import styles from './FitBreakdown.module.css';
-import { WarningIcon } from './icons';
+import { AlertTriangle } from 'lucide-react';
+import { Meter } from '@/components/ui/meter';
 import type { SearchResultItem } from '@/types/domain';
-
-function Bar({ label, value }: { label: string; value: number }) {
-  return (
-    <div className={styles.row}>
-      <span className={styles.label}>{label}</span>
-      <div className={styles.track}>
-        <div className={styles.fill} style={{ width: `${value}%` }} />
-      </div>
-      <span className={styles.value}>{value}%</span>
-    </div>
-  );
-}
 
 export function FitBreakdown({ job }: { job: SearchResultItem }) {
   return (
     <div>
-      <Bar label="Location" value={job.locationScore} />
-      <Bar label="Domain" value={job.domainScore} />
-      <Bar label="Seniority" value={job.seniorityScore} />
+      <Meter label="Location" value={job.locationScore} />
+      <Meter label="Domain" value={job.domainScore} />
+      <Meter label="Seniority" value={job.seniorityScore} />
       {job.skillsScore !== null ? (
-        <Bar label="Skills fit" value={job.skillsScore} />
+        <Meter label="Skills fit" value={job.skillsScore} />
       ) : (
-        <div className={styles.warning}>
-          <WarningIcon />
+        <div className="mt-2 flex items-start gap-2 text-sm text-text/60">
+          <AlertTriangle size={16} className="mt-0.5 shrink-0 text-tier-mid-text" />
           <span>
             Skills-fit scoring was unavailable for this listing (the AI call failed) — no score is
             shown rather than a guessed one.

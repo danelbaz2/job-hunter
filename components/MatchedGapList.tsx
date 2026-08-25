@@ -1,8 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import styles from './MatchedGapList.module.css';
-import { ChevronLeftIcon } from './icons';
+import { ChevronDown } from 'lucide-react';
+import { Collapse } from '@/components/motion/Collapse';
+import { cn } from '@/lib/utils';
 import type { MatchPoint } from '@/types/domain';
 
 /**
@@ -12,14 +13,14 @@ import type { MatchPoint } from '@/types/domain';
  */
 function List({ title, points }: { title: string; points: MatchPoint[] }) {
   return (
-    <div className={styles.section}>
-      <div className={styles.sectionTitle}>
+    <div className="mb-4">
+      <div className="mb-2 text-xs uppercase tracking-wide text-text/50">
         {title} — {points.length}
       </div>
       {points.map((p, i) => (
-        <div key={i} className={styles.point}>
-          <div className={styles.claim}>{p.text}</div>
-          <div className={styles.quote}>From listing: &quot;{p.quote}&quot;</div>
+        <div key={i} className="mb-3 rounded-md bg-surface p-3">
+          <div className="text-sm text-text/90">{p.text}</div>
+          <div className="mt-1.5 text-xs italic text-text/50">From listing: &quot;{p.quote}&quot;</div>
         </div>
       ))}
     </div>
@@ -31,19 +32,23 @@ export function MatchedGapList({ matched, gaps }: { matched: MatchPoint[]; gaps:
 
   return (
     <div>
-      <button type="button" className={styles.toggle} onClick={() => setExpanded((v) => !v)}>
+      <button
+        type="button"
+        className="flex w-full items-center justify-between rounded-md border border-border px-3 py-2.5 text-sm"
+        onClick={() => setExpanded((v) => !v)}
+      >
         <span>
           {matched.length} matched · {gaps.length} gaps
         </span>
-        <ChevronLeftIcon className={expanded ? styles.chevronUp : styles.chevronDown} />
+        <ChevronDown size={16} className={cn('transition-transform duration-300', expanded && 'rotate-180')} />
       </button>
 
-      {expanded && (
-        <div className={styles.details}>
+      <Collapse open={expanded}>
+        <div className="pt-3">
           <List title="Matched" points={matched} />
           <List title="Gaps" points={gaps} />
         </div>
-      )}
+      </Collapse>
     </div>
   );
 }

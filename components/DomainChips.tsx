@@ -1,4 +1,4 @@
-import styles from './Pills.module.css';
+import { Chip } from '@/components/ui/chip';
 import { DOMAIN_OPTIONS } from '@/types/domain';
 
 export function DomainChips({
@@ -13,17 +13,11 @@ export function DomainChips({
   }
 
   return (
-    <div className={styles.pillRow}>
+    <div className="flex flex-wrap gap-2">
       {DOMAIN_OPTIONS.map((domain) => (
-        <button
-          key={domain}
-          type="button"
-          aria-pressed={value.includes(domain)}
-          className={`${styles.tag} ${value.includes(domain) ? styles.tagSelected : ''}`}
-          onClick={() => toggle(domain)}
-        >
+        <Chip key={domain} selected={value.includes(domain)} onClick={() => toggle(domain)}>
           {domain}
-        </button>
+        </Chip>
       ))}
     </div>
   );

@@ -1,4 +1,4 @@
-import styles from './Pills.module.css';
+import { Chip } from '@/components/ui/chip';
 import { SENIORITY_OPTIONS, type Seniority } from '@/types/domain';
 
 export function SeniorityPicker({
@@ -13,17 +13,11 @@ export function SeniorityPicker({
   }
 
   return (
-    <div className={styles.pillRow}>
+    <div className="flex flex-wrap gap-2">
       {SENIORITY_OPTIONS.map((option) => (
-        <button
-          key={option}
-          type="button"
-          aria-pressed={value.includes(option)}
-          className={`${styles.pill} ${value.includes(option) ? styles.pillSelected : ''}`}
-          onClick={() => toggle(option)}
-        >
+        <Chip key={option} selected={value.includes(option)} onClick={() => toggle(option)}>
           {option}
-        </button>
+        </Chip>
       ))}
     </div>
   );

@@ -1,73 +1,131 @@
-:root {
-  --bg: #161826;
-  --surface: #232532;
-  --text: #e9e9ed;
+@import 'tailwindcss';
+@import 'tw-animate-css';
 
-  --accent-100: #f5f4ff;
-  --accent-200: #e4e0fb;
-  --accent-300: #c7bff2;
-  --accent-400: #a89ce6;
-  --accent-500: #968ae0;
-  --accent-600: #9184d9;
-  --accent-900: #2b2741;
+@source '../app/**/*.{ts,tsx}';
+@source '../components/**/*.{ts,tsx}';
 
-  --neutral-100: #f3f5fe;
-  --neutral-300: #c9cbd4;
-  --neutral-400: #a5a8b4;
-  --neutral-500: #82858f;
-  --neutral-600: #63656e;
-  --neutral-700: #4a4c55;
-  --neutral-800: #35363f;
-  --neutral-900: #292b31;
+@theme {
+  /* — surfaces — */
+  --color-bg: #161826;
+  --color-surface: #232532;
+  --color-surface-raised: #2b2d3c;
+  --color-text: #e9e9ed;
+  --color-border: #3f424d;
 
-  --divider: color-mix(in srgb, #e9e9ed 16%, transparent);
+  /* — accent ramp (Nocturne blurple, OKLCH-derived) — */
+  --color-accent-100: #f5f4ff;
+  --color-accent-200: #e7e5fe;
+  --color-accent-300: #d2cefd;
+  --color-accent-400: #b5abfc;
+  --color-accent-500: #968ae0;
+  --color-accent-600: #796cbf;
+  --color-accent-700: #5d5294;
+  --color-accent-800: #423a6a;
+  --color-accent-900: #2b2741;
 
-  --tier-high-text: #4ade80;
-  --tier-high-bg: rgba(34, 197, 94, 0.16);
-  --tier-high-border: rgba(74, 222, 128, 0.4);
-  --tier-mid-text: #fbbf24;
-  --tier-mid-bg: rgba(245, 158, 11, 0.16);
-  --tier-mid-border: rgba(251, 191, 36, 0.4);
-  --tier-low-text: #f87171;
-  --tier-low-bg: rgba(239, 68, 68, 0.16);
-  --tier-low-border: rgba(248, 113, 113, 0.4);
+  /* — neutral ramp — */
+  --color-neutral-100: #f3f5fe;
+  --color-neutral-200: #e4e7f5;
+  --color-neutral-300: #cfd3e5;
+  --color-neutral-400: #b2b6ca;
+  --color-neutral-500: #9397ab;
+  --color-neutral-600: #75798c;
+  --color-neutral-700: #595d6c;
+  --color-neutral-800: #3f424d;
+  --color-neutral-900: #292b31;
 
-  --space-1: 2.8px;
-  --space-2: 5.6px;
-  --space-3: 8.4px;
-  --space-4: 11.2px;
-  --space-5: 16.8px;
-  --space-6: 22.4px;
+  /* — score-tier semantics (not part of Nocturne; domain-specific) — */
+  --color-tier-high-text: #4ade80;
+  --color-tier-high-bg: rgba(34, 197, 94, 0.16);
+  --color-tier-high-border: rgba(74, 222, 128, 0.4);
+  --color-tier-mid-text: #fbbf24;
+  --color-tier-mid-bg: rgba(245, 158, 11, 0.16);
+  --color-tier-mid-border: rgba(251, 191, 36, 0.4);
+  --color-tier-low-text: #f87171;
+  --color-tier-low-bg: rgba(239, 68, 68, 0.16);
+  --color-tier-low-border: rgba(248, 113, 113, 0.4);
 
+  /* — type — */
+  --font-heading: var(--font-inter), system-ui, sans-serif;
+  --font-body: var(--font-inter), system-ui, sans-serif;
+  --text-xs: 12px;
+  --text-sm: 13px;
+  --text-base: 15px;
+  --text-lg: 18px;
+  --text-xl: 22px;
+  --text-2xl: 26px;
+  --text-3xl: 31px;
+  --text-4xl: 37px;
+  --text-5xl: 45px;
+
+  /* — spacing: dense feel on a whole-pixel 4px unit, not Nocturne's 0.70x — */
+  --spacing-1: 4px;
+  --spacing-2: 8px;
+  --spacing-3: 12px;
+  --spacing-4: 16px;
+  --spacing-5: 20px;
+  --spacing-6: 24px;
+  --spacing-8: 32px;
+  --spacing-10: 40px;
+
+  /* — radius — */
   --radius-sm: 4px;
   --radius-md: 8px;
   --radius-lg: 14px;
   --radius-pill: 999px;
 
-  --shadow-sm: 0 0 0 1px #3f424d;
-  --shadow-md: 0 0 0 1px #595d6c, 0 6px 18px rgba(0, 0, 0, 0.55);
-  --shadow-lg: 0 0 0 1px #9397ab, 0 16px 40px rgba(0, 0, 0, 0.65);
+  /* — elevation: shadow only. Borders are a separate --color-border, never
+     faked as a 0 0 0 1px shadow layer. — */
+  --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.35);
+  --shadow-md: 0 6px 18px rgba(0, 0, 0, 0.55);
+  --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.65);
 }
 
 * {
   box-sizing: border-box;
 }
 
+html {
+  scroll-behavior: smooth;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-neutral-700) transparent;
+}
+
 html,
 body {
   padding: 0;
   margin: 0;
-  background: var(--bg);
-  color: var(--text);
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-body);
   font-weight: 400;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-neutral-700);
+  border-radius: var(--radius-pill);
+  border: 2px solid var(--color-bg);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-neutral-600);
 }
 
 h1,
 h2,
-h3 {
+h3,
+h4 {
+  font-family: var(--font-heading);
   font-weight: 500;
   margin: 0;
+  letter-spacing: -0.015em;
 }
 
 button {
@@ -79,12 +137,89 @@ a {
   color: inherit;
 }
 
-.page {
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 56px 64px 96px;
+:focus {
+  outline: none;
 }
 
-.pill {
-  border-radius: var(--radius-pill);
+:focus-visible {
+  outline: 2px solid var(--color-accent-500);
+  outline-offset: 2px;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--color-accent-500) 30%, transparent);
+}
+
+/* Soft opacity breathing used by the Skeleton primitive — no harsh color blink,
+   no shimmer sweep, just a slow fluid pulse. */
+@keyframes skeleton-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+
+/* Shiny gradient sweep across text — used on the "Searching…" heading. Base text
+   is dimmed so the bright band reads as a highlight sweeping through it, rather
+   than two similarly-light tones (which are invisible against each other). */
+@keyframes text-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.text-shimmer {
+  background-image: linear-gradient(
+    100deg,
+    color-mix(in srgb, var(--color-text) 35%, transparent) 35%,
+    #ffffff 50%,
+    color-mix(in srgb, var(--color-text) 35%, transparent) 65%
+  );
+  background-size: 250% 100%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  animation: text-shimmer 4.5s linear infinite;
+}
+
+/* Breathing accent glow for the "Scoring fit…" pill — a modern stand-in for a
+   spinner: no rotation, just a soft pulse that reads as "still working". */
+@keyframes glow-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-accent-500) 45%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 18px 3px color-mix(in srgb, var(--color-accent-500) 45%, transparent);
+  }
+}
+
+/* Brief accent flash on a skeleton element when new data has just landed. */
+@keyframes data-flash {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-accent-500) 55%, transparent);
+  }
+  60% {
+    box-shadow: 0 0 0 6px color-mix(in srgb, var(--color-accent-500) 0%, transparent);
+  }
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-accent-500) 0%, transparent);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
 }

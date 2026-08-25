@@ -2,8 +2,13 @@
 
 import { useState } from 'react';
 import { signIn } from 'next-auth/react';
-import styles from './Landing.module.css';
-import { GoogleIcon } from '@/components/icons';
+import { AnimatePresence, motion } from 'motion/react';
+import { Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { SegmentedControl } from '@/components/ui/segmented-control';
+import { Separator } from '@/components/ui/separator';
 
 type Mode = 'signin' | 'signup';
 
@@ -24,17 +29,44 @@ const COPY: Record<Mode, { heading: string; sub: string; cta: string; switchProm
   },
 };
 
+const EASE = [0.16, 1, 0.3, 1] as const;
+
+const slideVariants = {
+  enter: (direction: number) => ({ opacity: 0, x: direction * 28 }),
+  center: { opacity: 1, x: 0 },
+  exit: (direction: number) => ({ opacity: 0, x: -direction * 28 }),
+};
+
+function GoogleLogo() {
+  return (
+    <svg width={18} height={18} viewBox="0 0 24 24">
+      <path
+        fill="#EA4335"
+        d="M12 10.2v3.9h5.5c-.24 1.28-1.7 3.75-5.5 3.75-3.31 0-6.01-2.74-6.01-6.12S8.69 5.6 12 5.6c1.89 0 3.16.8 3.88 1.49l2.65-2.55C16.9 2.9 14.68 2 12 2 6.98 2 2.9 6.03 2.9 11.05S6.98 20.1 12 20.1c6.93 0 8.86-4.85 8.86-7.35 0-.5-.06-.88-.13-1.25H12z"
+      />
+    </svg>
+  );
+}
+
 export function AuthCard({ callbackUrl }: { callbackUrl: string }) {
   const [mode, setMode] = useState<Mode>('signin');
+  const [direction, setDirection] = useState(0);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+  const [googlePending, setGooglePending] = useState(false);
   const copy = COPY[mode];
 
+  function switchMode(next: Mode) {
+    if (next === mode) return;
+    setDirection(next === 'signup' ? 1 : -1);
+    setMode(next);
+  }
+
   async function handleGoogle() {
-    setPending(true);
+    setGooglePending(true);
     await signIn('google', { callbackUrl });
   }
 
@@ -72,105 +104,117 @@ export function AuthCard({ callbackUrl }: { callbackUrl: string }) {
   }
 
   return (
-    <div className={styles.authBox}>
-      <div className={styles.seg}>
-        <button
-          type="button"
-          className={`${styles.segOpt} ${mode === 'signin' ? styles.segOptSelected : ''}`}
-          onClick={() => setMode('signin')}
-        >
-          Sign in
-        </button>
-        <button
-          type="button"
-          className={`${styles.segOpt} ${mode === 'signup' ? styles.segOptSelected : ''}`}
-          onClick={() => setMode('signup')}
-        >
-          Create account
-        </button>
+    <motion.div layout className="w-full max-w-[400px] overflow-hidden rounded-lg bg-surface p-6 shadow-md sm:p-8">
+      <SegmentedControl
+        className="mb-6 w-full [&>button]:flex-1"
+        options={[
+          { value: 'signin', label: 'Sign in' },
+          { value: 'signup', label: 'Create account' },
+        ]}
+        value={mode}
+        onChange={switchMode}
+      />
+
+      <Button
+        type="button"
+        variant="secondary"
+        className="w-full"
+        onClick={handleGoogle}
+        disabled={pending || googlePending}
+      >
+        {googlePending ? <Loader2 size={18} className="animate-spin" /> : <GoogleLogo />}
+        {googlePending ? 'Redirecting to Google…' : 'Continue with Google'}
+      </Button>
+
+      <div className="my-5 flex items-center gap-3">
+        <Separator className="flex-1" />
+        <span className="text-xs text-text/50">or</span>
+        <Separator className="flex-1" />
       </div>
 
-      <h2 className={styles.h2}>{copy.heading}</h2>
-      <p className={styles.sub}>{copy.sub}</p>
-
-      <button type="button" className={styles.googleButton} onClick={handleGoogle} disabled={pending}>
-        <GoogleIcon />
-        Continue with Google
-      </button>
-
-      <div className={styles.divider}>
-        <div className={styles.dividerLine} />
-        <span className={styles.dividerText}>or</span>
-        <div className={styles.dividerLine} />
-      </div>
-
-      {error && <div className={styles.error}>{error}</div>}
-
-      <form onSubmit={handleSubmit}>
-        {mode === 'signup' && (
-          <div className={styles.field}>
-            <label htmlFor="name">Full name</label>
-            <input
-              id="name"
-              className={styles.input}
-              type="text"
-              placeholder="Dana Levi"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-            />
-          </div>
-        )}
-
-        <div className={styles.field}>
-          <label htmlFor="email">Email</label>
-          <input
-            id="email"
-            className={styles.input}
-            type="email"
-            placeholder="dana@example.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-        </div>
-
-        <div className={styles.field} style={{ marginBottom: 8 }}>
-          <label htmlFor="password">Password</label>
-          <input
-            id="password"
-            className={styles.input}
-            type="password"
-            placeholder="••••••••••"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-        </div>
-
-        {mode === 'signup' && (
-          <p className={styles.hint}>Use 8+ characters with a number and a symbol.</p>
-        )}
-
-        <button type="submit" className={styles.submit} disabled={pending} style={{ marginTop: mode === 'signin' ? 22 : 0 }}>
-          {copy.cta}
-        </button>
-      </form>
-
-      <p className={styles.switchPrompt}>
-        {copy.switchPrompt}{' '}
-        <button
-          type="button"
-          className={styles.switchLink}
-          onClick={() => setMode(mode === 'signin' ? 'signup' : 'signin')}
+      <AnimatePresence mode="wait" custom={direction} initial={false}>
+        <motion.div
+          key={mode}
+          custom={direction}
+          variants={slideVariants}
+          initial="enter"
+          animate="center"
+          exit="exit"
+          transition={{ duration: 0.32, ease: EASE }}
         >
-          {copy.switchCta}
-        </button>
-      </p>
+          <h2 className="text-xl">{copy.heading}</h2>
+          <p className="mb-5 mt-1 text-sm text-text/70">{copy.sub}</p>
 
-      <p className={styles.terms}>
+          {error && (
+            <div className="mb-4 rounded-md border border-tier-low-border bg-tier-low-bg px-3 py-2 text-sm text-tier-low-text">
+              {error}
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="flex flex-col gap-3.5">
+            {mode === 'signup' && (
+              <div>
+                <Label htmlFor="name">Full name</Label>
+                <Input
+                  id="name"
+                  type="text"
+                  placeholder="Dana Levi"
+                  autoComplete="name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  required
+                />
+              </div>
+            )}
+
+            <div>
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="dana@example.com"
+                autoComplete="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="password">Password</Label>
+              <Input
+                id="password"
+                type="password"
+                placeholder="••••••••••"
+                autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+              {mode === 'signup' && <p className="mt-1.5 text-xs text-text/50">Use 8+ characters with a number and a symbol.</p>}
+            </div>
+
+            <Button type="submit" variant="solid" className="mt-1 w-full" disabled={pending}>
+              {pending ? <Loader2 size={16} className="animate-spin" /> : copy.cta}
+            </Button>
+          </form>
+
+          <p className="mt-4 text-center text-sm text-text/70">
+            {copy.switchPrompt}{' '}
+            <button
+              type="button"
+              className="text-accent-400 hover:underline"
+              onClick={() => switchMode(mode === 'signin' ? 'signup' : 'signin')}
+            >
+              {copy.switchCta}
+            </button>
+          </p>
+        </motion.div>
+      </AnimatePresence>
+
+      <p className="mt-4 text-center text-xs text-text/40">
         By continuing you agree to Job Hunter&apos;s Terms of Service and Privacy Policy.
       </p>
-    </div>
+    </motion.div>
   );
 }

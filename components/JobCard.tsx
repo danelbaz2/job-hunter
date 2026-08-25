@@ -3,9 +3,11 @@
 import Link from 'next/link';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import styles from './JobCard.module.css';
-import { ScoreBadge } from './ScoreBadge';
-import { BookmarkIcon } from './icons';
+import { Bookmark } from 'lucide-react';
+import { toast } from 'sonner';
+import { ScoreBadge } from '@/components/ui/score-badge';
+import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
 import { daysAgoLabel } from '@/lib/formatDate';
 import type { SearchResultItem } from '@/types/domain';
 
@@ -29,48 +31,53 @@ export function JobCard({ job }: { job: SearchResultItem }) {
       router.refresh(); // updates the nav bar's "Saved (N)" count
     } catch {
       setSaved(!next);
+      toast.error(next ? 'Could not save job' : 'Could not remove job');
     } finally {
       setPending(false);
     }
   }
 
   return (
-    <Link href={`/jobs/${job.id}`} className={styles.card}>
-      <div className={styles.topBar}>
+    <Link
+      href={`/jobs/${job.id}`}
+      className="flex flex-col gap-3 rounded-md bg-surface p-4 shadow-sm transition-transform hover:-translate-y-0.5 hover:shadow-md"
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex items-start gap-3">
+          {job.companyLogoUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={job.companyLogoUrl} alt="" className="h-10 w-10 shrink-0 rounded-md object-cover" />
+          ) : (
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-accent-800 text-sm text-accent-100">
+              {job.company.charAt(0).toUpperCase() || '?'}
+            </span>
+          )}
+          <div>
+            <h3 className="text-base leading-tight">{job.title}</h3>
+            <div className="text-sm text-text/60">{job.company}</div>
+          </div>
+        </div>
         <button
           type="button"
-          className={`${styles.bookmark} ${saved ? styles.bookmarkSaved : ''}`}
+          className={cn('shrink-0 text-neutral-500 transition-colors hover:text-accent-500', saved && 'text-accent-500')}
           onClick={toggleSave}
           aria-label={saved ? 'Remove from saved' : 'Save job'}
         >
-          <BookmarkIcon filled={saved} />
+          <Bookmark size={18} fill={saved ? 'currentColor' : 'none'} />
         </button>
       </div>
 
-      <div className={styles.topRow}>
-        <div className={styles.identity}>
-          {job.companyLogoUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={job.companyLogoUrl} alt="" className={styles.avatarImg} />
-          ) : (
-            <span className={styles.avatar}>{job.company.charAt(0).toUpperCase() || '?'}</span>
-          )}
-          <div>
-            <h3 className={styles.title}>{job.title}</h3>
-            <div className={styles.company}>{job.company}</div>
-          </div>
-        </div>
+      <div className="flex items-center justify-between">
+        <span className="text-xs text-text/60">
+          {job.location} · {daysAgoLabel(job.postedAt)}
+        </span>
         <ScoreBadge score={job.overallScore} />
       </div>
 
-      <div className={styles.meta}>
-        {job.location} · {daysAgoLabel(job.postedAt)}
-      </div>
-
-      <div className={styles.tags}>
-        <span className={`${styles.tag} ${styles.tagAccent}`}>{job.matchedPoints.length} matched</span>
-        <span className={`${styles.tag} ${styles.tagOutline}`}>{job.gapPoints.length} gaps</span>
-        {job.aiFailed && <span className={`${styles.tag} ${styles.tagNeutral}`}>Skills-fit unavailable</span>}
+      <div className="flex flex-wrap gap-1.5">
+        <Badge variant="accent">{job.matchedPoints.length} matched</Badge>
+        <Badge variant="outline">{job.gapPoints.length} gaps</Badge>
+        {job.aiFailed && <Badge variant="neutral">Skills-fit unavailable</Badge>}
       </div>
     </Link>
   );

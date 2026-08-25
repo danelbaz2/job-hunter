@@ -1,10 +1,17 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import styles from './Results.module.css';
+import { AnimatePresence, motion } from 'motion/react';
+import { FadeIn } from '@/components/motion/FadeIn';
 import { JobCard } from '@/components/JobCard';
-import { WarningIcon } from '@/components/icons';
+import { seedJobCache } from '@/lib/jobDetailCache';
+import { Banner } from '@/components/ui/banner';
+import { Chip } from '@/components/ui/chip';
+import { SegmentedControl } from '@/components/ui/segmented-control';
+import { Button } from '@/components/ui/button';
+import { EmptyState } from '@/components/ui/empty-state';
+import { Stagger } from '@/components/motion/Stagger';
 import { SOURCE_LABELS, SOURCES, type SearchResultItem, type SearchSummary, type Source } from '@/types/domain';
 
 type SortBy = 'score' | 'date';
@@ -27,6 +34,12 @@ export function ResultsGrid({
   );
   const [sortBy, setSortBy] = useState<SortBy>('score');
 
+  // Every card visible here already carries full detail data — seed the client cache
+  // so clicking any of them is a guaranteed cache hit (instant render, no skeleton).
+  useEffect(() => {
+    seedJobCache(jobs);
+  }, [jobs]);
+
   const failedSources = summary
     ? (Object.entries(summary.sourceStatus) as [Source, 'ok' | 'failed'][]).filter(([, s]) => s === 'failed')
     : [];
@@ -44,83 +57,112 @@ export function ResultsGrid({
   }
 
   return (
-    <div>
-      <div className={styles.header}>
+    <FadeIn>
+      <div className="mb-5 flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1>{heading}</h1>
+          <h1 className="text-2xl sm:text-3xl">{heading}</h1>
           {summary && (
-            <div className={styles.summaryTags}>
-              <span className={styles.summaryTag}>{summary.locations.join(' · ')}</span>
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              <span className="rounded-pill bg-neutral-800 px-2.5 py-1 text-xs text-neutral-200">
+                {summary.locations.join(' · ')}
+              </span>
               {summary.domains.length > 0 && (
-                <span className={styles.summaryTag}>{summary.domains.join(' · ')}</span>
+                <span className="rounded-pill bg-neutral-800 px-2.5 py-1 text-xs text-neutral-200">
+                  {summary.domains.join(' · ')}
+                </span>
               )}
-              <span className={styles.summaryTag}>{summary.seniorities.join(' · ')}</span>
+              <span className="rounded-pill bg-neutral-800 px-2.5 py-1 text-xs text-neutral-200">
+                {summary.seniorities.join(' · ')}
+              </span>
             </div>
           )}
         </div>
         {summary && (
-          <Link href="/search" className={styles.ghostButton}>
-            Edit search
-          </Link>
+          <Button asChild variant="ghost">
+            <Link href="/search">Edit search</Link>
+          </Button>
         )}
       </div>
 
-      {failedSources.length > 0 && (
-        <div className={styles.banner}>
-          <WarningIcon />
-          <span>
-            Checked {Object.entries(summary!.sourceStatus).filter(([, s]) => s === 'ok').map(([s]) => SOURCE_LABELS[s as Source]).join(', ')}
-            {' · '}
-            {failedSources.map(([s]) => SOURCE_LABELS[s]).join(', ')} was unavailable this run, so its listings are missing.
-          </span>
-        </div>
-      )}
+      <AnimatePresence>
+        {failedSources.length > 0 && summary && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+            className="overflow-hidden"
+          >
+            <Banner className="mb-5">
+              Checked{' '}
+              {Object.entries(summary.sourceStatus)
+                .filter(([, s]) => s === 'ok')
+                .map(([s]) => SOURCE_LABELS[s as Source])
+                .join(', ')}
+              {' · '}
+              {failedSources.map(([s]) => SOURCE_LABELS[s]).join(', ')} was unavailable this run, so its listings are
+              missing.
+            </Banner>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-      <div className={styles.toolbar}>
-        <div className={styles.sourceRow}>
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap gap-2">
           {availableSources.map((source) => (
-            <button
+            <Chip
               key={source}
-              className={`${styles.sourceTag} ${sourceFilters[source] ? styles.sourceTagSelected : ''}`}
+              selected={sourceFilters[source]}
               onClick={() => setSourceFilters((prev) => ({ ...prev, [source]: !prev[source] }))}
             >
               {SOURCE_LABELS[source]}
-            </button>
+            </Chip>
           ))}
         </div>
-        <div className={styles.sortWrap}>
+        <div className="flex items-center gap-2 text-sm text-text/70">
           <span>Sort by:</span>
-          <div className={styles.sortControl}>
-            <button
-              className={`${styles.sortOption} ${sortBy === 'score' ? styles.sortOptionSelected : ''}`}
-              onClick={() => setSortBy('score')}
-            >
-              Fit score
-            </button>
-            <button
-              className={`${styles.sortOption} ${sortBy === 'date' ? styles.sortOptionSelected : ''}`}
-              onClick={() => setSortBy('date')}
-            >
-              Newest
-            </button>
-          </div>
+          <SegmentedControl
+            options={[
+              { value: 'score', label: 'Fit score' },
+              { value: 'date', label: 'Newest' },
+            ]}
+            value={sortBy}
+            onChange={setSortBy}
+          />
         </div>
       </div>
 
-      {visible.length === 0 ? (
-        <div className={styles.empty}>
-          <p>No listings match these filters</p>
-          <button className={styles.resetButton} onClick={resetFilters}>
-            Reset filters
-          </button>
-        </div>
-      ) : (
-        <div className={styles.grid}>
-          {visible.map((job) => (
-            <JobCard key={job.id} job={job} />
-          ))}
-        </div>
-      )}
-    </div>
+      <AnimatePresence mode="wait">
+        {visible.length === 0 ? (
+          <motion.div
+            key="empty"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+          >
+            <EmptyState
+              title="No listings match these filters"
+              action={
+                <Button variant="secondary" onClick={resetFilters}>
+                  Reset filters
+                </Button>
+              }
+            />
+          </motion.div>
+        ) : (
+          <motion.div
+            key="grid"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+            className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
+          >
+            <Stagger>{visible.map((job) => <JobCard key={job.id} job={job} />)}</Stagger>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </FadeIn>
   );
 }

@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import { auth } from '@/lib/auth';
 import { getSearchWithResults } from '@/lib/db/queries';
 import { ResultsGrid } from './ResultsGrid';
+import { PageContainer } from '@/components/ui/page-container';
 
 export default async function ResultsPage({
   searchParams,
@@ -18,8 +19,8 @@ export default async function ResultsPage({
   if (!data) redirect('/search');
 
   return (
-    <div className="page" style={{ maxWidth: 1500 }}>
+    <PageContainer wide>
       <ResultsGrid jobs={data.jobs} summary={data.summary} heading={`${data.jobs.length} matches for your search`} />
-    </div>
+    </PageContainer>
   );
 }
