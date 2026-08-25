@@ -16,7 +16,6 @@ const cache = (g.__searchResultsCache ??= new Map<string, SearchResultsPayload>(
 
 const MIN_SKELETON_MS = 2000;
 const POLL_INTERVAL_MS = 1000;
-const POLL_MAX_ATTEMPTS = 10;
 
 export function useSearchResults(searchId: string) {
   const [data, setData] = useState<SearchResultsPayload | null>(() => cache.get(searchId) ?? null);
@@ -34,42 +33,47 @@ export function useSearchResults(searchId: string) {
       setNotFound(false);
     }
 
-    async function poll(attempt: number) {
+    async function poll() {
       const result = await fetchSearchResults(searchId);
       if (cancelled) return;
 
-      if (result) {
-        cache.set(searchId, result);
-        if (hadCache) {
-          // Already showing cached data — refresh silently, no skeleton.
-          setData(result);
-          return;
-        }
-        const elapsed = Date.now() - startedAt;
-        const wait = Math.max(0, MIN_SKELETON_MS - elapsed);
-        setTimeout(() => {
-          if (!cancelled) {
-            setData(result);
-            setLoading(false);
-          }
-        }, wait);
+      if (result.status === 'not-found') {
+        // A real, definitive answer — not "still scoring" — so this is the one
+        // case allowed to stop the skeleton without data ever arriving.
+        setNotFound(true);
+        setLoading(false);
         return;
       }
 
-      if (hadCache || attempt >= POLL_MAX_ATTEMPTS) {
+      if (result.status === 'pending') {
+        // Scoring can legitimately take a while (real AI calls, no fixed bound) —
+        // keep polling for as long as it takes. Never gives up on its own.
+        setTimeout(() => {
+          if (!cancelled) poll();
+        }, POLL_INTERVAL_MS);
+        return;
+      }
+
+      const payload: SearchResultsPayload = { jobs: result.jobs, summary: result.summary };
+      cache.set(searchId, payload);
+
+      if (hadCache) {
+        // Already showing cached data — refresh silently, no skeleton.
+        setData(payload);
+        return;
+      }
+
+      const elapsed = Date.now() - startedAt;
+      const wait = Math.max(0, MIN_SKELETON_MS - elapsed);
+      setTimeout(() => {
         if (!cancelled) {
-          setNotFound(true);
+          setData(payload);
           setLoading(false);
         }
-        return;
-      }
-
-      setTimeout(() => {
-        if (!cancelled) poll(attempt + 1);
-      }, POLL_INTERVAL_MS);
+      }, wait);
     }
 
-    poll(0);
+    poll();
     return () => {
       cancelled = true;
     };

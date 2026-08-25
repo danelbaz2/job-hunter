@@ -8,7 +8,10 @@ import { DomainChips } from '@/components/DomainChips';
 import { ResumeInput, type ResumeMode } from '@/components/ResumeInput';
 import { SearchingState } from '@/components/SearchingState';
 import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { PageContainer } from '@/components/ui/page-container';
 import { FadeIn } from '@/components/motion/FadeIn';
+import { cn } from '@/lib/utils';
 import { SOURCES, type Seniority, type SourceProgress } from '@/types/domain';
 
 type Stage = 'form' | 'searching';
@@ -33,13 +36,18 @@ export function SearchForm() {
   const [stage, setStage] = useState<Stage>('form');
   const [sourceProgress, setSourceProgress] = useState<SourceProgress>(initialProgress);
   const [error, setError] = useState<string | null>(null);
+  const [touched, setTouched] = useState(false);
+
+  const missingLocation = touched && locations.length === 0;
+  const missingSeniority = touched && seniorities.length === 0;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+    setTouched(true);
 
     if (locations.length === 0 || seniorities.length === 0) {
-      setError('Pick at least one location and level');
+      setError('Pick at least one location and level to continue');
       return;
     }
 
@@ -157,8 +165,8 @@ export function SearchForm() {
   }
 
   return (
-    <div className="flex h-full flex-col overflow-hidden px-4 py-5 sm:px-6 lg:px-8">
-      <FadeIn className="shrink-0">
+    <PageContainer className="max-w-3xl">
+      <FadeIn>
         <h1 className="text-3xl tracking-tight sm:text-4xl">Find your next role</h1>
         <p className="mt-2 max-w-2xl text-base text-text/70">
           Tell us where and what you&apos;re looking for, and share your resume — we&apos;ll search
@@ -167,52 +175,68 @@ export function SearchForm() {
       </FadeIn>
 
       {error && (
-        <div className="mt-3 shrink-0 rounded-md border border-tier-low-border bg-tier-low-bg px-3 py-2 text-sm text-tier-low-text">
+        <div className="mt-4 rounded-md border border-tier-low-border bg-tier-low-bg px-3 py-2 text-sm text-tier-low-text">
           {error}
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="mt-6 flex min-h-0 flex-1 flex-col gap-5">
-        <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-          <FadeIn delay={0.06}>
-            <label className="mb-2 block text-base font-medium">Location</label>
-            <LocationChips value={locations} onChange={setLocations} />
-          </FadeIn>
+      <form onSubmit={handleSubmit} className="mt-8 flex flex-col gap-6">
+        <Card className="gap-5 p-5">
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+            <FadeIn delay={0.06}>
+              <div className="mb-2 flex items-baseline justify-between">
+                <label className="text-base font-medium">Location</label>
+                {missingLocation && <span className="text-xs text-tier-low-text">Choose at least one</span>}
+              </div>
+              <LocationChips value={locations} onChange={setLocations} />
+            </FadeIn>
 
-          <FadeIn delay={0.12}>
-            <label className="mb-2 block text-base font-medium">Level</label>
-            <SeniorityPicker value={seniorities} onChange={setSeniorities} />
-          </FadeIn>
-        </div>
+            <FadeIn delay={0.12}>
+              <div className="mb-2 flex items-baseline justify-between">
+                <label className="text-base font-medium">Level</label>
+                {missingSeniority && <span className="text-xs text-tier-low-text">Choose at least one</span>}
+              </div>
+              <SeniorityPicker value={seniorities} onChange={setSeniorities} />
+            </FadeIn>
+          </div>
 
-        <FadeIn delay={0.18} className="shrink-0">
-          <label className="mb-2 block text-base font-medium">Domain</label>
-          <DomainChips value={domains} onChange={setDomains} />
+          <FadeIn delay={0.18}>
+            <div className="mb-2 flex items-baseline gap-2">
+              <label className="text-base font-medium">Domain</label>
+              <span className="text-sm text-text/50">Optional — leave blank for any</span>
+            </div>
+            <DomainChips value={domains} onChange={setDomains} />
+          </FadeIn>
+        </Card>
+
+        <FadeIn delay={0.24}>
+          <label className="mb-2 block text-base font-medium">Resume</label>
+          <Card className={cn('gap-0 p-3', 'h-[280px]')}>
+            <ResumeInput
+              mode={resumeMode}
+              onModeChange={setResumeMode}
+              file={resumeFile}
+              onFileChange={setResumeFile}
+              text={resumeText}
+              onTextChange={setResumeText}
+            />
+          </Card>
         </FadeIn>
 
-        <FadeIn delay={0.24} className="flex min-h-0 flex-1 flex-col">
-          <label className="mb-2 block shrink-0 text-base font-medium">Resume</label>
-          <ResumeInput
-            mode={resumeMode}
-            onModeChange={setResumeMode}
-            file={resumeFile}
-            onFileChange={setResumeFile}
-            text={resumeText}
-            onTextChange={setResumeText}
-          />
-        </FadeIn>
-
-        <FadeIn delay={0.3} className="flex shrink-0 flex-wrap items-center gap-3">
-          <Button type="submit" variant="solid" size="lg">
-            Find matching jobs →
-          </Button>
-          {process.env.NODE_ENV === 'development' && (
-            <Button type="button" variant="ghost" size="sm" onClick={runTestMode} className="border border-dashed border-border">
-              Test mode (skip Apify/OpenRouter)
+        <FadeIn delay={0.3} className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-wrap items-center gap-3">
+            <Button type="submit" variant="solid" size="lg" className="w-full sm:w-auto">
+              Find matching jobs →
             </Button>
-          )}
+            {process.env.NODE_ENV === 'development' && (
+              <Button type="button" variant="ghost" size="sm" onClick={runTestMode} className="border border-dashed border-border">
+                Test mode (skip Apify/OpenRouter)
+              </Button>
+            )}
+          </div>
+          <span className="text-sm text-text/50">Usually takes under a minute</span>
         </FadeIn>
       </form>
-    </div>
+    </PageContainer>
   );
 }
