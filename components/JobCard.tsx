@@ -15,6 +15,7 @@ export function JobCard({ job }: { job: SearchResultItem }) {
   const router = useRouter();
   const [saved, setSaved] = useState(job.saved);
   const [pending, setPending] = useState(false);
+  const [navigating, setNavigating] = useState(false);
 
   async function toggleSave(e: React.MouseEvent) {
     e.preventDefault();
@@ -40,8 +41,22 @@ export function JobCard({ job }: { job: SearchResultItem }) {
   return (
     <Link
       href={`/jobs/${job.id}`}
-      className="flex flex-col gap-3 rounded-md bg-surface p-4 shadow-sm transition-transform hover:-translate-y-0.5 hover:shadow-md"
+      onClick={() => setNavigating(true)}
+      aria-busy={navigating}
+      className={cn(
+        'relative flex flex-col gap-3 rounded-md bg-surface p-4 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md',
+        navigating && 'scale-[0.98] opacity-70'
+      )}
     >
+      {navigating && (
+        <span
+          className="pointer-events-none absolute inset-0 rounded-md"
+          style={{
+            animation: 'glow-pulse 1s ease-in-out infinite',
+            boxShadow: 'inset 0 0 0 1px var(--color-accent-500)',
+          }}
+        />
+      )}
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-start gap-3">
           {job.companyLogoUrl ? (
@@ -59,7 +74,10 @@ export function JobCard({ job }: { job: SearchResultItem }) {
         </div>
         <button
           type="button"
-          className={cn('shrink-0 text-neutral-500 transition-colors hover:text-accent-500', saved && 'text-accent-500')}
+          className={cn(
+            '-m-2.5 shrink-0 rounded-full p-2.5 text-neutral-500 transition-colors hover:text-accent-500 active:scale-90',
+            saved && 'text-accent-500'
+          )}
           onClick={toggleSave}
           aria-label={saved ? 'Remove from saved' : 'Save job'}
         >

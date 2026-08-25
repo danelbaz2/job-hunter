@@ -71,6 +71,12 @@ export function SearchForm() {
       const decoder = new TextDecoder();
       let buffer = '';
 
+      // Mirrors sourceProgress but read synchronously here — setSourceProgress is
+      // async React state, so checking it back immediately after setting it would
+      // still see the pre-update value.
+      const progress = initialProgress();
+      let sourcingDoneAt: number | null = null;
+
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
@@ -84,8 +90,21 @@ export function SearchForm() {
 
           const event = JSON.parse(line);
           if (event.type === 'source') {
+            progress[event.source as keyof SourceProgress] = event.status;
             setSourceProgress((prev) => ({ ...prev, [event.source]: event.status }));
-          } else if (event.type === 'done') {
+            if (sourcingDoneAt === null && SOURCES.every((s) => progress[s] !== 'pending')) {
+              sourcingDoneAt = Date.now();
+            }
+          } else if (event.type === 'search-created') {
+            // The searchId is available as soon as the search row exists — well
+            // before scoring (the slow, AI-bound step) finishes. Stay on the
+            // "Scoring fit…" screen for exactly 10s from the moment sourcing
+            // finished, then hand off to the results page's own skeleton, which
+            // polls for completedAt — rather than blocking here on the full
+            // pipeline, which can run long on a slow model response.
+            const elapsed = sourcingDoneAt === null ? 0 : Date.now() - sourcingDoneAt;
+            const wait = Math.max(0, 10_000 - elapsed);
+            if (wait > 0) await delay(wait);
             router.push(`/results?searchId=${event.searchId}`);
             return;
           } else if (event.type === 'error') {
@@ -140,7 +159,7 @@ export function SearchForm() {
   return (
     <div className="flex h-full flex-col overflow-hidden px-4 py-5 sm:px-6 lg:px-8">
       <FadeIn className="shrink-0">
-        <h1 className="text-3xl sm:text-4xl">Find your next role</h1>
+        <h1 className="text-3xl tracking-tight sm:text-4xl">Find your next role</h1>
         <p className="mt-2 max-w-2xl text-base text-text/70">
           Tell us where and what you&apos;re looking for, and share your resume — we&apos;ll search
           Israel&apos;s job platforms and score each listing against your fit.

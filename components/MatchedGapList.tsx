@@ -14,13 +14,13 @@ import type { MatchPoint } from '@/types/domain';
 function List({ title, points }: { title: string; points: MatchPoint[] }) {
   return (
     <div className="mb-4">
-      <div className="mb-2 text-xs uppercase tracking-wide text-text/50">
+      <div className="mb-2 text-xs uppercase tracking-wide text-text/60">
         {title} — {points.length}
       </div>
       {points.map((p, i) => (
         <div key={i} className="mb-3 rounded-md bg-surface p-3">
           <div className="text-sm text-text/90">{p.text}</div>
-          <div className="mt-1.5 text-xs italic text-text/50">From listing: &quot;{p.quote}&quot;</div>
+          <div className="mt-1.5 text-xs italic text-text/60">From listing: &quot;{p.quote}&quot;</div>
         </div>
       ))}
     </div>

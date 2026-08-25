@@ -17,8 +17,9 @@ export const DropdownMenuContent = React.forwardRef<
       sideOffset={sideOffset}
       className={cn(
         'z-50 min-w-[200px] rounded-md border border-border bg-surface-raised p-1 shadow-md',
-        'data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95',
-        'data-[state=closed]:animate-out data-[state=closed]:fade-out-0',
+        'origin-[--radix-dropdown-menu-content-transform-origin] duration-[180ms] ease-out',
+        'data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 data-[state=open]:slide-in-from-top-1',
+        'data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=closed]:duration-100',
         className
       )}
       {...props}
@@ -34,8 +35,8 @@ export const DropdownMenuItem = React.forwardRef<
   <DropdownMenuPrimitive.Item
     ref={ref}
     className={cn(
-      'flex cursor-pointer select-none items-center rounded-sm px-2.5 py-1.5 text-sm outline-none',
-      'hover:bg-text/7 focus:bg-text/7 data-[disabled]:opacity-45 data-[disabled]:pointer-events-none',
+      'flex cursor-pointer select-none items-center rounded-sm px-2.5 py-1.5 text-sm outline-none transition-colors duration-150',
+      'hover:bg-text/7 focus:bg-text/7 active:bg-text/14 data-[disabled]:opacity-45 data-[disabled]:pointer-events-none',
       className
     )}
     {...props}

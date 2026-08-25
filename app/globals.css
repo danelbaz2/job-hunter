@@ -45,8 +45,11 @@
   --color-tier-low-bg: rgba(239, 68, 68, 0.16);
   --color-tier-low-border: rgba(248, 113, 113, 0.4);
 
-  /* — type — */
-  --font-heading: var(--font-inter), system-ui, sans-serif;
+  /* — type: Geist for display/headings (character, matches the product's
+     Vercel-adjacent register), Inter for body/data (proven legibility at
+     small sizes in a dense listings UI) — deliberate pairing, not one
+     family stretched across every role. — */
+  --font-heading: var(--font-geist), var(--font-inter), system-ui, sans-serif;
   --font-body: var(--font-inter), system-ui, sans-serif;
   --text-xs: 12px;
   --text-sm: 13px;
@@ -162,31 +165,46 @@ a {
   }
 }
 
-/* Shiny gradient sweep across text — used on the "Searching…" heading. Base text
-   is dimmed so the bright band reads as a highlight sweeping through it, rather
-   than two similarly-light tones (which are invisible against each other). */
+/* Shiny gradient sweep across text — used on the "Searching…" heading. Two
+   background layers, not one: a flat dim base (always covers the full text, never
+   moves) under a narrow bright band that sweeps left-to-right once, fully clearing
+   the text on both ends, then holds off-screen for a pause before repeating. A
+   single animated gradient with `background-repeat` (the previous approach) tiles
+   the pattern, and the sweep distance wasn't a whole multiple of the tile width —
+   so each loop restart snapped the tile to a different phase, reading as the
+   highlight jumping back in from the middle instead of a clean restart. no-repeat
+   plus an explicit held "off-screen" keyframe segment removes the seam entirely. */
 @keyframes text-shimmer {
   0% {
-    background-position: 200% 0;
+    background-position:
+      -150% 0,
+      0 0;
   }
+  71.43%,
   100% {
-    background-position: -200% 0;
+    background-position:
+      250% 0,
+      0 0;
   }
 }
 
 .text-shimmer {
-  background-image: linear-gradient(
-    100deg,
-    color-mix(in srgb, var(--color-text) 35%, transparent) 35%,
-    #ffffff 50%,
-    color-mix(in srgb, var(--color-text) 35%, transparent) 65%
-  );
-  background-size: 250% 100%;
+  background-image:
+    linear-gradient(100deg, transparent 35%, #ffffff 50%, transparent 65%),
+    linear-gradient(
+      color-mix(in srgb, var(--color-text) 35%, transparent),
+      color-mix(in srgb, var(--color-text) 35%, transparent)
+    );
+  background-size:
+    60% 100%,
+    100% 100%;
+  background-repeat: no-repeat, no-repeat;
   background-clip: text;
   -webkit-background-clip: text;
   color: transparent;
   -webkit-text-fill-color: transparent;
-  animation: text-shimmer 4.5s linear infinite;
+  /* 3.5s cycle = 2.5s contiguous sweep (71.43%) + 1s pause (28.57%). */
+  animation: text-shimmer 3.5s linear infinite;
 }
 
 /* Breathing accent glow for the "Scoring fit…" pill — a modern stand-in for a

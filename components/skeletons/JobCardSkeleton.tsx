@@ -18,8 +18,8 @@ export function JobCardSkeleton() {
         <Skeleton className="h-6 w-14 rounded-pill" />
       </div>
       <div className="flex gap-1.5">
-        <Skeleton className="h-5 w-20 rounded-[6px]" />
-        <Skeleton className="h-5 w-14 rounded-[6px]" />
+        <Skeleton className="h-5 w-20 rounded-pill" />
+        <Skeleton className="h-5 w-14 rounded-pill" />
       </div>
     </div>
   );

@@ -1,7 +1,6 @@
 import { redirect } from 'next/navigation';
 import { auth } from '@/lib/auth';
-import { getSearchWithResults } from '@/lib/db/queries';
-import { ResultsGrid } from './ResultsGrid';
+import { ResultsLoader } from './ResultsLoader';
 import { PageContainer } from '@/components/ui/page-container';
 
 export default async function ResultsPage({
@@ -15,12 +14,9 @@ export default async function ResultsPage({
   const { searchId } = await searchParams;
   if (!searchId) redirect('/search');
 
-  const data = await getSearchWithResults(searchId, session.user.id);
-  if (!data) redirect('/search');
-
   return (
     <PageContainer wide>
-      <ResultsGrid jobs={data.jobs} summary={data.summary} heading={`${data.jobs.length} matches for your search`} />
+      <ResultsLoader searchId={searchId} />
     </PageContainer>
   );
 }

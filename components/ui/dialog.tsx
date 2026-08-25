@@ -11,11 +11,12 @@ export const DialogClose = DialogPrimitive.Close;
 export function DialogContent({ className, children, ...props }: React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>) {
   return (
     <DialogPrimitive.Portal>
-      <DialogPrimitive.Overlay className="fixed inset-0 z-50 grid place-items-center bg-neutral-900/50 p-4 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=closed]:animate-out data-[state=closed]:fade-out-0">
+      <DialogPrimitive.Overlay className="fixed inset-0 z-50 grid place-items-center bg-neutral-900/50 p-4 duration-[250ms] ease-out data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:duration-150">
         <DialogPrimitive.Content
           className={cn(
             'w-full max-w-[440px] flex flex-col gap-3 rounded-lg bg-surface-raised p-4 shadow-lg',
-            'data-[state=open]:animate-in data-[state=open]:zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:zoom-out-95',
+            'duration-[250ms] ease-out data-[state=open]:animate-in data-[state=open]:zoom-in-95 data-[state=open]:slide-in-from-bottom-2',
+            'data-[state=closed]:animate-out data-[state=closed]:zoom-out-95 data-[state=closed]:duration-150',
             className
           )}
           {...props}

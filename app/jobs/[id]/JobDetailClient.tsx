@@ -94,11 +94,11 @@ export function JobDetailClient({ job }: { job: SearchResultItem }) {
             >
               Apply on {SOURCE_LABELS[job.source]} <ArrowUpRight size={16} />
             </a>
-            <div className="mt-2 text-center text-xs text-text/50">Opens the original listing in a new tab</div>
+            <div className="mt-2 text-center text-xs text-text/60">Opens the original listing in a new tab</div>
           </div>
           <MatchedGapList matched={job.matchedPoints} gaps={job.gapPoints} />
 
-          <div className="rounded-md border border-dashed border-border p-3 text-sm text-text/50">
+          <div className="rounded-md border border-dashed border-border p-3 text-sm text-text/60">
             Resume edit suggestions for this listing — coming soon.
           </div>
         </FadeIn>

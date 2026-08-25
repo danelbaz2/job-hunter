@@ -25,7 +25,7 @@ export function CollapsibleText({ text, collapsedLines = 4 }: { text: string; co
       </motion.div>
       <button
         type="button"
-        className="mt-2 flex items-center gap-1 text-sm text-accent-400 hover:underline"
+        className="mt-2 flex items-center gap-1 text-sm text-accent-400 hover:underline underline-offset-2"
         onClick={() => setExpanded((v) => !v)}
       >
         {expanded ? 'Show less' : 'Read more'}

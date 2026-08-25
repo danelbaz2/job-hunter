@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { eq } from 'drizzle-orm';
 import { auth } from '@/lib/auth';
 import { db } from '@/lib/db/client';
 import { searches, searchResults } from '@/lib/db/schema';
@@ -77,6 +78,11 @@ export async function POST(req: Request) {
           })
           .returning();
 
+        // Sent as soon as the search row exists, well before scoring (the slow,
+        // AI-bound step) finishes — lets the client navigate to the results page
+        // and poll there for completedAt, instead of blocking on the full pipeline.
+        send({ type: 'search-created', searchId: search.id });
+
         const scored = await Promise.all(
           listings.map((listing) => scoreListing(listing, { locations, domains, seniorities, resumeText }))
         );
@@ -107,6 +113,8 @@ export async function POST(req: Request) {
             }))
           );
         }
+
+        await db.update(searches).set({ completedAt: new Date() }).where(eq(searches.id, search.id));
 
         send({ type: 'done', searchId: search.id });
       } catch (err) {

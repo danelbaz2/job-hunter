@@ -10,7 +10,7 @@ import { cn } from '@/lib/utils';
  * visually with the outline/ghost controls around it.
  */
 const buttonVariants = cva(
-  'inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-md font-medium text-sm transition-colors disabled:opacity-45 disabled:cursor-not-allowed [&_svg]:shrink-0',
+  'inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-md font-medium text-sm transition-[color,background-color,border-color,transform] duration-150 active:scale-[0.97] disabled:opacity-45 disabled:cursor-not-allowed disabled:active:scale-100 [&_svg]:shrink-0',
   {
     variants: {
       variant: {

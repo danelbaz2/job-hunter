@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { AnimatePresence, motion } from 'motion/react';
+import { SearchX } from 'lucide-react';
 import { FadeIn } from '@/components/motion/FadeIn';
 import { JobCard } from '@/components/JobCard';
 import { seedJobCache } from '@/lib/jobDetailCache';
@@ -142,6 +143,7 @@ export function ResultsGrid({
             transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
           >
             <EmptyState
+              icon={<SearchX size={20} />}
               title="No listings match these filters"
               action={
                 <Button variant="secondary" onClick={resetFilters}>

@@ -3,8 +3,8 @@
 import { useState } from 'react';
 import { signIn } from 'next-auth/react';
 import { AnimatePresence, motion } from 'motion/react';
-import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { LoadingDots } from '@/components/ui/loading-dots';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { SegmentedControl } from '@/components/ui/segmented-control';
@@ -122,13 +122,13 @@ export function AuthCard({ callbackUrl }: { callbackUrl: string }) {
         onClick={handleGoogle}
         disabled={pending || googlePending}
       >
-        {googlePending ? <Loader2 size={18} className="animate-spin" /> : <GoogleLogo />}
+        {googlePending ? <LoadingDots /> : <GoogleLogo />}
         {googlePending ? 'Redirecting to Google…' : 'Continue with Google'}
       </Button>
 
       <div className="my-5 flex items-center gap-3">
         <Separator className="flex-1" />
-        <span className="text-xs text-text/50">or</span>
+        <span className="text-xs text-text/60">or</span>
         <Separator className="flex-1" />
       </div>
 
@@ -191,11 +191,11 @@ export function AuthCard({ callbackUrl }: { callbackUrl: string }) {
                 onChange={(e) => setPassword(e.target.value)}
                 required
               />
-              {mode === 'signup' && <p className="mt-1.5 text-xs text-text/50">Use 8+ characters with a number and a symbol.</p>}
+              {mode === 'signup' && <p className="mt-1.5 text-xs text-text/60">Use 8+ characters with a number and a symbol.</p>}
             </div>
 
             <Button type="submit" variant="solid" className="mt-1 w-full" disabled={pending}>
-              {pending ? <Loader2 size={16} className="animate-spin" /> : copy.cta}
+              {pending ? <LoadingDots /> : copy.cta}
             </Button>
           </form>
 
@@ -203,7 +203,7 @@ export function AuthCard({ callbackUrl }: { callbackUrl: string }) {
             {copy.switchPrompt}{' '}
             <button
               type="button"
-              className="text-accent-400 hover:underline"
+              className="text-accent-400 hover:underline underline-offset-2"
               onClick={() => switchMode(mode === 'signin' ? 'signup' : 'signin')}
             >
               {copy.switchCta}

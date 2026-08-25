@@ -28,7 +28,7 @@ export function JobDetailLoader({ id }: { id: string }) {
     return (
       <div className="flex flex-col items-center gap-3 py-24 text-center">
         <p className="text-lg">This listing couldn&apos;t be found.</p>
-        <Link href="/results" className="text-sm text-accent-400 hover:underline">
+        <Link href="/results" className="text-sm text-accent-400 hover:underline underline-offset-2">
           Back to results
         </Link>
       </div>

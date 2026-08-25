@@ -34,6 +34,11 @@ export async function scoreSkillsFit(resumeText: string, listing: RawListing): P
   try {
     const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
+      // Free-tier models can stall upstream with no error for minutes (seen: a 504
+      // "Upstream idle timeout exceeded" after 144s) — fail fast instead of blocking
+      // the whole search. A timeout here is exactly another form of AI failure: same
+      // fallback (aiFailed: true) as a bad response or a parse error.
+      signal: AbortSignal.timeout(20_000),
       headers: {
         Authorization: `Bearer ${apiKey}`,
         'Content-Type': 'application/json',

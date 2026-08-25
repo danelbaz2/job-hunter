@@ -29,7 +29,7 @@ export function SearchingState({ sourceProgress }: { sourceProgress: SourceProgr
 
   return (
     <div className="flex min-h-[100dvh] flex-col items-center justify-center gap-6 px-4 py-16 text-center">
-      <h1 className="text-shimmer text-3xl sm:text-4xl">Searching for your next role…</h1>
+      <h1 className="text-shimmer text-3xl tracking-tight sm:text-4xl">Searching for your next role…</h1>
 
       <AnimatePresence mode="wait">
         {phase === 'sourcing' && (
@@ -48,7 +48,7 @@ export function SearchingState({ sourceProgress }: { sourceProgress: SourceProgr
                   'flex items-center gap-2 rounded-pill border px-4 py-2 text-sm transition-colors duration-300',
                   row.status === 'ok' && 'border-tier-high-border bg-tier-high-bg text-tier-high-text',
                   row.status === 'failed' && 'border-tier-mid-border bg-tier-mid-bg text-tier-mid-text',
-                  row.status === 'pending' && 'border-border text-text/50'
+                  row.status === 'pending' && 'border-border text-text/60'
                 )}
               >
                 {row.status === 'ok' && <Check size={14} />}

@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
-import { Inter } from 'next/font/google';
+import { Inter, Geist } from 'next/font/google';
 import { MotionConfig } from 'motion/react';
 import { NavBar } from '@/components/NavBar';
 import { NavVisibilityProvider } from '@/components/NavVisibility';
@@ -14,9 +14,18 @@ import { getLatestSearchId } from '@/lib/db/queries';
 import './globals.css';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
+const geist = Geist({ subsets: ['latin'], variable: '--font-geist' });
 
 export const metadata: Metadata = {
   title: 'Job Hunter',
+  description:
+    "Search Israel's job platforms in one pass and see a fit score with the exact matched and missing points for every listing.",
+  openGraph: {
+    title: 'Job Hunter',
+    description:
+      "Search Israel's job platforms in one pass and see a fit score with the exact matched and missing points for every listing.",
+    type: 'website',
+  },
 };
 
 async function NavBarSlot() {
@@ -46,8 +55,14 @@ async function NavBarSlot() {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={inter.variable} data-scroll-behavior="smooth">
+    <html lang="en" className={`${inter.variable} ${geist.variable}`} data-scroll-behavior="smooth">
       <body className="flex min-h-dvh flex-col">
+        <a
+          href="#main"
+          className="sr-only rounded-md bg-accent-500 px-4 py-2 text-sm font-medium text-neutral-900 focus-visible:not-sr-only focus-visible:fixed focus-visible:left-4 focus-visible:top-4 focus-visible:z-50"
+        >
+          Skip to content
+        </a>
         <MotionConfig reducedMotion="user">
           <NavVisibilityProvider>
             <div className="shrink-0">
@@ -59,7 +74,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 viewport and should scroll normally. A page that needs to fit exactly
                 within the remaining space (e.g. /search) can use h-full on its own root
                 to size against this, rather than 100dvh, which would ignore the nav. */}
-            <div className="flex-1">{children}</div>
+            <div id="main" className="flex-1">{children}</div>
             <Toaster />
           </NavVisibilityProvider>
         </MotionConfig>

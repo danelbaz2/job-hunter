@@ -76,4 +76,6 @@ export interface SearchSummary {
   seniorities: Seniority[];
   domains: string[];
   sourceStatus: SourceStatus;
+  /** Null while scoring is still running for this search. */
+  completedAt: string | null;
 }

@@ -67,7 +67,7 @@ export function NavBar({
 
   return (
     <nav className="relative flex items-center gap-4 px-4 py-3 sm:px-6">
-      <span className="mr-auto text-lg font-medium">
+      <span className="mr-auto font-[family-name:var(--font-heading)] text-lg font-medium">
         Job<span className="text-accent-500">Hunter</span>
       </span>
 

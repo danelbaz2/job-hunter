@@ -77,6 +77,10 @@ export const searches = pgTable('search', {
   // per-source status: 'ok' | 'failed' — drives the degraded-source banner (README)
   sourceStatus: jsonb('sourceStatus').$type<Record<string, 'ok' | 'failed'>>().notNull(),
   createdAt: timestamp('createdAt', { mode: 'date' }).notNull().defaultNow(),
+  // Null while scoring is still running — set once all listings are scored and
+  // persisted. Lets the results page tell "still scoring" apart from "scored, zero
+  // matches" while polling a search created before its results exist yet.
+  completedAt: timestamp('completedAt', { mode: 'date' }),
 });
 
 export const searchResults = pgTable('search_result', {

@@ -58,6 +58,7 @@ export async function getSearchWithResults(
       seniorities: search.seniorities as SearchSummary['seniorities'],
       domains: search.domains,
       sourceStatus: search.sourceStatus as SearchSummary['sourceStatus'],
+      completedAt: search.completedAt ? search.completedAt.toISOString() : null,
     },
     jobs: results
       .map((r) => toItem(r, savedIds.has(r.id)))

@@ -28,7 +28,7 @@ export function seedJobCache(jobs: SearchResultItem[]) {
   for (const job of jobs) cache.set(job.id, job);
 }
 
-const MIN_SKELETON_MS = 1800;
+const MIN_SKELETON_MS = 2000;
 
 export function useJobDetail(id: string) {
   const [job, setJob] = useState<SearchResultItem | null>(() => getCachedJob(id));
