@@ -1,10 +1,11 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { toast } from 'sonner';
-import { ChevronLeft, ArrowUpRight, Share2, Check, Sparkles, Loader2, AlertTriangle } from 'lucide-react';
+import { ChevronLeft, ArrowUpRight, Share2, Check, Sparkles, Loader2, AlertTriangle, Lock } from 'lucide-react';
 import { FadeIn } from '@/components/motion/FadeIn';
 import { ScoreBadge, scoreTier } from '@/components/ui/score-badge';
 import { Button } from '@/components/ui/button';
@@ -13,6 +14,7 @@ import { SectionHeading } from '@/components/ui/section-heading';
 import { SaveButton } from '@/components/SaveButton';
 import { FitBreakdown } from '@/components/FitBreakdown';
 import { daysAgoLabel, daysSincePosted } from '@/lib/formatDate';
+import { dedupeDescription } from '@/lib/jobText';
 import { setCachedJob } from '@/lib/jobDetailCache';
 import { cn } from '@/lib/utils';
 import { SOURCE_LABELS, type MatchPoint, type ResumeSuggestion, type SearchResultItem } from '@/types/domain';
@@ -50,6 +52,37 @@ function PointList({ points }: { points: MatchPoint[] }) {
   );
 }
 
+/**
+ * Each section lives in its own bordered, height-capped card with its own internal
+ * scrollbar — scrolling inside a long list (matched points, requirements, …) never
+ * scrolls the rest of the page, and each section reads as a distinct block rather than
+ * one continuous stream.
+ */
+function SectionCard({
+  title,
+  tone,
+  count,
+  scroll = true,
+  children,
+}: {
+  title: string;
+  tone?: 'accent' | 'high' | 'low';
+  count?: number;
+  scroll?: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="rounded-lg border border-border bg-surface p-5">
+      <SectionHeading tone={tone} count={count}>
+        {title}
+      </SectionHeading>
+      <div className={scroll ? 'max-h-[380px] overflow-y-auto overflow-x-hidden break-words pr-1' : undefined}>
+        {children}
+      </div>
+    </div>
+  );
+}
+
 function SuggestionCard({ s }: { s: ResumeSuggestion }) {
   return (
     <li className="rounded-md border border-border bg-surface p-4">
@@ -77,6 +110,10 @@ export function JobDetailClient({ job }: { job: SearchResultItem }) {
   const banner = BANNER[tier];
   const ageDays = daysSincePosted(job.postedAt);
   const stale = ageDays !== null && ageDays >= STALE_DAYS;
+  // Requirements come back from the source as their own field, but the description
+  // frequently already contains the same bullets as prose — strip those lines out so
+  // each requirement reads once (in its own section below), not twice.
+  const description = dedupeDescription(job.description, job.requirements);
 
   useEffect(() => {
     const el = sentinelRef.current;
@@ -187,15 +224,19 @@ export function JobDetailClient({ job }: { job: SearchResultItem }) {
         )}
       </AnimatePresence>
 
-      <button
-        className="mb-8 flex items-center gap-1 text-sm text-text/60 transition-colors hover:text-text"
-        onClick={() => router.back()}
-      >
-        <ChevronLeft size={16} /> Back to results
-      </button>
+      {/* Capped narrower than the page at lg — the three-column grid below uses the
+          full wide container, but a full-width hero/banner/actions row at 1280px would
+          just look stretched and sparse. Centered (not left-hugging) within that width. */}
+      <div className="lg:mx-auto lg:max-w-[1040px]">
+        <button
+          className="mb-8 flex items-center gap-1 text-sm text-text/60 transition-colors hover:text-text"
+          onClick={() => router.back()}
+        >
+          <ChevronLeft size={16} /> Back to results
+        </button>
 
-      {/* — header — */}
-      <FadeIn className="flex flex-col gap-5">
+        {/* — header — */}
+        <FadeIn className="flex flex-col gap-5">
         <div className="flex items-start gap-4">
           {job.companyLogoUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
@@ -230,12 +271,17 @@ export function JobDetailClient({ job }: { job: SearchResultItem }) {
           </span>
         </div>
 
-        <div className={cn('rounded-lg border px-4 py-3 text-base leading-relaxed', banner.class)}>
+        <div
+          className={cn(
+            'inline-flex w-fit max-w-full self-start rounded-lg border px-4 py-3 text-base leading-relaxed',
+            banner.class
+          )}
+        >
           {banner.text}
         </div>
 
         {stale && (
-          <div className="flex items-start gap-2 rounded-lg border border-tier-mid-border bg-tier-mid-bg px-4 py-3 text-sm text-tier-mid-text">
+          <div className="flex w-fit max-w-full items-start gap-2 self-start rounded-lg border border-tier-mid-border bg-tier-mid-bg px-4 py-3 text-sm text-tier-mid-text">
             <AlertTriangle size={16} className="mt-0.5 shrink-0" />
             <span>
               This listing is {ageDays} days old — it may already be filled. Check the original before
@@ -263,107 +309,137 @@ export function JobDetailClient({ job }: { job: SearchResultItem }) {
             </button>
           )}
         </div>
-      </FadeIn>
-
-      <div ref={sentinelRef} aria-hidden className="h-px" />
-
-      {/* — sections — */}
-      <div className="mt-14 flex flex-col gap-14">
-        <FadeIn delay={0.06}>
-          <SectionHeading>Fit breakdown</SectionHeading>
-          <FitBreakdown job={job} />
         </FadeIn>
 
-        {job.matchedPoints.length > 0 && (
-          <FadeIn delay={0.09}>
-            <SectionHeading tone="high" count={job.matchedPoints.length}>
-              What matches
-            </SectionHeading>
-            <PointList points={job.matchedPoints} />
-          </FadeIn>
-        )}
+        <div ref={sentinelRef} aria-hidden className="h-px" />
+      </div>
 
-        {job.gapPoints.length > 0 && (
-          <FadeIn delay={0.11}>
-            <SectionHeading tone="low" count={job.gapPoints.length}>
-              What&apos;s missing
-            </SectionHeading>
-            <PointList points={job.gapPoints} />
-          </FadeIn>
-        )}
+      {/*
+        — sections —
+        Three plain grid cells in one row at lg: requirements (left) | main (middle,
+        unchanged flow) | matches (right). Each is a single wrapper element AND carries an
+        explicit `lg:row-start-1` — verified against the real compiled CSS that without it,
+        auto-placement (no explicit row) doesn't reliably keep a later-in-DOM, earlier-in-
+        column item (Requirements, column 1, last in the DOM) on the same row as the items
+        placed before it — it silently drops to a new row below the tall middle column,
+        leaving column 1 blank up top. Explicit row-start sidesteps the auto-placement
+        heuristics entirely instead of relying on them.
+        Below lg there's a single grid column, so these three items just stack in DOM order.
 
-        <FadeIn delay={0.13}>
-          <SectionHeading>Job description</SectionHeading>
-          <p className="whitespace-pre-line text-base leading-[1.75] text-text/85">{job.description}</p>
-        </FadeIn>
+        Every section is its own SectionCard: a bordered block with its own capped height
+        and internal scrollbar, so scrolling a long list (requirements, matched points, …)
+        never scrolls the rest of the page, and each section reads as a distinct block
+        rather than one continuous stream.
+      */}
+      <div className="mt-14 grid grid-cols-1 items-start gap-y-14 lg:grid-cols-[320px_minmax(0,1fr)_380px] lg:gap-x-10 xl:gap-x-12">
+        {/* main column */}
+        <FadeIn delay={0.06} className="flex min-w-0 flex-col gap-6 lg:col-start-2 lg:row-start-1">
+          <SectionCard title="Fit breakdown" scroll={false}>
+            <FitBreakdown job={job} />
+          </SectionCard>
 
-        {job.requirements.length > 0 && (
-          <FadeIn delay={0.15}>
-            <SectionHeading>Requirements</SectionHeading>
-            <ul className="flex list-disc flex-col gap-2 pl-5 text-base leading-relaxed text-text/85 marker:text-accent-400">
-              {job.requirements.map((item, i) => (
-                <li key={i}>{item}</li>
-              ))}
-            </ul>
-          </FadeIn>
-        )}
+          {description.length > 0 && (
+            <SectionCard title="Job description">
+              <p className="whitespace-pre-line text-lg leading-[1.75] text-text/85">{description}</p>
+            </SectionCard>
+          )}
 
-        <FadeIn delay={0.17}>
-          <SectionHeading count={suggestions?.length ?? undefined}>Resume suggestions</SectionHeading>
+          <SectionCard title="Resume suggestions" count={suggestions?.length ?? undefined} scroll={suggestions !== null && suggestions.length > 0}>
+            {!job.hasResume && (
+              <div className="flex items-start gap-2.5 rounded-md border border-dashed border-border p-4 text-text/55">
+                <Lock size={16} className="mt-0.5 shrink-0" />
+                <p className="text-base leading-relaxed">
+                  This search didn&apos;t include a résumé, so there&apos;s nothing to rewrite —
+                  suggestions edit existing résumé lines, and a free-text description alone doesn&apos;t
+                  give us any to work with.{' '}
+                  <Link href="/search" className="text-accent-400 underline underline-offset-2 hover:text-accent-300">
+                    Start a new search with a résumé
+                  </Link>{' '}
+                  to unlock this.
+                </p>
+              </div>
+            )}
 
-          {suggestions === null && suggestState !== 'error' && (
-            <div className="rounded-md border border-dashed border-border p-4">
-              <p className="text-base leading-relaxed text-text/60">
-                Get 2–4 truthful edits to your résumé, aimed at this listing&apos;s wording — nothing
-                invented, just what&apos;s already there, sharpened.
+            {job.hasResume && suggestions === null && suggestState !== 'error' && (
+              <div className="rounded-md border border-dashed border-border p-4">
+                <p className="text-base leading-relaxed text-text/60">
+                  Get 2–4 truthful edits to your résumé, aimed at this listing&apos;s wording — nothing
+                  invented, just what&apos;s already there, sharpened.
+                </p>
+                <button
+                  type="button"
+                  onClick={generateSuggestions}
+                  disabled={suggestState === 'loading'}
+                  className="mt-3 inline-flex h-10 items-center gap-2 rounded-md border border-accent-500 px-4 text-sm font-medium text-accent-300 transition-colors hover:bg-accent-500/12 disabled:opacity-60"
+                >
+                  {suggestState === 'loading' ? (
+                    <>
+                      <Loader2 size={15} className="animate-spin" /> Generating…
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles size={15} /> Generate suggestions
+                    </>
+                  )}
+                </button>
+              </div>
+            )}
+
+            {suggestState === 'error' && (
+              <div className="rounded-md border border-tier-low-border bg-tier-low-bg p-4 text-sm text-tier-low-text">
+                {suggestError}
+                <button type="button" onClick={generateSuggestions} className="ml-2 underline underline-offset-2">
+                  Try again
+                </button>
+              </div>
+            )}
+
+            {suggestions !== null && suggestions.length === 0 && (
+              <p className="rounded-md border border-dashed border-border p-4 text-base leading-relaxed text-text/55">
+                Nothing to suggest here — your résumé can&apos;t be improved for this listing without
+                claiming experience you don&apos;t have, and we won&apos;t do that.
               </p>
-              <button
-                type="button"
-                onClick={generateSuggestions}
-                disabled={suggestState === 'loading'}
-                className="mt-3 inline-flex h-10 items-center gap-2 rounded-md border border-accent-500 px-4 text-sm font-medium text-accent-300 transition-colors hover:bg-accent-500/12 disabled:opacity-60"
-              >
-                {suggestState === 'loading' ? (
-                  <>
-                    <Loader2 size={15} className="animate-spin" /> Generating…
-                  </>
-                ) : (
-                  <>
-                    <Sparkles size={15} /> Generate suggestions
-                  </>
-                )}
-              </button>
-            </div>
-          )}
+            )}
 
-          {suggestState === 'error' && (
-            <div className="rounded-md border border-tier-low-border bg-tier-low-bg p-4 text-sm text-tier-low-text">
-              {suggestError}
-              <button
-                type="button"
-                onClick={generateSuggestions}
-                className="ml-2 underline underline-offset-2"
-              >
-                Try again
-              </button>
-            </div>
-          )}
-
-          {suggestions !== null && suggestions.length === 0 && (
-            <p className="rounded-md border border-dashed border-border p-4 text-base leading-relaxed text-text/55">
-              Nothing to suggest here — your résumé can&apos;t be improved for this listing without
-              claiming experience you don&apos;t have, and we won&apos;t do that.
-            </p>
-          )}
-
-          {suggestions !== null && suggestions.length > 0 && (
-            <ul className="flex flex-col gap-3">
-              {suggestions.map((s, i) => (
-                <SuggestionCard key={i} s={s} />
-              ))}
-            </ul>
-          )}
+            {suggestions !== null && suggestions.length > 0 && (
+              <ul className="flex flex-col gap-3">
+                {suggestions.map((s, i) => (
+                  <SuggestionCard key={i} s={s} />
+                ))}
+              </ul>
+            )}
+          </SectionCard>
         </FadeIn>
+
+        {/* right column — matched/gaps, each its own scrollable card */}
+        {(job.matchedPoints.length > 0 || job.gapPoints.length > 0) && (
+          <FadeIn delay={0.09} className="flex min-w-0 flex-col gap-6 lg:col-start-3 lg:row-start-1">
+            {job.matchedPoints.length > 0 && (
+              <SectionCard title="What matches" tone="high" count={job.matchedPoints.length}>
+                <PointList points={job.matchedPoints} />
+              </SectionCard>
+            )}
+
+            {job.gapPoints.length > 0 && (
+              <SectionCard title="What's missing" tone="low" count={job.gapPoints.length}>
+                <PointList points={job.gapPoints} />
+              </SectionCard>
+            )}
+          </FadeIn>
+        )}
+
+        {/* left column — requirements */}
+        {job.requirements.length > 0 && (
+          <FadeIn delay={0.15} className="min-w-0 lg:col-start-1 lg:row-start-1">
+            <SectionCard title="Requirements">
+              <ul className="flex list-disc flex-col gap-2 pl-5 text-base leading-relaxed text-text/85 marker:text-accent-400">
+                {job.requirements.map((item, i) => (
+                  <li key={i}>{item}</li>
+                ))}
+              </ul>
+            </SectionCard>
+          </FadeIn>
+        )}
       </div>
 
       {/* — mobile action bar — */}

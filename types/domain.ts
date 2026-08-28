@@ -77,6 +77,9 @@ export interface SearchResultItem {
   gapPoints: MatchPoint[];
   /** Null until generated on demand from the job-detail page. */
   resumeSuggestions: ResumeSuggestion[] | null;
+  /** Whether the search this listing came from had an actual résumé attached — resume
+   * suggestions rewrite existing résumé lines, so free-text intent alone isn't enough. */
+  hasResume: boolean;
 
   saved: boolean;
   applied: boolean;

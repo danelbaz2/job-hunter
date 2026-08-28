@@ -57,7 +57,8 @@ export async function getLatestSearchId(userId: string): Promise<string | null> 
 function toItem(
   row: typeof searchResults.$inferSelect,
   saved: boolean,
-  applied: boolean
+  applied: boolean,
+  hasResume: boolean
 ): SearchResultItem {
   return {
     id: row.id,
@@ -83,6 +84,7 @@ function toItem(
     resumeSuggestions: row.resumeSuggestions ?? null,
     saved,
     applied,
+    hasResume,
   };
 }
 
@@ -109,7 +111,7 @@ export async function getSearchWithResults(
       completedAt: search.completedAt ? search.completedAt.toISOString() : null,
     },
     jobs: results
-      .map((r) => toItem(r, savedIds.has(r.id), appliedIds.has(r.id)))
+      .map((r) => toItem(r, savedIds.has(r.id), appliedIds.has(r.id), !!search.resumeText.trim()))
       .sort((a, b) => b.overallScore - a.overallScore),
   };
 }
@@ -121,8 +123,20 @@ export async function getSavedJobItems(userId: string): Promise<SearchResultItem
   const results = await db.select().from(searchResults).where(inArray(searchResults.id, ids));
   const applied = await db.select().from(appliedJobs).where(eq(appliedJobs.userId, userId));
   const appliedIds = new Set(applied.map((a) => a.searchResultId));
+
+  // Saved jobs can span multiple past searches, each with its own résumé (or none) —
+  // look up which searches actually had one.
+  const searchIds = Array.from(new Set(results.map((r) => r.searchId)));
+  const parentSearches = searchIds.length
+    ? await db
+        .select({ id: searches.id, resumeText: searches.resumeText })
+        .from(searches)
+        .where(inArray(searches.id, searchIds))
+    : [];
+  const hasResumeBySearch = new Map(parentSearches.map((s) => [s.id, !!s.resumeText.trim()]));
+
   return results
-    .map((r) => toItem(r, true, appliedIds.has(r.id)))
+    .map((r) => toItem(r, true, appliedIds.has(r.id), hasResumeBySearch.get(r.searchId) ?? false))
     .sort((a, b) => b.overallScore - a.overallScore);
 }
 
@@ -131,9 +145,11 @@ export async function getJobItem(id: string, userId: string): Promise<SearchResu
   if (!row) return null;
   const [saved] = await db.select().from(savedJobs).where(eq(savedJobs.searchResultId, id));
   const [applied] = await db.select().from(appliedJobs).where(eq(appliedJobs.searchResultId, id));
+  const [parentSearch] = await db.select().from(searches).where(eq(searches.id, row.searchId));
   return toItem(
     row,
     !!saved && saved.userId === userId,
-    !!applied && applied.userId === userId
+    !!applied && applied.userId === userId,
+    !!parentSearch?.resumeText.trim()
   );
 }

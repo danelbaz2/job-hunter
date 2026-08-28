@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import Link from 'next/link';
 import { AnimatePresence, motion } from 'motion/react';
 import { SearchX } from 'lucide-react';
 import { FadeIn } from '@/components/motion/FadeIn';
@@ -82,11 +81,6 @@ export function ResultsGrid({
             </div>
           )}
         </div>
-        {summary && (
-          <Button asChild variant="ghost">
-            <Link href="/search">Edit search</Link>
-          </Button>
-        )}
       </div>
 
       <AnimatePresence>

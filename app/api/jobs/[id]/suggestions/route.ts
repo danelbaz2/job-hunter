@@ -29,14 +29,16 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
     return NextResponse.json({ items: row.resumeSuggestions });
   }
 
-  const candidateText = buildCandidateText(search.resumeText, search.intentText);
-  if (!candidateText.trim()) {
+  // Resume suggestions rewrite existing résumé lines — free-text intent alone has no
+  // lines to rewrite, so this is gated on an actual résumé, not just any candidate text.
+  if (!search.resumeText.trim()) {
     return NextResponse.json(
-      { error: 'Add a résumé or a description to your search to get tailored suggestions.' },
+      { error: 'This search has no résumé attached — add one to get tailored suggestions.' },
       { status: 422 }
     );
   }
 
+  const candidateText = buildCandidateText(search.resumeText, search.intentText);
   const result = await generateResumeSuggestions(candidateText, {
     source: row.source as never,
     externalId: row.externalId,
