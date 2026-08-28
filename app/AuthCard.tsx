@@ -146,7 +146,7 @@ export function AuthCard({ callbackUrl }: { callbackUrl: string }) {
           <p className="mb-5 mt-1 text-sm text-text/70">{copy.sub}</p>
 
           {error && (
-            <div className="mb-4 rounded-md border border-tier-low-border bg-tier-low-bg px-3 py-2 text-sm text-tier-low-text">
+            <div className="mb-4 inline-flex w-fit max-w-full rounded-md border border-tier-low-border bg-tier-low-bg px-3 py-2 text-sm text-tier-low-text">
               {error}
             </div>
           )}

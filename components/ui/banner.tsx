@@ -6,7 +6,7 @@ export function Banner({ children, className }: { children: ReactNode; className
   return (
     <div
       className={cn(
-        'flex items-start gap-2.5 rounded-md border border-tier-mid-border bg-tier-mid-bg px-3 py-2.5 text-sm text-text/90',
+        'inline-flex w-fit max-w-full items-start gap-2.5 rounded-md border border-tier-mid-border bg-tier-mid-bg px-3 py-2.5 text-sm text-text/90',
         className
       )}
     >
