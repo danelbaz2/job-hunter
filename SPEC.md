@@ -2,7 +2,7 @@
 
 ## Part 1 — Goal and reason
 
-**Goal:** Build a hosted web app that, given a user's job-search criteria (location, domain, seniority/scope, and their resume), queries multiple job platforms, returns matching listings ranked by fit, and for each listing shows which of the user's qualifications match and which are missing — plus suggested resume edits to improve fit.
+**Goal:** Build a hosted web app that, given a user's job-search criteria (location, domain, seniority/scope, and optionally their resume and/or a short free-text description of what they're looking for), queries multiple job platforms, returns matching listings ranked by fit, and for each listing shows which of the user's qualifications match and which are missing — plus suggested resume edits to improve fit.
 
 **Reason:** Job seekers currently have to manually repeat the same search across many platforms and manually judge how well they fit each listing. This app collapses that into one pass, and turns "do I fit this job?" from a guess into a scored, explained answer with a concrete next action (what to fix on the resume).
 
@@ -15,7 +15,7 @@ Use this reason to break ties: when a design choice is ambiguous, prefer whateve
 2. Given a user's stated domain and a job's domain tag, the domain sub-score is binary (matches one of the user's stated domains, or not).
 3. The overall match score for a listing equals a defined weighted combination of its sub-scores (location, domain, seniority, skills-fit) — recomputing it from the stored sub-scores must reproduce the same number.
 4. Listings returned to the user are sorted strictly descending by overall match score.
-5. Every returned listing shows at least one matched point and, unless the score is 100%, at least one gap point — never an empty explanation.
+5. Every returned listing shows at least one matched point and, unless the score is 100%, at least one gap point — never an empty explanation. When the user provides neither a resume nor intent text (filter-only search), or the skills-fit AI call yields nothing usable, these points are derived from the deterministic dimensions (location, domain, seniority) instead of skills-fit — the "at least one matched point" rule still holds, and every quote is still a verbatim substring of the listing text.
 
 **Reference-measured criteria:**
 6. Run the app with a real resume and real search criteria (per Part 4). Manually review the top 5 returned listings: the location and domain shown for each must be correct on inspection of the original listing (not hallucinated).
@@ -27,8 +27,8 @@ Use this reason to break ties: when a design choice is ambiguous, prefer whateve
 - Stack: Next.js app, Postgres (Neon/Supabase free tier) for storage, Auth.js for authentication, deployed on Vercel.
 - Auth supports two paths: Google OAuth, and email/password (Auth.js Credentials provider). Passwords are salted and hashed (scrypt) before storage — the app never stores or logs a plaintext password. Password-reset-by-email is out of scope for v1 (no email-sending provider is set up) — an account created with a forgotten password has no self-service recovery yet.
 - Reach job data entirely through Apify actors: dedicated actors for AllJobs.co.il and Drushim (the two dominant Israeli job boards, neither of which exposes an official API), plus LinkedIn and Indeed.co.il actors filtered to Israel for broader coverage. Access every source only through a single job-source adapter layer — do not let scoring or UI code call Apify directly.
-- Resume input: accept PDF/DOCX upload, parse to plain text on the server, and run the same analysis pipeline as pasted text. Output stays text-only (gap analysis, suggested rewritten bullets) — no regenerated document file.
-- AI calls (skills-fit scoring, gap analysis, resume suggestions) go through OpenRouter, using a free-tier model (e.g. `meta-llama/llama-3.3-70b-instruct:free`), swappable via config without code changes.
+- Resume input: accept PDF/DOCX upload, parse to plain text on the server, and run the same analysis pipeline as pasted text. Output stays text-only (gap analysis, suggested rewritten bullets) — no regenerated document file. The resume is optional: the user may instead (or additionally) give a short free-text "what I'm looking for" description. Resume text and intent text are merged into one candidate description fed to the skills-fit AI call (same anti-hallucination rules — every quote verified verbatim against the listing). With neither, the search runs on deterministic scoring alone and skills-fit is simply not scored (not treated as an AI failure).
+- AI calls (skills-fit scoring, gap analysis, resume suggestions) go through OpenRouter, using a free-tier model (e.g. `meta-llama/llama-3.3-70b-instruct:free`), swappable via config without code changes. Resume suggestions are generated on demand from the job-detail page (one call per listing the user opens) and cached on the result row — not generated for every listing during a search, to keep AI spend bounded.
 - Deterministic scoring (location, domain, seniority) is computed in code, not by the AI — only skills/resume-language fit is delegated to the AI call.
 - Leave internal file/module structure to the agent.
 
@@ -42,7 +42,7 @@ Before considering v1 done: the user enters their own real resume and real searc
 - Apify usage is pay-per-result rather than fully free — searches should request a bounded number of results (per Part 4's "3-5 is enough to prove the point"), not attempt broad/repeated pulls, to stay within free credit.
 - Free OpenRouter models have rate limits and can be slow or occasionally unavailable — the app should degrade (queue/retry or show partial results) rather than fail the whole search.
 - PDF text extraction can produce garbled or empty text for scanned/image-based resumes — detect this case and tell the user, rather than silently scoring against blank text.
-- The AI may hallucinate a match or gap point not actually present in the listing text — Part 2 criterion 6/7 exists specifically to catch this; don't trust AI output without the listing text alongside it.
+- The AI may hallucinate a match or gap point not actually present in the listing text — Part 2 criterion 6/7 exists specifically to catch this; don't trust AI output without the listing text alongside it. The free-text intent is unvalidated user input and can overstate the candidate — it never relaxes the quote-verification guard: a fit point still ships only if its quote is a verbatim substring of the listing.
 - The same job can appear from multiple sources with slightly different text (duplicate listings) — dedupe by a reasonable key (title + company + location) before scoring, or the user sees the same job twice with different scores.
 - A listing can go stale (position filled/removed) between fetch and display — don't cache listings indefinitely without a freshness check.
 - AI-suggested resume edits can overstate the user's experience — the suggestion must stay truthful to what's in the original resume, never invent qualifications.

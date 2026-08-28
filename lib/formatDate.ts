@@ -6,6 +6,13 @@ export function parseDateOrNull(value: string | null): Date | null {
   return Number.isNaN(date.getTime()) ? null : date;
 }
 
+/** Whole days since `postedAt`, or null if the date is unknown/unparseable. */
+export function daysSincePosted(postedAt: string | null): number | null {
+  const date = parseDateOrNull(postedAt);
+  if (!date) return null;
+  return Math.floor((Date.now() - date.getTime()) / 86_400_000);
+}
+
 export function daysAgoLabel(postedAt: string | null): string {
   const date = parseDateOrNull(postedAt);
   if (!date) return 'posting date unknown';

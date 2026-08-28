@@ -72,8 +72,12 @@ export const searches = pgTable('search', {
   locations: jsonb('locations').$type<string[]>().notNull(),
   seniorities: jsonb('seniorities').$type<string[]>().notNull(),
   domains: jsonb('domains').$type<string[]>().notNull(),
+  // Empty string when the user searched without attaching a résumé.
   resumeText: text('resumeText').notNull(),
   resumeMode: text('resumeMode').$type<'upload' | 'paste'>().notNull(),
+  // Free-text "what I'm looking for" — an alternative/complementary candidate input
+  // to the résumé, fed to the AI skills-fit call. Empty string when not provided.
+  intentText: text('intentText').notNull().default(''),
   // per-source status: 'ok' | 'failed' — drives the degraded-source banner (README)
   sourceStatus: jsonb('sourceStatus').$type<Record<string, 'ok' | 'failed'>>().notNull(),
   createdAt: timestamp('createdAt', { mode: 'date' }).notNull().defaultNow(),
@@ -110,8 +114,28 @@ export const searchResults = pgTable('search_result', {
   matchedPoints: jsonb('matchedPoints').$type<{ text: string; quote: string }[]>().notNull(),
   gapPoints: jsonb('gapPoints').$type<{ text: string; quote: string }[]>().notNull(),
 
+  // Null until the user asks for suggestions on the job-detail page (generated on demand,
+  // not during the search — one AI call per listing viewed, not per listing found).
+  resumeSuggestions:
+    jsonb('resumeSuggestions').$type<{ original: string | null; suggestion: string; rationale: string }[]>(),
+
   createdAt: timestamp('createdAt', { mode: 'date' }).notNull().defaultNow(),
 });
+
+/** A listing the user marked as applied-to (set when they click Apply, or manually). */
+export const appliedJobs = pgTable(
+  'applied_job',
+  {
+    userId: uuid('userId')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    searchResultId: uuid('searchResultId')
+      .notNull()
+      .references(() => searchResults.id, { onDelete: 'cascade' }),
+    createdAt: timestamp('createdAt', { mode: 'date' }).notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.userId, t.searchResultId] })]
+);
 
 export const savedJobs = pgTable(
   'saved_job',

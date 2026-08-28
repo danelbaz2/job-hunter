@@ -3,7 +3,7 @@ import { SettingsSkeleton } from '@/components/skeletons/SettingsSkeleton';
 
 export default function Loading() {
   return (
-    <PageContainer>
+    <PageContainer className="max-w-[560px]">
       <SettingsSkeleton />
     </PageContainer>
   );

@@ -16,6 +16,7 @@ import { Stagger } from '@/components/motion/Stagger';
 import { SOURCE_LABELS, SOURCES, type SearchResultItem, type SearchSummary, type Source } from '@/types/domain';
 
 type SortBy = 'score' | 'date';
+type AppliedFilter = 'all' | 'applied' | 'not-applied';
 
 export function ResultsGrid({
   jobs,
@@ -34,6 +35,7 @@ export function ResultsGrid({
     () => Object.fromEntries(SOURCES.map((s) => [s, true])) as Record<Source, boolean>
   );
   const [sortBy, setSortBy] = useState<SortBy>('score');
+  const [appliedFilter, setAppliedFilter] = useState<AppliedFilter>('all');
 
   // Every card visible here already carries full detail data — seed the client cache
   // so clicking any of them is a guaranteed cache hit (instant render, no skeleton).
@@ -47,6 +49,7 @@ export function ResultsGrid({
 
   const visible = jobs
     .filter((j) => sourceFilters[j.source])
+    .filter((j) => appliedFilter === 'all' || (appliedFilter === 'applied') === j.applied)
     .sort((a, b) =>
       sortBy === 'score'
         ? b.overallScore - a.overallScore
@@ -55,13 +58,14 @@ export function ResultsGrid({
 
   function resetFilters() {
     setSourceFilters(Object.fromEntries(SOURCES.map((s) => [s, true])) as Record<Source, boolean>);
+    setAppliedFilter('all');
   }
 
   return (
     <FadeIn>
       <div className="mb-5 flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl">{heading}</h1>
+          <h1 className="text-2xl tracking-tight sm:text-3xl">{heading}</h1>
           {summary && (
             <div className="mt-2 flex flex-wrap gap-1.5">
               <span className="rounded-pill bg-neutral-800 px-2.5 py-1 text-xs text-neutral-200">
@@ -120,16 +124,30 @@ export function ResultsGrid({
             </Chip>
           ))}
         </div>
-        <div className="flex items-center gap-2 text-sm text-text/70">
-          <span>Sort by:</span>
-          <SegmentedControl
-            options={[
-              { value: 'score', label: 'Fit score' },
-              { value: 'date', label: 'Newest' },
-            ]}
-            value={sortBy}
-            onChange={setSortBy}
-          />
+        <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+          <div className="flex items-center gap-2 text-sm text-text/70">
+            <span>Show:</span>
+            <SegmentedControl
+              options={[
+                { value: 'all', label: 'All' },
+                { value: 'applied', label: 'Applied' },
+                { value: 'not-applied', label: 'Not applied' },
+              ]}
+              value={appliedFilter}
+              onChange={setAppliedFilter}
+            />
+          </div>
+          <div className="flex items-center gap-2 text-sm text-text/70">
+            <span>Sort by:</span>
+            <SegmentedControl
+              options={[
+                { value: 'score', label: 'Fit score' },
+                { value: 'date', label: 'Newest' },
+              ]}
+              value={sortBy}
+              onChange={setSortBy}
+            />
+          </div>
         </div>
       </div>
 

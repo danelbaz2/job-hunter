@@ -1,47 +1,201 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import { toast } from 'sonner';
-import { ChevronLeft, Bookmark, ArrowUpRight } from 'lucide-react';
+import { ChevronLeft, ArrowUpRight, Share2, Check, Sparkles, Loader2, AlertTriangle } from 'lucide-react';
 import { FadeIn } from '@/components/motion/FadeIn';
-import { ScoreBadge } from '@/components/ui/score-badge';
+import { ScoreBadge, scoreTier } from '@/components/ui/score-badge';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { SectionHeading } from '@/components/ui/section-heading';
+import { SaveButton } from '@/components/SaveButton';
 import { FitBreakdown } from '@/components/FitBreakdown';
-import { MatchedGapList } from '@/components/MatchedGapList';
-import { CollapsibleText } from '@/components/CollapsibleText';
-import { CollapsibleList } from '@/components/CollapsibleList';
-import { daysAgoLabel } from '@/lib/formatDate';
-import { SOURCE_LABELS, type SearchResultItem } from '@/types/domain';
+import { daysAgoLabel, daysSincePosted } from '@/lib/formatDate';
+import { setCachedJob } from '@/lib/jobDetailCache';
+import { cn } from '@/lib/utils';
+import { SOURCE_LABELS, type MatchPoint, type ResumeSuggestion, type SearchResultItem } from '@/types/domain';
+
+const EASE = [0.16, 1, 0.3, 1] as const;
+const STALE_DAYS = 30;
+
+const BANNER: Record<'high' | 'mid' | 'low', { class: string; text: string }> = {
+  high: {
+    class: 'border-tier-high-border bg-tier-high-bg text-tier-high-text',
+    text: 'Strong match — this role lines up well with what you told us.',
+  },
+  mid: {
+    class: 'border-tier-mid-border bg-tier-mid-bg text-tier-mid-text',
+    text: 'Partial match — worth a look, but read the gaps before applying.',
+  },
+  low: {
+    class: 'border-tier-low-border bg-tier-low-bg text-tier-low-text',
+    text: "Loose match — several things the listing asks for don't line up yet.",
+  },
+};
+
+function PointList({ points }: { points: MatchPoint[] }) {
+  return (
+    <ul className="flex flex-col gap-3">
+      {points.map((p, i) => (
+        <li key={i} className="rounded-md border border-border bg-surface p-4">
+          <p className="text-base leading-relaxed text-text/90">{p.text}</p>
+          <p className="mt-2 text-sm italic leading-relaxed text-text/55">
+            From the listing: &ldquo;{p.quote}&rdquo;
+          </p>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+function SuggestionCard({ s }: { s: ResumeSuggestion }) {
+  return (
+    <li className="rounded-md border border-border bg-surface p-4">
+      {s.original && (
+        <p className="text-sm leading-relaxed text-text/50 line-through decoration-text/30">{s.original}</p>
+      )}
+      <p className={cn('text-base leading-relaxed text-text/90', s.original && 'mt-1.5')}>{s.suggestion}</p>
+      <p className="mt-2 text-sm leading-relaxed text-accent-200/80">{s.rationale}</p>
+    </li>
+  );
+}
 
 export function JobDetailClient({ job }: { job: SearchResultItem }) {
   const router = useRouter();
   const [saved, setSaved] = useState(job.saved);
+  const [applied, setApplied] = useState(job.applied);
+  const [suggestions, setSuggestions] = useState<ResumeSuggestion[] | null>(job.resumeSuggestions);
+  const [suggestState, setSuggestState] = useState<'idle' | 'loading' | 'error'>('idle');
+  const [suggestError, setSuggestError] = useState<string | null>(null);
+
+  const sentinelRef = useRef<HTMLDivElement>(null);
+  const [pinned, setPinned] = useState(false);
+
+  const tier = scoreTier(job.overallScore);
+  const banner = BANNER[tier];
+  const ageDays = daysSincePosted(job.postedAt);
+  const stale = ageDays !== null && ageDays >= STALE_DAYS;
+
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el) return;
+    const io = new IntersectionObserver(([entry]) => setPinned(!entry.isIntersecting), { threshold: 0 });
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
 
   async function toggleSave() {
     const next = !saved;
     setSaved(next);
+    setCachedJob({ ...job, saved: next });
     try {
       const res = await fetch(`/api/jobs/${job.id}/save`, { method: next ? 'POST' : 'DELETE' });
       if (!res.ok) throw new Error('save failed');
-      router.refresh(); // updates the nav bar's "Saved (N)" count
+      router.refresh();
     } catch {
       setSaved(!next);
+      setCachedJob({ ...job, saved: !next });
       toast.error(next ? 'Could not save job' : 'Could not remove job');
     }
   }
 
+  async function setAppliedState(next: boolean) {
+    setApplied(next);
+    setCachedJob({ ...job, applied: next });
+    try {
+      const res = await fetch(`/api/jobs/${job.id}/apply`, { method: next ? 'POST' : 'DELETE' });
+      if (!res.ok) throw new Error('apply failed');
+      router.refresh();
+    } catch {
+      setApplied(!next);
+      setCachedJob({ ...job, applied: !next });
+      toast.error('Could not update applied status');
+    }
+  }
+
+  function onApplyClick() {
+    if (!applied) setAppliedState(true); // link still opens the listing in a new tab
+  }
+
+  async function share() {
+    const url = typeof window !== 'undefined' ? window.location.href : '';
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: job.title, url });
+        return;
+      }
+      await navigator.clipboard.writeText(url);
+      toast.success('Link copied to clipboard');
+    } catch {
+      /* dismissed / clipboard unavailable */
+    }
+  }
+
+  async function generateSuggestions() {
+    setSuggestState('loading');
+    setSuggestError(null);
+    try {
+      const res = await fetch(`/api/jobs/${job.id}/suggestions`, { method: 'POST' });
+      const data = await res.json();
+      if (!res.ok) {
+        setSuggestState('error');
+        setSuggestError(data.error ?? 'Could not generate suggestions.');
+        return;
+      }
+      setSuggestions(data.items);
+      setSuggestState('idle');
+      setCachedJob({ ...job, resumeSuggestions: data.items });
+    } catch {
+      setSuggestState('error');
+      setSuggestError('Could not generate suggestions — please try again.');
+    }
+  }
+
+  const applyLink = (
+    <a
+      href={job.url}
+      target="_blank"
+      rel="noopener noreferrer"
+      onClick={onApplyClick}
+      className="inline-flex h-10 items-center justify-center gap-1.5 rounded-md bg-gradient-to-r from-accent-700 via-accent-500 to-accent-400 px-5 text-sm font-medium text-neutral-900 shadow-[0_8px_24px_-8px_rgba(150,138,224,0.6)] transition-all duration-200 hover:brightness-110 active:scale-[0.98]"
+    >
+      Apply on {SOURCE_LABELS[job.source]} <ArrowUpRight size={16} />
+    </a>
+  );
+
   return (
-    <div className="pb-24 lg:pb-0">
+    <div className="pb-28 sm:pb-16">
+      {/* — sticky mini-header (desktop) — */}
+      <AnimatePresence>
+        {pinned && (
+          <motion.div
+            initial={{ y: -56, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: -56, opacity: 0 }}
+            transition={{ duration: 0.22, ease: EASE }}
+            className="fixed inset-x-0 top-0 z-40 hidden border-b border-border bg-bg/90 backdrop-blur-md sm:block"
+          >
+            <div className="mx-auto flex max-w-[760px] items-center gap-3 px-4 py-2.5 lg:px-8">
+              <span className="min-w-0 flex-1 truncate text-sm font-medium">{job.title}</span>
+              <ScoreBadge score={job.overallScore} size="card" />
+              <SaveButton saved={saved} onToggle={toggleSave} variant="icon" />
+              {applyLink}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <button
-        className="mb-6 flex items-center gap-1 text-sm text-text/70 hover:text-text"
+        className="mb-8 flex items-center gap-1 text-sm text-text/60 transition-colors hover:text-text"
         onClick={() => router.back()}
       >
         <ChevronLeft size={16} /> Back to results
       </button>
 
-      <FadeIn className="mb-8 flex flex-wrap items-start justify-between gap-4">
+      {/* — header — */}
+      <FadeIn className="flex flex-col gap-5">
         <div className="flex items-start gap-4">
           {job.companyLogoUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
@@ -51,68 +205,176 @@ export function JobDetailClient({ job }: { job: SearchResultItem }) {
               {job.company.charAt(0).toUpperCase() || '?'}
             </span>
           )}
-          <div>
-            <h1 className="text-2xl sm:text-3xl">{job.title}</h1>
-            <div className="mt-1 text-sm text-text/60">
+          <div className="min-w-0 flex-1">
+            <h1 className="text-2xl leading-tight tracking-tight sm:text-3xl">{job.title}</h1>
+            <p className="mt-1.5 text-sm text-text/60">
               {job.company} · {job.location}
-            </div>
-            <div className="mt-2 flex flex-wrap gap-1.5">
-              <Badge variant="neutral">Full-time</Badge>
-              <Badge variant="neutral">Via {SOURCE_LABELS[job.source]}</Badge>
-              <Badge variant="neutral">{daysAgoLabel(job.postedAt)}</Badge>
-            </div>
+            </p>
+          </div>
+          <div className="hidden shrink-0 sm:block">
+            <ScoreBadge score={job.overallScore} size="detail" />
           </div>
         </div>
 
-        <div className="flex flex-col items-end gap-3">
-          <Button variant={saved ? 'solid' : 'secondary'} onClick={toggleSave} className="hidden lg:inline-flex">
-            <Bookmark size={16} fill={saved ? 'currentColor' : 'none'} /> {saved ? 'Saved' : 'Save'}
+        <div className="flex flex-wrap items-center gap-1.5">
+          <Badge variant="neutral">Full-time</Badge>
+          <Badge variant="neutral">Via {SOURCE_LABELS[job.source]}</Badge>
+          <Badge variant="neutral">{daysAgoLabel(job.postedAt)}</Badge>
+          {applied && (
+            <span className="inline-flex items-center gap-1 rounded-pill bg-tier-high-bg px-2.5 py-0.5 text-xs text-tier-high-text">
+              <Check size={12} /> Applied
+            </span>
+          )}
+          <span className="ml-auto sm:hidden">
+            <ScoreBadge score={job.overallScore} size="card" />
+          </span>
+        </div>
+
+        <div className={cn('rounded-lg border px-4 py-3 text-base leading-relaxed', banner.class)}>
+          {banner.text}
+        </div>
+
+        {stale && (
+          <div className="flex items-start gap-2 rounded-lg border border-tier-mid-border bg-tier-mid-bg px-4 py-3 text-sm text-tier-mid-text">
+            <AlertTriangle size={16} className="mt-0.5 shrink-0" />
+            <span>
+              This listing is {ageDays} days old — it may already be filled. Check the original before
+              spending time on it.
+            </span>
+          </div>
+        )}
+
+        <div className="flex flex-wrap items-center gap-2.5">
+          {applyLink}
+          <SaveButton saved={saved} onToggle={toggleSave} />
+          <Button variant="secondary" size="icon" onClick={share} aria-label="Share this job">
+            <Share2 size={16} />
           </Button>
-          <ScoreBadge score={job.overallScore} size="detail" />
+        </div>
+        <div className="-mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-text/45">
+          <span>Apply opens the original listing in a new tab.</span>
+          {applied ? (
+            <button type="button" className="underline underline-offset-2 hover:text-text/70" onClick={() => setAppliedState(false)}>
+              Mark as not applied
+            </button>
+          ) : (
+            <button type="button" className="underline underline-offset-2 hover:text-text/70" onClick={() => setAppliedState(true)}>
+              I&apos;ve already applied
+            </button>
+          )}
         </div>
       </FadeIn>
 
-      <div className="grid grid-cols-1 gap-10 lg:grid-cols-[1fr_340px]">
-        <FadeIn delay={0.1}>
-          <h2 className="mb-3 text-xl">Fit breakdown</h2>
+      <div ref={sentinelRef} aria-hidden className="h-px" />
+
+      {/* — sections — */}
+      <div className="mt-14 flex flex-col gap-14">
+        <FadeIn delay={0.06}>
+          <SectionHeading>Fit breakdown</SectionHeading>
           <FitBreakdown job={job} />
-
-          <h2 className="mb-3 mt-10 text-xl">About this role</h2>
-          <CollapsibleText text={job.description} />
-
-          <h2 className="mb-3 text-xl">Requirements</h2>
-          <CollapsibleList items={job.requirements} listClassName="list-disc pl-5" />
         </FadeIn>
 
-        <FadeIn delay={0.18} className="flex flex-col gap-4 lg:sticky lg:top-6 lg:self-start">
-          <div className="hidden lg:block">
-            <a
-              href={job.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex w-full items-center justify-center gap-1.5 rounded-md border border-accent-500 bg-accent-500 px-4 py-2.5 text-sm font-medium text-neutral-900 transition-colors hover:bg-accent-400"
-            >
-              Apply on {SOURCE_LABELS[job.source]} <ArrowUpRight size={16} />
-            </a>
-            <div className="mt-2 text-center text-xs text-text/60">Opens the original listing in a new tab</div>
-          </div>
-          <MatchedGapList matched={job.matchedPoints} gaps={job.gapPoints} />
+        {job.matchedPoints.length > 0 && (
+          <FadeIn delay={0.09}>
+            <SectionHeading tone="high" count={job.matchedPoints.length}>
+              What matches
+            </SectionHeading>
+            <PointList points={job.matchedPoints} />
+          </FadeIn>
+        )}
 
-          <div className="rounded-md border border-dashed border-border p-3 text-sm text-text/60">
-            Resume edit suggestions for this listing — coming soon.
-          </div>
+        {job.gapPoints.length > 0 && (
+          <FadeIn delay={0.11}>
+            <SectionHeading tone="low" count={job.gapPoints.length}>
+              What&apos;s missing
+            </SectionHeading>
+            <PointList points={job.gapPoints} />
+          </FadeIn>
+        )}
+
+        <FadeIn delay={0.13}>
+          <SectionHeading>Job description</SectionHeading>
+          <p className="whitespace-pre-line text-base leading-[1.75] text-text/85">{job.description}</p>
+        </FadeIn>
+
+        {job.requirements.length > 0 && (
+          <FadeIn delay={0.15}>
+            <SectionHeading>Requirements</SectionHeading>
+            <ul className="flex list-disc flex-col gap-2 pl-5 text-base leading-relaxed text-text/85 marker:text-accent-400">
+              {job.requirements.map((item, i) => (
+                <li key={i}>{item}</li>
+              ))}
+            </ul>
+          </FadeIn>
+        )}
+
+        <FadeIn delay={0.17}>
+          <SectionHeading count={suggestions?.length ?? undefined}>Resume suggestions</SectionHeading>
+
+          {suggestions === null && suggestState !== 'error' && (
+            <div className="rounded-md border border-dashed border-border p-4">
+              <p className="text-base leading-relaxed text-text/60">
+                Get 2–4 truthful edits to your résumé, aimed at this listing&apos;s wording — nothing
+                invented, just what&apos;s already there, sharpened.
+              </p>
+              <button
+                type="button"
+                onClick={generateSuggestions}
+                disabled={suggestState === 'loading'}
+                className="mt-3 inline-flex h-10 items-center gap-2 rounded-md border border-accent-500 px-4 text-sm font-medium text-accent-300 transition-colors hover:bg-accent-500/12 disabled:opacity-60"
+              >
+                {suggestState === 'loading' ? (
+                  <>
+                    <Loader2 size={15} className="animate-spin" /> Generating…
+                  </>
+                ) : (
+                  <>
+                    <Sparkles size={15} /> Generate suggestions
+                  </>
+                )}
+              </button>
+            </div>
+          )}
+
+          {suggestState === 'error' && (
+            <div className="rounded-md border border-tier-low-border bg-tier-low-bg p-4 text-sm text-tier-low-text">
+              {suggestError}
+              <button
+                type="button"
+                onClick={generateSuggestions}
+                className="ml-2 underline underline-offset-2"
+              >
+                Try again
+              </button>
+            </div>
+          )}
+
+          {suggestions !== null && suggestions.length === 0 && (
+            <p className="rounded-md border border-dashed border-border p-4 text-base leading-relaxed text-text/55">
+              Nothing to suggest here — your résumé can&apos;t be improved for this listing without
+              claiming experience you don&apos;t have, and we won&apos;t do that.
+            </p>
+          )}
+
+          {suggestions !== null && suggestions.length > 0 && (
+            <ul className="flex flex-col gap-3">
+              {suggestions.map((s, i) => (
+                <SuggestionCard key={i} s={s} />
+              ))}
+            </ul>
+          )}
         </FadeIn>
       </div>
 
-      <div className="fixed inset-x-0 bottom-0 z-30 flex items-center gap-3 border-t border-border bg-surface p-3 lg:hidden">
-        <Button variant={saved ? 'solid' : 'secondary'} size="icon" onClick={toggleSave} aria-label={saved ? 'Saved' : 'Save'}>
-          <Bookmark size={18} fill={saved ? 'currentColor' : 'none'} />
-        </Button>
+      {/* — mobile action bar — */}
+      <div className="fixed inset-x-0 bottom-0 z-30 flex items-center gap-3 border-t border-border bg-surface p-3 sm:hidden">
+        <SaveButton saved={saved} onToggle={toggleSave} variant="icon" />
         <a
           href={job.url}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex flex-1 items-center justify-center gap-1.5 rounded-md border border-accent-500 bg-accent-500 px-4 py-2.5 text-sm font-medium text-neutral-900"
+          onClick={onApplyClick}
+          className="flex flex-1 items-center justify-center gap-1.5 rounded-md bg-gradient-to-r from-accent-700 via-accent-500 to-accent-400 px-4 py-2.5 text-sm font-medium text-neutral-900"
         >
           Apply on {SOURCE_LABELS[job.source]} <ArrowUpRight size={16} />
         </a>

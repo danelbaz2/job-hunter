@@ -17,7 +17,11 @@ Multi-platform job matching app for Israel: aggregates listings via Apify scrape
 - One email can only be claimed by one auth method: whichever the account was created with wins. A Google sign-in attempt on a password-only email, or a password sign-in on a Google-only email, fails with a generic message pointing at the right method — never silently create a second account for the same email.
 - All job sourcing goes through Apify actors (AllJobs, Drushim, LinkedIn, Indeed-Israel) behind one adapter layer. Scoring/UI code never calls Apify directly — swap actors without touching callers.
 - Deterministic scoring (location, domain, seniority) is plain code, not an AI call. Only skills/resume-language fit goes through the OpenRouter AI call. Don't move deterministic scoring into a prompt "for simplicity" — it stops being testable.
-- Resume flow is upload (PDF/DOCX) → parse to text → same pipeline as pasted text → text output only. No document regeneration; don't add file-output generation without discussing scope first.
+- Resume flow is upload (PDF/DOCX) → parse to text → text output only. No document regeneration; don't add file-output generation without discussing scope first.
+- Résumé is optional. The /search "In your words" free-text field is a separate candidate input (what the user wants / their background), merged with résumé text via `buildCandidateText` before the skills-fit AI call. With neither, search runs on deterministic scoring alone — `skillsScore: null` with `aiFailed: false` means "not scored", not "AI failed"; keep those two cases visually distinct.
+- SPEC criterion 5 (never an empty explanation) is held for filter-only / AI-empty listings by `deterministicPoints()` — matched/gap points synthesized from location/domain/seniority with verbatim listing quotes.
+- Resume suggestions (criterion 8): `lib/scoring/suggestions.ts`, generated on demand via `POST /api/jobs/[id]/suggestions` (one AI call per listing viewed, cached on `search_result.resumeSuggestions`) — never during the search loop. Prompt forbids inventing any qualification; `{ items: [] }` is a valid "nothing truthful to suggest" result, not an error.
+- "Applied" is a separate state from "saved" (`applied_job` table, `/api/jobs/[id]/apply`). Clicking Apply on the job-detail page marks it applied; it can also be toggled manually.
 - AI model is configured via OpenRouter, free-tier by default, swappable via config — don't hardcode a model name in application logic.
 
 ## What good work looks like

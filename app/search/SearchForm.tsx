@@ -1,20 +1,29 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { SeniorityPicker } from '@/components/SeniorityPicker';
-import { LocationChips } from '@/components/LocationChips';
-import { DomainChips } from '@/components/DomainChips';
-import { ResumeInput, type ResumeMode } from '@/components/ResumeInput';
+import { motion } from 'motion/react';
+import { MapPin, SignalHigh, Boxes, AlertCircle } from 'lucide-react';
+import { FilterField } from '@/components/FilterField';
+import { ResumeInput } from '@/components/ResumeInput';
 import { SearchingState } from '@/components/SearchingState';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
+import { Textarea } from '@/components/ui/textarea';
 import { PageContainer } from '@/components/ui/page-container';
 import { FadeIn } from '@/components/motion/FadeIn';
-import { cn } from '@/lib/utils';
-import { SOURCES, type Seniority, type SourceProgress } from '@/types/domain';
+import {
+  SOURCES,
+  LOCATION_OPTIONS,
+  SENIORITY_OPTIONS,
+  DOMAIN_OPTIONS,
+  type Seniority,
+  type SourceProgress,
+} from '@/types/domain';
 
 type Stage = 'form' | 'searching';
+
+const INTENT_PLACEHOLDER =
+  "e.g. I'm a computer science graduate (95 GPA) looking for a software engineer role. 4 years building backend services in Go at a product company, now want something with more system-design ownership.";
 
 function initialProgress(): SourceProgress {
   return Object.fromEntries(SOURCES.map((s) => [s, 'pending'])) as SourceProgress;
@@ -30,16 +39,42 @@ export function SearchForm() {
   const [locations, setLocations] = useState<string[]>([]);
   const [seniorities, setSeniorities] = useState<Seniority[]>([]);
   const [domains, setDomains] = useState<string[]>([]);
-  const [resumeMode, setResumeMode] = useState<ResumeMode>('upload');
+  const [intent, setIntent] = useState('');
   const [resumeFile, setResumeFile] = useState<File | null>(null);
-  const [resumeText, setResumeText] = useState('');
   const [stage, setStage] = useState<Stage>('form');
   const [sourceProgress, setSourceProgress] = useState<SourceProgress>(initialProgress);
   const [error, setError] = useState<string | null>(null);
+  const [errorPulse, setErrorPulse] = useState(0);
   const [touched, setTouched] = useState(false);
+  const errorRef = useRef<HTMLDivElement>(null);
 
-  const missingLocation = touched && locations.length === 0;
-  const missingSeniority = touched && seniorities.length === 0;
+  /** Set an error and draw the user's eye to it — bump the pulse so the message
+   * re-mounts (re-runs its shake) and gets scrolled into view, even if the text is
+   * unchanged from the last attempt. */
+  function raiseError(message: string) {
+    setError(message);
+    setErrorPulse((p) => p + 1);
+  }
+
+  useEffect(() => {
+    if (errorPulse > 0) {
+      errorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, [errorPulse]);
+
+  const selectionSummary = [
+    locations.length ? locations.join(', ') : null,
+    seniorities.length ? seniorities.join(', ') : null,
+    domains.length ? domains.join(', ') : null,
+  ].filter(Boolean);
+
+  const anySelected = locations.length > 0 || seniorities.length > 0 || domains.length > 0;
+
+  function clearAll() {
+    setLocations([]);
+    setSeniorities([]);
+    setDomains([]);
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -47,7 +82,7 @@ export function SearchForm() {
     setTouched(true);
 
     if (locations.length === 0 || seniorities.length === 0) {
-      setError('Pick at least one location and level to continue');
+      raiseError('Pick at least one location and one level to continue.');
       return;
     }
 
@@ -58,11 +93,14 @@ export function SearchForm() {
     form.set('locations', JSON.stringify(locations));
     form.set('seniorities', JSON.stringify(seniorities));
     form.set('domains', JSON.stringify(domains));
-    form.set('resumeMode', resumeMode);
-    if (resumeMode === 'upload' && resumeFile) {
+    form.set('intentText', intent.trim());
+
+    if (resumeFile) {
+      form.set('resumeMode', 'upload');
       form.set('resumeFile', resumeFile);
     } else {
-      form.set('resumeText', resumeText);
+      form.set('resumeMode', 'paste');
+      form.set('resumeText', '');
     }
 
     try {
@@ -70,8 +108,8 @@ export function SearchForm() {
 
       if (!res.ok || !res.body) {
         const data = await res.json().catch(() => ({}));
-        setError(data.error ?? 'Search failed');
         setStage('form');
+        raiseError(data.error ?? 'Search failed — please try again.');
         return;
       }
 
@@ -116,15 +154,15 @@ export function SearchForm() {
             router.push(`/results?searchId=${event.searchId}`);
             return;
           } else if (event.type === 'error') {
-            setError(event.message);
             setStage('form');
+            raiseError(event.message);
             return;
           }
         }
       }
     } catch {
-      setError('Search failed — please try again.');
       setStage('form');
+      raiseError('Search failed — please try again.');
     }
   }
 
@@ -149,14 +187,14 @@ export function SearchForm() {
       const res = await fetch('/api/dev/mock-search');
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error ?? 'Test mode failed');
         setStage('form');
+        raiseError(data.error ?? 'Test mode failed');
         return;
       }
       router.push(`/results?searchId=${data.searchId}`);
     } catch {
-      setError('Test mode failed — please try again.');
       setStage('form');
+      raiseError('Test mode failed — please try again.');
     }
   }
 
@@ -164,77 +202,141 @@ export function SearchForm() {
     return <SearchingState sourceProgress={sourceProgress} />;
   }
 
+  const missingFilters = touched && (locations.length === 0 || seniorities.length === 0);
+
   return (
-    <PageContainer className="max-w-3xl">
-      <FadeIn>
-        <h1 className="text-3xl tracking-tight sm:text-4xl">Find your next role</h1>
-        <p className="mt-2 max-w-2xl text-base text-text/70">
-          Tell us where and what you&apos;re looking for, and share your resume — we&apos;ll search
-          Israel&apos;s job platforms and score each listing against your fit.
-        </p>
-      </FadeIn>
-
-      {error && (
-        <div className="mt-4 rounded-md border border-tier-low-border bg-tier-low-bg px-3 py-2 text-sm text-tier-low-text">
-          {error}
-        </div>
-      )}
-
-      <form onSubmit={handleSubmit} className="mt-8 flex flex-col gap-6">
-        <Card className="gap-5 p-5">
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-            <FadeIn delay={0.06}>
-              <div className="mb-2 flex items-baseline justify-between">
-                <label className="text-base font-medium">Location</label>
-                {missingLocation && <span className="text-xs text-tier-low-text">Choose at least one</span>}
-              </div>
-              <LocationChips value={locations} onChange={setLocations} />
-            </FadeIn>
-
-            <FadeIn delay={0.12}>
-              <div className="mb-2 flex items-baseline justify-between">
-                <label className="text-base font-medium">Level</label>
-                {missingSeniority && <span className="text-xs text-tier-low-text">Choose at least one</span>}
-              </div>
-              <SeniorityPicker value={seniorities} onChange={setSeniorities} />
-            </FadeIn>
-          </div>
-
-          <FadeIn delay={0.18}>
-            <div className="mb-2 flex items-baseline gap-2">
-              <label className="text-base font-medium">Domain</label>
-              <span className="text-sm text-text/50">Optional — leave blank for any</span>
-            </div>
-            <DomainChips value={domains} onChange={setDomains} />
-          </FadeIn>
-        </Card>
-
-        <FadeIn delay={0.24}>
-          <label className="mb-2 block text-base font-medium">Resume</label>
-          <Card className={cn('gap-0 p-3', 'h-[280px]')}>
-            <ResumeInput
-              mode={resumeMode}
-              onModeChange={setResumeMode}
-              file={resumeFile}
-              onFileChange={setResumeFile}
-              text={resumeText}
-              onTextChange={setResumeText}
-            />
-          </Card>
+    <PageContainer>
+      <form onSubmit={handleSubmit} className="flex flex-col">
+        <FadeIn>
+          <h1 className="text-4xl tracking-tight sm:text-5xl">Find your next role</h1>
+          <p className="mt-3 max-w-lg text-lg leading-relaxed text-text/60">
+            Set where and what you&apos;re after, tell us a little about yourself, and we&apos;ll
+            search Israel&apos;s job boards and score every listing against your fit.
+          </p>
         </FadeIn>
 
-        <FadeIn delay={0.3} className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex flex-wrap items-center gap-3">
-            <Button type="submit" variant="solid" size="lg" className="w-full sm:w-auto">
-              Find matching jobs →
-            </Button>
-            {process.env.NODE_ENV === 'development' && (
-              <Button type="button" variant="ghost" size="sm" onClick={runTestMode} className="border border-dashed border-border">
-                Test mode (skip Apify/OpenRouter)
-              </Button>
+        {error && (
+          <motion.div
+            key={errorPulse}
+            ref={errorRef}
+            role="alert"
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0, x: [0, -9, 8, -5, 4, 0] }}
+            transition={{ duration: 0.6, ease: 'easeOut' }}
+            className="mt-8 flex max-w-full items-start gap-2.5 self-start rounded-lg border border-tier-low-border bg-tier-low-bg px-4 py-3 text-base font-medium text-tier-low-text shadow-sm"
+          >
+            <AlertCircle size={18} className="mt-0.5 shrink-0" />
+            <span>{error}</span>
+          </motion.div>
+        )}
+
+        {/* — filters — */}
+        <FadeIn delay={0.05} className="mt-12">
+          <div className="flex items-baseline justify-between gap-4">
+            <h2 className="text-sm font-medium uppercase tracking-[0.14em] text-text/45">
+              Where &amp; what
+            </h2>
+            {anySelected && (
+              <button
+                type="button"
+                onClick={clearAll}
+                className="text-sm text-text/45 transition-colors hover:text-text/80"
+              >
+                Clear all
+              </button>
             )}
           </div>
-          <span className="text-sm text-text/50">Usually takes under a minute</span>
+
+          <div className="mt-4 flex flex-wrap gap-2.5">
+            <FilterField
+              label="Location"
+              subtitle="Where you'd work — pick any that fit"
+              icon={MapPin}
+              options={LOCATION_OPTIONS}
+              value={locations}
+              onChange={setLocations}
+              invalid={missingFilters}
+            />
+            <FilterField
+              label="Level"
+              subtitle="One or more experience levels"
+              icon={SignalHigh}
+              options={SENIORITY_OPTIONS}
+              value={seniorities}
+              onChange={setSeniorities}
+              invalid={missingFilters}
+            />
+            <FilterField
+              label="Domain"
+              subtitle="Optional — leave open for any field"
+              icon={Boxes}
+              options={DOMAIN_OPTIONS}
+              value={domains}
+              onChange={setDomains}
+            />
+          </div>
+
+          <p className="mt-3 min-h-5 text-sm text-text/55">
+            {selectionSummary.length > 0 ? (
+              selectionSummary.join('  ·  ')
+            ) : (
+              <span className="text-text/35">Nothing selected yet</span>
+            )}
+          </p>
+        </FadeIn>
+
+        <div className="mt-12 h-px bg-border" />
+
+        {/* — intent — */}
+        <FadeIn delay={0.1} className="mt-12">
+          <label htmlFor="intent" className="text-sm font-medium uppercase tracking-[0.14em] text-text/45">
+            In your words
+          </label>
+          <p className="mt-2 max-w-xl text-base leading-relaxed text-text/60">
+            Optional. A sentence or two on what you&apos;re looking for and where you&apos;re coming
+            from — we hand it to the matcher to sharpen your score.
+          </p>
+          <Textarea
+            id="intent"
+            value={intent}
+            onChange={(e) => setIntent(e.target.value)}
+            placeholder={INTENT_PLACEHOLDER}
+            className="mt-4 min-h-32 rounded-lg bg-transparent px-4 py-3.5 text-base leading-relaxed"
+          />
+        </FadeIn>
+
+        <div className="mt-12 h-px bg-border" />
+
+        {/* — resume — */}
+        <FadeIn delay={0.15} className="mt-12">
+          <div className="flex items-baseline gap-2.5">
+            <span className="text-sm font-medium uppercase tracking-[0.14em] text-text/45">Resume</span>
+            <span className="text-sm text-text/35">Optional — sharpens the match further</span>
+          </div>
+          <div className="mt-4 h-[220px]">
+            <ResumeInput file={resumeFile} onFileChange={setResumeFile} />
+          </div>
+        </FadeIn>
+
+        {/* — submit — */}
+        <FadeIn delay={0.2} className="mt-14 flex flex-col items-center gap-3">
+          <button
+            type="submit"
+            className="inline-flex h-12 items-center justify-center rounded-pill bg-gradient-to-r from-accent-700 via-accent-500 to-accent-400 px-7 text-base font-medium text-neutral-900 shadow-[0_8px_24px_-6px_rgba(150,138,224,0.55)] transition-all duration-200 hover:brightness-110 hover:shadow-[0_10px_30px_-6px_rgba(150,138,224,0.7)] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400 focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
+          >
+            Find matching jobs&nbsp;→
+          </button>
+          {process.env.NODE_ENV === 'development' && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={runTestMode}
+              className="border border-dashed border-border"
+            >
+              Test mode (skip Apify/OpenRouter)
+            </Button>
+          )}
         </FadeIn>
       </form>
     </PageContainer>

@@ -14,7 +14,6 @@ export interface SearchResultsPayload {
 const g = globalThis as unknown as { __searchResultsCache?: Map<string, SearchResultsPayload> };
 const cache = (g.__searchResultsCache ??= new Map<string, SearchResultsPayload>());
 
-const MIN_SKELETON_MS = 2000;
 const POLL_INTERVAL_MS = 1000;
 
 export function useSearchResults(searchId: string) {
@@ -25,7 +24,6 @@ export function useSearchResults(searchId: string) {
   useEffect(() => {
     let cancelled = false;
     const hadCache = cache.has(searchId);
-    const startedAt = Date.now();
 
     if (!hadCache) {
       setData(null);
@@ -63,14 +61,8 @@ export function useSearchResults(searchId: string) {
         return;
       }
 
-      const elapsed = Date.now() - startedAt;
-      const wait = Math.max(0, MIN_SKELETON_MS - elapsed);
-      setTimeout(() => {
-        if (!cancelled) {
-          setData(payload);
-          setLoading(false);
-        }
-      }, wait);
+      setData(payload);
+      setLoading(false);
     }
 
     poll();

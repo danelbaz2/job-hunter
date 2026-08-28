@@ -26,26 +26,25 @@ export async function POST(req: Request) {
   const seniorities = JSON.parse(String(form.get('seniorities') ?? '[]')) as Seniority[];
   const domains = JSON.parse(String(form.get('domains') ?? '[]')) as string[];
   const resumeMode = String(form.get('resumeMode') ?? 'paste') as 'upload' | 'paste';
+  const intentText = String(form.get('intentText') ?? '').trim();
 
+  // Résumé is optional now — a search can run on location/level/domain alone, or with just
+  // the free-text intent. Only a file that was attached but can't be read is an error.
   let resumeText = '';
   if (resumeMode === 'upload') {
     const file = form.get('resumeFile') as File | null;
-    if (!file) {
-      return NextResponse.json({ error: 'No resume file provided' }, { status: 400 });
+    if (file) {
+      const parsed = await parseResumeFile(file);
+      if (parsed.unreadable) {
+        return NextResponse.json(
+          { error: 'Could not read text from that file — it may be a scanned image. Paste a description instead.' },
+          { status: 400 }
+        );
+      }
+      resumeText = parsed.text;
     }
-    const parsed = await parseResumeFile(file);
-    if (parsed.unreadable) {
-      return NextResponse.json(
-        { error: 'Could not read text from that file — it may be a scanned image. Try "Paste text" instead.' },
-        { status: 400 }
-      );
-    }
-    resumeText = parsed.text;
   } else {
     resumeText = String(form.get('resumeText') ?? '').trim();
-    if (!resumeText) {
-      return NextResponse.json({ error: 'Resume text is required' }, { status: 400 });
-    }
   }
 
   if (locations.length === 0 || seniorities.length === 0) {
@@ -74,6 +73,7 @@ export async function POST(req: Request) {
             domains,
             resumeText,
             resumeMode,
+            intentText,
             sourceStatus,
           })
           .returning();
@@ -84,7 +84,7 @@ export async function POST(req: Request) {
         send({ type: 'search-created', searchId: search.id });
 
         const scored = await Promise.all(
-          listings.map((listing) => scoreListing(listing, { locations, domains, seniorities, resumeText }))
+          listings.map((listing) => scoreListing(listing, { locations, domains, seniorities, resumeText, intentText }))
         );
 
         if (scored.length > 0) {

@@ -43,6 +43,15 @@ export interface MatchPoint {
   quote: string;
 }
 
+export interface ResumeSuggestion {
+  /** The existing résumé line this rewrites, or null for a bullet grounded in existing content. */
+  original: string | null;
+  /** Suggested wording — must stay truthful to what's already in the résumé (SPEC.md non-negotiable). */
+  suggestion: string;
+  /** Why this helps against this listing's stated requirements. */
+  rationale: string;
+}
+
 export interface SearchResultItem {
   id: string;
   source: Source;
@@ -66,8 +75,11 @@ export interface SearchResultItem {
 
   matchedPoints: MatchPoint[];
   gapPoints: MatchPoint[];
+  /** Null until generated on demand from the job-detail page. */
+  resumeSuggestions: ResumeSuggestion[] | null;
 
   saved: boolean;
+  applied: boolean;
 }
 
 export interface SearchSummary {

@@ -26,21 +26,21 @@ export default async function LandingPage({
           Job<span className="text-accent-500">Hunter</span>
         </span>
 
-        <div className="flex flex-col gap-5">
-          <h1 className="text-3xl tracking-tight sm:text-4xl lg:text-5xl">
+        <div className="flex flex-col gap-6">
+          <h1 className="text-4xl tracking-tight sm:text-5xl lg:text-6xl">
             Stop scrolling job boards. Start applying with fit.
           </h1>
-          <p className="max-w-xl text-base text-text/75">
+          <p className="max-w-xl text-lg leading-relaxed text-text/70">
             Job Hunter scans AllJobs, Drushim and Indeed-Israel, scores every listing against your
             resume, and tells you exactly why you match — or don&apos;t.
           </p>
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-3.5">
             {FEATURES.map((text) => (
               <Reveal key={text} className="flex items-center gap-3">
-                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-accent-800 text-accent-300">
-                  <Check size={14} />
+                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-accent-800 text-accent-300">
+                  <Check size={15} />
                 </span>
-                <span className="text-sm text-text/85">{text}</span>
+                <span className="text-base leading-snug text-text/85">{text}</span>
               </Reveal>
             ))}
           </div>

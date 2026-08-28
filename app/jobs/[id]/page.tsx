@@ -10,7 +10,7 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
   const { id } = await params;
 
   return (
-    <PageContainer wide>
+    <PageContainer className="max-w-[760px]">
       <JobDetailLoader id={id} />
     </PageContainer>
   );

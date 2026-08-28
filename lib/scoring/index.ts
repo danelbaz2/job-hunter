@@ -1,9 +1,18 @@
 import type { Seniority } from '@/types/domain';
 import type { RawListing } from '@/lib/sources/types';
-import { scoreLocation, scoreDomain, scoreSeniority } from './deterministic';
+import { scoreLocation, scoreDomain, scoreSeniority, deterministicPoints } from './deterministic';
 import { scoreSkillsFit } from './ai';
 
-export { scoreLocation, scoreDomain, scoreSeniority, scoreSkillsFit };
+export { scoreLocation, scoreDomain, scoreSeniority, scoreSkillsFit, deterministicPoints };
+
+/** Merge résumé text and free-text intent into the single candidate description the AI
+ * skills-fit call compares against the listing. Either or both may be empty. */
+export function buildCandidateText(resumeText: string, intentText: string): string {
+  const parts: string[] = [];
+  if (resumeText.trim()) parts.push(`RESUME:\n${resumeText.trim()}`);
+  if (intentText.trim()) parts.push(`WHAT THEY WANT:\n${intentText.trim()}`);
+  return parts.join('\n\n');
+}
 
 /**
  * Fixed weights for the overall score. When skillsScore is null (AI failed), weight is
@@ -51,12 +60,20 @@ export interface ScoredListing {
 
 export async function scoreListing(
   listing: RawListing,
-  criteria: { locations: string[]; domains: string[]; seniorities: Seniority[]; resumeText: string }
+  criteria: {
+    locations: string[];
+    domains: string[];
+    seniorities: Seniority[];
+    resumeText: string;
+    intentText: string;
+  }
 ): Promise<ScoredListing> {
   const locationScore = scoreLocation(criteria.locations, listing.location);
   const domainScore = scoreDomain(criteria.domains, listing);
   const seniorityScore = scoreSeniority(criteria.seniorities, listing);
-  const skills = await scoreSkillsFit(criteria.resumeText, listing);
+
+  const candidateText = buildCandidateText(criteria.resumeText, criteria.intentText);
+  const skills = await scoreSkillsFit(candidateText, listing);
 
   const overallScore = computeOverallScore({
     locationScore,
@@ -64,6 +81,16 @@ export async function scoreListing(
     seniorityScore,
     skillsScore: skills.skillsScore,
   });
+
+  // Fall back to deterministic-dimension points whenever skills-fit produced no matched
+  // point — filter-only search, or an AI call that failed / returned nothing usable — so
+  // the listing still carries a real explanation (SPEC.md Part 2, criterion 5).
+  let { matchedPoints, gapPoints } = skills;
+  if (matchedPoints.length === 0) {
+    const det = deterministicPoints(criteria, listing, { locationScore, domainScore, seniorityScore });
+    matchedPoints = det.matchedPoints;
+    gapPoints = gapPoints.length > 0 ? gapPoints : det.gapPoints;
+  }
 
   return {
     listing,
@@ -73,7 +100,7 @@ export async function scoreListing(
     skillsScore: skills.skillsScore,
     aiFailed: skills.aiFailed,
     overallScore,
-    matchedPoints: skills.matchedPoints,
-    gapPoints: skills.gapPoints,
+    matchedPoints,
+    gapPoints,
   };
 }

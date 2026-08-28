@@ -18,6 +18,13 @@ export function getCachedJob(id: string): SearchResultItem | null {
   return cache.get(id) ?? null;
 }
 
+/** Everything currently cached, from any grid the user has already looked at this
+ * session — used to seed an optimistic first paint elsewhere (e.g. the saved-jobs
+ * list) from data that's already sitting in memory instead of showing a skeleton. */
+export function getAllCachedJobs(): SearchResultItem[] {
+  return Array.from(cache.values());
+}
+
 export function setCachedJob(job: SearchResultItem) {
   cache.set(job.id, job);
 }
@@ -28,8 +35,6 @@ export function seedJobCache(jobs: SearchResultItem[]) {
   for (const job of jobs) cache.set(job.id, job);
 }
 
-const MIN_SKELETON_MS = 2000;
-
 export function useJobDetail(id: string) {
   const [job, setJob] = useState<SearchResultItem | null>(() => getCachedJob(id));
   const [loading, setLoading] = useState(() => !getCachedJob(id));
@@ -38,7 +43,6 @@ export function useJobDetail(id: string) {
   useEffect(() => {
     let cancelled = false;
     const hadCache = !!getCachedJob(id);
-    const startedAt = Date.now();
 
     if (!hadCache) {
       setJob(null);
@@ -67,14 +71,8 @@ export function useJobDetail(id: string) {
           return;
         }
 
-        const elapsed = Date.now() - startedAt;
-        const wait = Math.max(0, MIN_SKELETON_MS - elapsed);
-        setTimeout(() => {
-          if (!cancelled) {
-            setJob(data);
-            setLoading(false);
-          }
-        }, wait);
+        setJob(data);
+        setLoading(false);
       } catch {
         if (!cancelled) setLoading(false);
       }

@@ -8,7 +8,7 @@ export interface SkillsFitResult {
   aiFailed: boolean;
 }
 
-const SYSTEM_PROMPT = `You compare a candidate's resume against one job listing's text.
+const SYSTEM_PROMPT = `You compare a candidate's description (a resume, a short free-text summary of what they want, or both) against one job listing's text.
 Return strict JSON only, matching this shape:
 {
   "skillsScore": <integer 0-100>,
@@ -22,8 +22,16 @@ If you cannot find a real quote for a point, omit that point entirely rather tha
  * Never returns a fabricated match/gap point (CLAUDE.md non-negotiable): every quote is
  * verified as a verbatim substring of the listing's rawText before being kept. A point
  * whose quote doesn't verify is dropped, not corrected — we don't trust the model to fix it.
+ *
+ * `candidateText` is the résumé text and/or the free-text intent, already merged by the
+ * caller. When it's empty the user searched on filters alone — that's not a failure, so
+ * this returns `skillsScore: null` with `aiFailed: false` and no AI call is made.
  */
-export async function scoreSkillsFit(resumeText: string, listing: RawListing): Promise<SkillsFitResult> {
+export async function scoreSkillsFit(candidateText: string, listing: RawListing): Promise<SkillsFitResult> {
+  if (!candidateText.trim()) {
+    return { skillsScore: null, matchedPoints: [], gapPoints: [], aiFailed: false };
+  }
+
   const apiKey = process.env.OPENROUTER_API_KEY;
   const model = process.env.OPENROUTER_MODEL ?? 'nvidia/nemotron-3-super-120b-a12b:free';
   if (!apiKey) {
@@ -54,7 +62,7 @@ export async function scoreSkillsFit(resumeText: string, listing: RawListing): P
           { role: 'system', content: SYSTEM_PROMPT },
           {
             role: 'user',
-            content: `RESUME:\n${resumeText}\n\nLISTING TEXT:\n${listing.rawText}`,
+            content: `CANDIDATE:\n${candidateText}\n\nLISTING TEXT:\n${listing.rawText}`,
           },
         ],
       }),
