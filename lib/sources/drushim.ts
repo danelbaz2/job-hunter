@@ -47,6 +47,6 @@ export async function fetchDrushim(params: SourceFetchParams): Promise<SourceFet
         rawText: buildRawText(description, requirements),
       };
     },
-    { onRetry: params.onRetry, demo: params.demo ? DEMO_ACTOR_FAULTS.drushim : undefined }
+    { onRetry: params.onRetry, onLog: params.onLog, demo: params.demo ? DEMO_ACTOR_FAULTS.drushim : undefined }
   );
 }

@@ -1,8 +1,9 @@
 import { ApifyClient } from 'apify-client';
 import type { RawListing, SourceFetchResult } from './types';
 import type { Source } from '@/types/domain';
+import { SOURCE_LABELS } from '@/types/domain';
 import { sleep, backoffMs } from '@/lib/retry';
-import type { DemoActorFault } from '@/lib/demo/faults';
+import type { DemoActorFault, DemoLogEntry } from '@/lib/demo/faults';
 
 let client: ApifyClient | null = null;
 
@@ -21,6 +22,8 @@ const MAX_ATTEMPTS = 3;
 export interface RunActorOptions {
   /** Fires once per retry, before the backoff wait — `retryNumber` is 1-based (1 = first retry). */
   onRetry?: (retryNumber: number) => void;
+  /** Human-readable progress lines — only wired up for the demo failure scenario. */
+  onLog?: (entry: DemoLogEntry) => void;
   /** Demo failure scenario: short-circuits the real Apify calls with a scripted fault. */
   demo?: DemoActorFault;
 }
@@ -51,7 +54,8 @@ export async function runActor(
   mapItem: (item: Record<string, unknown>) => RawListing | null,
   options: RunActorOptions = {}
 ): Promise<SourceFetchResult> {
-  const { onRetry, demo } = options;
+  const { onRetry, onLog, demo } = options;
+  const label = SOURCE_LABELS[source];
   if (!actorId && !demo) {
     return { listings: [], status: 'failed' };
   }
@@ -61,14 +65,34 @@ export async function runActor(
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
     try {
       if (demo) {
+        const latency =
+          demo.attemptLatencyMs[Math.min(attempt, demo.attemptLatencyMs.length) - 1] ?? 1500;
+        onLog?.({
+          source,
+          level: 'info',
+          message:
+            attempt === 1
+              ? `${label} — requesting listings…`
+              : `${label} — attempt ${attempt} in progress…`,
+        });
+        await sleep(latency);
+
         if (attempt <= demo.callFailsUpToAttempt) {
-          throw new Error(`[demo] ${source} actor call failed (attempt ${attempt})`);
+          throw new Error(`[demo] ${source} actor run failed (attempt ${attempt})`);
         }
-        if (!run) run = { defaultDatasetId: `demo-${source}` };
-        else console.info(`[apify:${source}] reusing run ${run.defaultDatasetId} — no new actor call`);
+        if (!run) {
+          run = { defaultDatasetId: `demo-${source}` };
+        } else {
+          onLog?.({ source, level: 'info', message: `${label} — reusing existing run, no new actor call` });
+        }
         if (demo.datasetFailsOnAttempts.includes(attempt)) {
           throw new Error(`[demo] ${source} dataset read failed (attempt ${attempt})`);
         }
+        onLog?.({
+          source,
+          level: 'success',
+          message: `${label} — ${demo.listings.length} listing${demo.listings.length === 1 ? '' : 's'} received`,
+        });
         return { listings: demo.listings.slice(0, limit), status: 'ok' };
       }
 
@@ -86,10 +110,22 @@ export async function runActor(
     } catch (err) {
       console.error(`[apify:${source}] attempt ${attempt}/${MAX_ATTEMPTS} failed`, err);
       if (attempt === MAX_ATTEMPTS) {
+        onLog?.({
+          source,
+          level: 'error',
+          message: `${label} — all ${MAX_ATTEMPTS} attempts failed, marking source unavailable`,
+        });
         return { listings: [], status: 'failed' };
       }
       onRetry?.(attempt);
-      await sleep(backoffMs(attempt));
+      const stage =
+        demo && attempt <= demo.callFailsUpToAttempt ? 'actor run failed' : 'dataset read failed';
+      onLog?.({
+        source,
+        level: 'warn',
+        message: `${label} — ${demo ? `${stage} (simulated)` : 'transient error'}, retrying (${attempt}/${MAX_ATTEMPTS - 1})…`,
+      });
+      await sleep(demo ? demo.retryGapMs : backoffMs(attempt));
     }
   }
 

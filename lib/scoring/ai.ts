@@ -1,7 +1,7 @@
 import type { RawListing } from '@/lib/sources/types';
 import type { MatchPoint } from '@/types/domain';
 import { openRouterChat } from '@/lib/openrouter';
-import { makeDemoOpenRouterFetch } from '@/lib/demo/faults';
+import { makeDemoOpenRouterFetch, type DemoLogEntry } from '@/lib/demo/faults';
 
 export interface SkillsFitResult {
   skillsScore: number | null;
@@ -32,7 +32,7 @@ If you cannot find a real quote for a point, omit that point entirely rather tha
 export async function scoreSkillsFit(
   candidateText: string,
   listing: RawListing,
-  opts: { demo?: boolean } = {}
+  opts: { demo?: boolean; onLog?: (entry: DemoLogEntry) => void } = {}
 ): Promise<SkillsFitResult> {
   if (!candidateText.trim()) {
     return { skillsScore: null, matchedPoints: [], gapPoints: [], aiFailed: false };
@@ -70,8 +70,13 @@ export async function scoreSkillsFit(
       },
       {
         timeoutMs: 15_000,
-        onRetry: (attempt, reason) =>
-          console.warn(`[scoring:ai] transient failure (${reason}) — retry ${attempt}`),
+        onRetry: (attempt, reason) => {
+          console.warn(`[scoring:ai] transient failure (${reason}) — retry ${attempt}`);
+          opts.onLog?.({
+            level: 'warn',
+            message: `Scoring — AI service returned ${reason}, retrying (${attempt}/2)…`,
+          });
+        },
         fetchImpl: opts.demo ? makeDemoOpenRouterFetch() : undefined,
       }
     );

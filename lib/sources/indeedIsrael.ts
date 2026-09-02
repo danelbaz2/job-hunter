@@ -44,6 +44,6 @@ export async function fetchIndeedIsrael(params: SourceFetchParams): Promise<Sour
         rawText: buildRawText(description, requirements),
       };
     },
-    { onRetry: params.onRetry, demo: params.demo ? DEMO_ACTOR_FAULTS.indeed_il : undefined }
+    { onRetry: params.onRetry, onLog: params.onLog, demo: params.demo ? DEMO_ACTOR_FAULTS.indeed_il : undefined }
   );
 }

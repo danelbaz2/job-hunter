@@ -67,6 +67,7 @@ export async function scoreListing(
     resumeText: string;
     intentText: string;
     demo?: boolean;
+    onLog?: (entry: import('@/lib/demo/faults').DemoLogEntry) => void;
   }
 ): Promise<ScoredListing> {
   const locationScore = scoreLocation(criteria.locations, listing.location);
@@ -74,7 +75,10 @@ export async function scoreListing(
   const seniorityScore = scoreSeniority(criteria.seniorities, listing);
 
   const candidateText = buildCandidateText(criteria.resumeText, criteria.intentText);
-  const skills = await scoreSkillsFit(candidateText, listing, { demo: criteria.demo });
+  const skills = await scoreSkillsFit(candidateText, listing, {
+    demo: criteria.demo,
+    onLog: criteria.onLog,
+  });
 
   const overallScore = computeOverallScore({
     locationScore,

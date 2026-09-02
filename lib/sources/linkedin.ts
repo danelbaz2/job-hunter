@@ -45,6 +45,6 @@ export async function fetchLinkedIn(params: SourceFetchParams): Promise<SourceFe
         rawText: buildRawText(description, requirements),
       };
     },
-    { onRetry: params.onRetry, demo: params.demo ? DEMO_ACTOR_FAULTS.linkedin : undefined }
+    { onRetry: params.onRetry, onLog: params.onLog, demo: params.demo ? DEMO_ACTOR_FAULTS.linkedin : undefined }
   );
 }

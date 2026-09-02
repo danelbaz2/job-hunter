@@ -60,6 +60,18 @@ export async function POST(req: Request) {
     async start(controller) {
       const send = (event: object) => controller.enqueue(encoder.encode(JSON.stringify(event) + '\n'));
 
+      // Activity-log lines for the demo failure scenario only — never in a real search,
+      // so the client's log panel stays a demo-only affordance. Consecutive duplicates
+      // (e.g. the same OpenRouter 503 seen once per listing) are collapsed.
+      let lastLog = '';
+      const sendLog = demo
+        ? (entry: { source?: Source; level: string; message: string }) => {
+            if (entry.message === lastLog) return;
+            lastLog = entry.message;
+            send({ type: 'log', at: Date.now(), ...entry });
+          }
+        : undefined;
+
       try {
         const { listings, sourceStatus } = await fetchListings(
           { locations, domains },
@@ -68,10 +80,12 @@ export async function POST(req: Request) {
             demo,
             onSourceRetry: (source, retryNumber) =>
               send({ type: 'source', source, status: 'retrying', attempt: retryNumber }),
+            onLog: sendLog,
           }
         );
 
         send({ type: 'scoring' });
+        sendLog?.({ level: 'info', message: 'Scoring — comparing your background against each listing…' });
 
         const [search] = await db
           .insert(searches)
@@ -94,7 +108,15 @@ export async function POST(req: Request) {
 
         const scored = await Promise.all(
           listings.map((listing) =>
-            scoreListing(listing, { locations, domains, seniorities, resumeText, intentText, demo })
+            scoreListing(listing, {
+              locations,
+              domains,
+              seniorities,
+              resumeText,
+              intentText,
+              demo,
+              onLog: sendLog,
+            })
           )
         );
 
@@ -127,6 +149,11 @@ export async function POST(req: Request) {
 
         await db.update(searches).set({ completedAt: new Date() }).where(eq(searches.id, search.id));
 
+        const okSources = Object.values(sourceStatus).filter((s) => s === 'ok').length;
+        sendLog?.({
+          level: 'success',
+          message: `Done — ${scored.length} listing${scored.length === 1 ? '' : 's'} scored from ${okSources}/4 sources.`,
+        });
         send({ type: 'done', searchId: search.id });
       } catch (err) {
         console.error('[api/search] search pipeline failed', err);

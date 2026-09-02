@@ -42,6 +42,6 @@ export async function fetchAllJobs(params: SourceFetchParams): Promise<SourceFet
         rawText: buildRawText(description, requirements),
       };
     },
-    { onRetry: params.onRetry, demo: params.demo ? DEMO_ACTOR_FAULTS.alljobs : undefined }
+    { onRetry: params.onRetry, onLog: params.onLog, demo: params.demo ? DEMO_ACTOR_FAULTS.alljobs : undefined }
   );
 }

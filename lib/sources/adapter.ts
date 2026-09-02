@@ -4,6 +4,7 @@ import { fetchIndeedIsrael } from './indeedIsrael';
 import { fetchLinkedIn } from './linkedin';
 import type { RawListing } from './types';
 import type { Source, SourceStatus } from '@/types/domain';
+import type { DemoLogEntry } from '@/lib/demo/faults';
 
 export interface FetchListingsParams {
   locations: string[];
@@ -22,6 +23,7 @@ const FETCHERS: Record<
     domains: string[];
     limit: number;
     onRetry?: (retryNumber: number) => void;
+    onLog?: (entry: DemoLogEntry) => void;
     demo?: boolean;
   }) => Promise<{ listings: RawListing[]; status: 'ok' | 'failed' }>
 > = {
@@ -51,6 +53,7 @@ export async function fetchListings(
   options: {
     demo?: boolean;
     onSourceRetry?: (source: Source, retryNumber: number) => void;
+    onLog?: (entry: DemoLogEntry) => void;
   } = {}
 ): Promise<FetchListingsResult> {
   const limit = Number(process.env.APIFY_RESULTS_PER_SOURCE ?? 5);
@@ -68,6 +71,7 @@ export async function fetchListings(
         limit,
         demo: options.demo,
         onRetry: (retryNumber) => options.onSourceRetry?.(source, retryNumber),
+        onLog: options.onLog,
       }).then((result) => {
         onSourceSettled?.(source, result.status);
         return result;

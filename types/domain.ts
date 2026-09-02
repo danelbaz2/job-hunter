@@ -38,6 +38,14 @@ export type SourceStatus = Record<Source, 'ok' | 'failed'>;
 /** `retrying` is a transient in-flight state shown during a search — never persisted. */
 export type SourceProgress = Record<Source, 'pending' | 'ok' | 'failed' | 'retrying'>;
 
+/** One line in the demo failure-scenario activity log (client-side; never persisted). */
+export interface SearchLogEntry {
+  id: number;
+  at: number;
+  level: 'info' | 'success' | 'warn' | 'error';
+  message: string;
+}
+
 export interface MatchPoint {
   text: string;
   /** Verbatim substring of the listing's rawText — never fabricated (SPEC.md Part 2, criteria 6-7). */

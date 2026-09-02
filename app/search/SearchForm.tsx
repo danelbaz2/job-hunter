@@ -18,6 +18,7 @@ import {
   DOMAIN_OPTIONS,
   type Seniority,
   type SourceProgress,
+  type SearchLogEntry,
 } from '@/types/domain';
 
 type Stage = 'form' | 'searching';
@@ -49,6 +50,7 @@ export function SearchForm() {
   const [stage, setStage] = useState<Stage>('form');
   const [sourceProgress, setSourceProgress] = useState<SourceProgress>(initialProgress);
   const [retryAttempts, setRetryAttempts] = useState<Record<string, number>>(initialRetries);
+  const [demoLogs, setDemoLogs] = useState<SearchLogEntry[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [errorPulse, setErrorPulse] = useState(0);
   const [touched, setTouched] = useState(false);
@@ -114,10 +116,11 @@ export function SearchForm() {
    * progress stream. Shared by a normal search and the demo failure scenario — the only
    * difference between them is what's in `form`.
    */
-  async function runSearchStream(form: FormData) {
+  async function runSearchStream(form: FormData, opts: { waitForDone?: boolean } = {}) {
     setError(null);
     setSourceProgress(initialProgress());
     setRetryAttempts(initialRetries());
+    setDemoLogs([]);
     setStage('searching');
 
     try {
@@ -166,7 +169,13 @@ export function SearchForm() {
             ) {
               sourcingDoneAt = Date.now();
             }
+          } else if (event.type === 'log') {
+            setDemoLogs((prev) => [
+              ...prev,
+              { id: prev.length, at: event.at, level: event.level, message: event.message },
+            ]);
           } else if (event.type === 'search-created') {
+            if (opts.waitForDone) continue;
             // The searchId is available as soon as the search row exists — well
             // before scoring (the slow, AI-bound step) finishes. Stay on the
             // "Scoring fit…" screen for exactly 10s from the moment sourcing
@@ -176,6 +185,12 @@ export function SearchForm() {
             const elapsed = sourcingDoneAt === null ? 0 : Date.now() - sourcingDoneAt;
             const wait = Math.max(0, 10_000 - elapsed);
             if (wait > 0) await delay(wait);
+            router.push(`/results?searchId=${event.searchId}`);
+            return;
+          } else if (event.type === 'done' && opts.waitForDone) {
+            // Demo: the real pipeline is fully finished — let the last log lines land,
+            // then hand off to the results page.
+            await delay(2500);
             router.push(`/results?searchId=${event.searchId}`);
             return;
           } else if (event.type === 'error') {
@@ -206,7 +221,7 @@ export function SearchForm() {
     form.set('intentText', intent.trim());
     form.set('resumeMode', 'paste');
     form.set('resumeText', '');
-    await runSearchStream(form);
+    await runSearchStream(form, { waitForDone: true });
   }
 
   /**
@@ -218,6 +233,7 @@ export function SearchForm() {
     setError(null);
     setSourceProgress(initialProgress());
     setRetryAttempts(initialRetries());
+    setDemoLogs([]);
     setStage('searching');
 
     const order: (keyof SourceProgress)[] = ['alljobs', 'drushim', 'indeed_il', 'linkedin'];
@@ -243,7 +259,13 @@ export function SearchForm() {
   }
 
   if (stage === 'searching') {
-    return <SearchingState sourceProgress={sourceProgress} retryAttempts={retryAttempts} />;
+    return (
+      <SearchingState
+        sourceProgress={sourceProgress}
+        retryAttempts={retryAttempts}
+        logs={demoLogs}
+      />
+    );
   }
 
   const missingFilters = touched && (locations.length === 0 || seniorities.length === 0);
