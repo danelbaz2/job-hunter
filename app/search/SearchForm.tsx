@@ -29,6 +29,11 @@ function initialProgress(): SourceProgress {
   return Object.fromEntries(SOURCES.map((s) => [s, 'pending'])) as SourceProgress;
 }
 
+function initialRetries(): Record<string, number> {
+  return Object.fromEntries(SOURCES.map((s) => [s, 0]));
+}
+
+
 function delay(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -43,6 +48,7 @@ export function SearchForm() {
   const [resumeFile, setResumeFile] = useState<File | null>(null);
   const [stage, setStage] = useState<Stage>('form');
   const [sourceProgress, setSourceProgress] = useState<SourceProgress>(initialProgress);
+  const [retryAttempts, setRetryAttempts] = useState<Record<string, number>>(initialRetries);
   const [error, setError] = useState<string | null>(null);
   const [errorPulse, setErrorPulse] = useState(0);
   const [touched, setTouched] = useState(false);
@@ -86,9 +92,6 @@ export function SearchForm() {
       return;
     }
 
-    setSourceProgress(initialProgress());
-    setStage('searching');
-
     const form = new FormData();
     form.set('locations', JSON.stringify(locations));
     form.set('seniorities', JSON.stringify(seniorities));
@@ -102,6 +105,20 @@ export function SearchForm() {
       form.set('resumeMode', 'paste');
       form.set('resumeText', '');
     }
+
+    await runSearchStream(form);
+  }
+
+  /**
+   * POSTs to /api/search and drives the searching screen off its newline-delimited
+   * progress stream. Shared by a normal search and the demo failure scenario — the only
+   * difference between them is what's in `form`.
+   */
+  async function runSearchStream(form: FormData) {
+    setError(null);
+    setSourceProgress(initialProgress());
+    setRetryAttempts(initialRetries());
+    setStage('searching');
 
     try {
       const res = await fetch('/api/search', { method: 'POST', body: form });
@@ -135,10 +152,18 @@ export function SearchForm() {
           if (!line.trim()) continue;
 
           const event = JSON.parse(line);
-          if (event.type === 'source') {
+          if (event.type === 'source' && event.status === 'retrying') {
+            // Transient Apify failure — the adapter is re-attempting this source.
+            progress[event.source as keyof SourceProgress] = 'retrying';
+            setSourceProgress((prev) => ({ ...prev, [event.source]: 'retrying' }));
+            setRetryAttempts((prev) => ({ ...prev, [event.source]: event.attempt }));
+          } else if (event.type === 'source') {
             progress[event.source as keyof SourceProgress] = event.status;
             setSourceProgress((prev) => ({ ...prev, [event.source]: event.status }));
-            if (sourcingDoneAt === null && SOURCES.every((s) => progress[s] !== 'pending')) {
+            if (
+              sourcingDoneAt === null &&
+              SOURCES.every((s) => progress[s] === 'ok' || progress[s] === 'failed')
+            ) {
               sourcingDoneAt = Date.now();
             }
           } else if (event.type === 'search-created') {
@@ -167,6 +192,24 @@ export function SearchForm() {
   }
 
   /**
+   * Demo / grading: runs the real /api/search pipeline with a deterministic fault script
+   * (see lib/demo/faults.ts) — Apify retries that recover, one source that exhausts its
+   * retries and degrades to failed, and a transient OpenRouter failure that retries.
+   * No external calls are actually made, so it costs nothing.
+   */
+  async function runFailureScenario() {
+    const form = new FormData();
+    form.set('demo', '1');
+    form.set('locations', JSON.stringify(locations.length ? locations : ['Tel Aviv']));
+    form.set('seniorities', JSON.stringify(seniorities.length ? seniorities : ['Mid-Level']));
+    form.set('domains', JSON.stringify(domains.length ? domains : ['Backend']));
+    form.set('intentText', intent.trim());
+    form.set('resumeMode', 'paste');
+    form.set('resumeText', '');
+    await runSearchStream(form);
+  }
+
+  /**
    * Dev-only: exercises the full searching→results UI (badges, then scoring) without
    * spending on Apify/OpenRouter, then lands on whatever search is already in the DB
    * for this account. Never calls /api/search.
@@ -174,6 +217,7 @@ export function SearchForm() {
   async function runTestMode() {
     setError(null);
     setSourceProgress(initialProgress());
+    setRetryAttempts(initialRetries());
     setStage('searching');
 
     const order: (keyof SourceProgress)[] = ['alljobs', 'drushim', 'indeed_il', 'linkedin'];
@@ -199,7 +243,7 @@ export function SearchForm() {
   }
 
   if (stage === 'searching') {
-    return <SearchingState sourceProgress={sourceProgress} />;
+    return <SearchingState sourceProgress={sourceProgress} retryAttempts={retryAttempts} />;
   }
 
   const missingFilters = touched && (locations.length === 0 || seniorities.length === 0);
@@ -326,17 +370,33 @@ export function SearchForm() {
           >
             Find matching jobs&nbsp;→
           </button>
-          {process.env.NODE_ENV === 'development' && (
+          <div className="flex flex-wrap items-center justify-center gap-2">
+            {process.env.NODE_ENV === 'development' && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={runTestMode}
+                className="border border-dashed border-border"
+              >
+                Test mode (skip Apify/OpenRouter)
+              </Button>
+            )}
             <Button
               type="button"
               variant="ghost"
               size="sm"
-              onClick={runTestMode}
-              className="border border-dashed border-border"
+              onClick={runFailureScenario}
+              className="border border-dashed border-tier-low-border text-tier-low-text"
             >
-              Test mode (skip Apify/OpenRouter)
+              Run failure scenario
             </Button>
-          )}
+          </div>
+          <p className="max-w-sm text-center text-xs text-text/40">
+            &ldquo;Run failure scenario&rdquo; drives the real pipeline with simulated Apify
+            retries, one source that fails after retrying, and a transient OpenRouter failure —
+            no external calls are made.
+          </p>
         </FadeIn>
       </form>
     </PageContainer>

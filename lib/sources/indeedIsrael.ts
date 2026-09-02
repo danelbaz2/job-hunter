@@ -1,5 +1,6 @@
 import { runActor, buildRawText } from './apifyRunner';
 import { extractListItems } from './extractRequirements';
+import { DEMO_ACTOR_FAULTS } from '@/lib/demo/faults';
 import type { RawListing, SourceFetchParams, SourceFetchResult } from './types';
 
 /**
@@ -42,6 +43,7 @@ export async function fetchIndeedIsrael(params: SourceFetchParams): Promise<Sour
         requirements,
         rawText: buildRawText(description, requirements),
       };
-    }
+    },
+    { onRetry: params.onRetry, demo: params.demo ? DEMO_ACTOR_FAULTS.indeed_il : undefined }
   );
 }

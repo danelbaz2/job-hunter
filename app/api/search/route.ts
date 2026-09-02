@@ -7,6 +7,7 @@ import { fetchListings } from '@/lib/sources/adapter';
 import { scoreListing } from '@/lib/scoring';
 import { parseResumeFile } from '@/lib/resume/parse';
 import { parseDateOrNull } from '@/lib/formatDate';
+import { isDemoAllowed, DEMO_INTENT_TEXT } from '@/lib/demo/faults';
 import type { Seniority, Source } from '@/types/domain';
 
 /**
@@ -26,7 +27,10 @@ export async function POST(req: Request) {
   const seniorities = JSON.parse(String(form.get('seniorities') ?? '[]')) as Seniority[];
   const domains = JSON.parse(String(form.get('domains') ?? '[]')) as string[];
   const resumeMode = String(form.get('resumeMode') ?? 'paste') as 'upload' | 'paste';
-  const intentText = String(form.get('intentText') ?? '').trim();
+  const demo = String(form.get('demo') ?? '') === '1' && isDemoAllowed();
+  const intentText = demo
+    ? String(form.get('intentText') ?? '').trim() || DEMO_INTENT_TEXT
+    : String(form.get('intentText') ?? '').trim();
 
   // Résumé is optional now — a search can run on location/level/domain alone, or with just
   // the free-text intent. Only a file that was attached but can't be read is an error.
@@ -59,7 +63,12 @@ export async function POST(req: Request) {
       try {
         const { listings, sourceStatus } = await fetchListings(
           { locations, domains },
-          (source: Source, status) => send({ type: 'source', source, status })
+          (source: Source, status) => send({ type: 'source', source, status }),
+          {
+            demo,
+            onSourceRetry: (source, retryNumber) =>
+              send({ type: 'source', source, status: 'retrying', attempt: retryNumber }),
+          }
         );
 
         send({ type: 'scoring' });
@@ -84,7 +93,9 @@ export async function POST(req: Request) {
         send({ type: 'search-created', searchId: search.id });
 
         const scored = await Promise.all(
-          listings.map((listing) => scoreListing(listing, { locations, domains, seniorities, resumeText, intentText }))
+          listings.map((listing) =>
+            scoreListing(listing, { locations, domains, seniorities, resumeText, intentText, demo })
+          )
         );
 
         if (scored.length > 0) {

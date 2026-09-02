@@ -1,5 +1,6 @@
 import type { RawListing } from '@/lib/sources/types';
 import type { ResumeSuggestion } from '@/types/domain';
+import { openRouterChat } from '@/lib/openrouter';
 
 export type SuggestionsResult =
   | { ok: true; items: ResumeSuggestion[] }
@@ -43,11 +44,9 @@ export async function generateResumeSuggestions(
   }
 
   try {
-    const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-      method: 'POST',
-      signal: AbortSignal.timeout(25_000),
-      headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
+    const res = await openRouterChat(
+      apiKey,
+      {
         model,
         response_format: { type: 'json_object' },
         reasoning: { enabled: false },
@@ -55,8 +54,13 @@ export async function generateResumeSuggestions(
           { role: 'system', content: SYSTEM_PROMPT },
           { role: 'user', content: `CANDIDATE RESUME / SUMMARY:\n${candidateText}\n\nLISTING TEXT:\n${listing.rawText}` },
         ],
-      }),
-    });
+      },
+      {
+        timeoutMs: 20_000,
+        onRetry: (attempt, reason) =>
+          console.warn(`[scoring:suggestions] transient failure (${reason}) — retry ${attempt}`),
+      }
+    );
 
     if (!res.ok) {
       const body = await res.text().catch(() => '');

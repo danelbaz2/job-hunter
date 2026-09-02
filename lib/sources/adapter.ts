@@ -15,7 +15,16 @@ export interface FetchListingsResult {
   sourceStatus: SourceStatus;
 }
 
-const FETCHERS: Record<Source, (p: { location: string; domains: string[]; limit: number }) => Promise<{ listings: RawListing[]; status: 'ok' | 'failed' }>> = {
+const FETCHERS: Record<
+  Source,
+  (p: {
+    location: string;
+    domains: string[];
+    limit: number;
+    onRetry?: (retryNumber: number) => void;
+    demo?: boolean;
+  }) => Promise<{ listings: RawListing[]; status: 'ok' | 'failed' }>
+> = {
   alljobs: fetchAllJobs,
   drushim: fetchDrushim,
   indeed_il: fetchIndeedIsrael,
@@ -33,10 +42,16 @@ function dedupeKey(l: RawListing): string {
  *
  * `onSourceSettled` fires as each source's actor call resolves (not just once all four are
  * done) — the search-progress UI uses it to check off platforms as they finish.
+ * `onSourceRetry` fires each time a source's Apify call is retried after a transient failure,
+ * so the UI can show that a platform is being re-attempted rather than silently stalling.
  */
 export async function fetchListings(
   params: FetchListingsParams,
-  onSourceSettled?: (source: Source, status: 'ok' | 'failed') => void
+  onSourceSettled?: (source: Source, status: 'ok' | 'failed') => void,
+  options: {
+    demo?: boolean;
+    onSourceRetry?: (source: Source, retryNumber: number) => void;
+  } = {}
 ): Promise<FetchListingsResult> {
   const limit = Number(process.env.APIFY_RESULTS_PER_SOURCE ?? 5);
   const sources = Object.keys(FETCHERS) as Source[];
@@ -47,7 +62,13 @@ export async function fetchListings(
 
   const results = await Promise.all(
     sources.map((source) =>
-      FETCHERS[source]({ location, domains: params.domains, limit }).then((result) => {
+      FETCHERS[source]({
+        location,
+        domains: params.domains,
+        limit,
+        demo: options.demo,
+        onRetry: (retryNumber) => options.onSourceRetry?.(source, retryNumber),
+      }).then((result) => {
         onSourceSettled?.(source, result.status);
         return result;
       })

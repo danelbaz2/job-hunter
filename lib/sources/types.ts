@@ -20,6 +20,10 @@ export interface SourceFetchParams {
   location: string;
   domains: string[];
   limit: number;
+  /** Fires once per Apify retry for this source (1-based). Wired to the searching-progress UI. */
+  onRetry?: (retryNumber: number) => void;
+  /** When true, this source runs the scripted demo failure scenario instead of calling Apify. */
+  demo?: boolean;
 }
 
 export interface SourceFetchResult {

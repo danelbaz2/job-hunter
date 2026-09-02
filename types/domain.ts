@@ -35,7 +35,8 @@ export const SOURCE_LABELS: Record<Source, string> = {
 };
 
 export type SourceStatus = Record<Source, 'ok' | 'failed'>;
-export type SourceProgress = Record<Source, 'pending' | 'ok' | 'failed'>;
+/** `retrying` is a transient in-flight state shown during a search — never persisted. */
+export type SourceProgress = Record<Source, 'pending' | 'ok' | 'failed' | 'retrying'>;
 
 export interface MatchPoint {
   text: string;

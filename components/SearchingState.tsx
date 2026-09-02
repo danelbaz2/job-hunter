@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
-import { Check, AlertTriangle } from 'lucide-react';
+import { Check, AlertTriangle, RotateCw } from 'lucide-react';
 import { useNavVisibility } from '@/components/NavVisibility';
 import { cn } from '@/lib/utils';
 import { SOURCE_LABELS, SOURCES, type SourceProgress } from '@/types/domain';
@@ -16,15 +16,27 @@ const EASE = [0.16, 1, 0.3, 1] as const;
  * from here straight to the results route once it has somewhere to go; there is no
  * separate skeleton stage in between (see feedback: no intermediate screen).
  */
-export function SearchingState({ sourceProgress }: { sourceProgress: SourceProgress }) {
+export function SearchingState({
+  sourceProgress,
+  retryAttempts,
+}: {
+  sourceProgress: SourceProgress;
+  retryAttempts?: Partial<Record<string, number>>;
+}) {
   const { setHidden } = useNavVisibility();
   useEffect(() => {
     setHidden(true);
     return () => setHidden(false);
   }, [setHidden]);
 
-  const rows = SOURCES.map((source) => ({ key: source, label: SOURCE_LABELS[source], status: sourceProgress[source] }));
-  const allSourcesDone = rows.every((r) => r.status !== 'pending');
+  const rows = SOURCES.map((source) => ({
+    key: source,
+    label: SOURCE_LABELS[source],
+    status: sourceProgress[source],
+    retry: retryAttempts?.[source] ?? 0,
+  }));
+  // A source mid-retry is still working — only 'ok'/'failed' count as settled.
+  const allSourcesDone = rows.every((r) => r.status === 'ok' || r.status === 'failed');
   const phase: 'sourcing' | 'scoring' = allSourcesDone ? 'scoring' : 'sourcing';
 
   return (
@@ -48,12 +60,17 @@ export function SearchingState({ sourceProgress }: { sourceProgress: SourceProgr
                   'flex items-center gap-2 rounded-pill border px-4 py-2 text-sm transition-colors duration-300',
                   row.status === 'ok' && 'border-tier-high-border bg-tier-high-bg text-tier-high-text',
                   row.status === 'failed' && 'border-tier-mid-border bg-tier-mid-bg text-tier-mid-text',
+                  row.status === 'retrying' && 'border-tier-low-border bg-tier-low-bg text-tier-low-text',
                   row.status === 'pending' && 'border-border text-text/60'
                 )}
               >
                 {row.status === 'ok' && <Check size={14} />}
                 {row.status === 'failed' && <AlertTriangle size={14} />}
+                {row.status === 'retrying' && <RotateCw size={14} className="animate-spin" />}
                 {row.label}
+                {row.status === 'retrying' && (
+                  <span className="tabular-nums opacity-80">· retrying {row.retry}/2</span>
+                )}
               </span>
             ))}
           </motion.div>

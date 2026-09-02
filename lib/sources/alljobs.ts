@@ -1,5 +1,6 @@
 import { runActor, buildRawText } from './apifyRunner';
 import { splitRequirementsText } from './extractRequirements';
+import { DEMO_ACTOR_FAULTS } from '@/lib/demo/faults';
 import type { RawListing, SourceFetchParams, SourceFetchResult } from './types';
 
 /**
@@ -40,6 +41,7 @@ export async function fetchAllJobs(params: SourceFetchParams): Promise<SourceFet
         requirements,
         rawText: buildRawText(description, requirements),
       };
-    }
+    },
+    { onRetry: params.onRetry, demo: params.demo ? DEMO_ACTOR_FAULTS.alljobs : undefined }
   );
 }

@@ -1,5 +1,7 @@
 import type { RawListing } from '@/lib/sources/types';
 import type { MatchPoint } from '@/types/domain';
+import { openRouterChat } from '@/lib/openrouter';
+import { makeDemoOpenRouterFetch } from '@/lib/demo/faults';
 
 export interface SkillsFitResult {
   skillsScore: number | null;
@@ -27,7 +29,11 @@ If you cannot find a real quote for a point, omit that point entirely rather tha
  * caller. When it's empty the user searched on filters alone — that's not a failure, so
  * this returns `skillsScore: null` with `aiFailed: false` and no AI call is made.
  */
-export async function scoreSkillsFit(candidateText: string, listing: RawListing): Promise<SkillsFitResult> {
+export async function scoreSkillsFit(
+  candidateText: string,
+  listing: RawListing,
+  opts: { demo?: boolean } = {}
+): Promise<SkillsFitResult> {
   if (!candidateText.trim()) {
     return { skillsScore: null, matchedPoints: [], gapPoints: [], aiFailed: false };
   }
@@ -40,18 +46,14 @@ export async function scoreSkillsFit(candidateText: string, listing: RawListing)
   }
 
   try {
-    const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-      method: 'POST',
-      // Free-tier models can stall upstream with no error for minutes (seen: a 504
-      // "Upstream idle timeout exceeded" after 144s) — fail fast instead of blocking
-      // the whole search. A timeout here is exactly another form of AI failure: same
-      // fallback (aiFailed: true) as a bad response or a parse error.
-      signal: AbortSignal.timeout(20_000),
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
+    // Free-tier models can stall upstream with no error for minutes (seen: a 504
+    // "Upstream idle timeout exceeded" after 144s) — fail fast per attempt instead of
+    // blocking the whole search. openRouterChat retries only transient failures
+    // (network/timeout, 429, 5xx); a timeout that outlasts all retries is just another
+    // form of AI failure: same fallback (aiFailed: true) as a bad response or parse error.
+    const res = await openRouterChat(
+      apiKey,
+      {
         model,
         response_format: { type: 'json_object' },
         // Tested at effort=none vs default: identical scores/quote quality, ~85% fewer
@@ -65,8 +67,14 @@ export async function scoreSkillsFit(candidateText: string, listing: RawListing)
             content: `CANDIDATE:\n${candidateText}\n\nLISTING TEXT:\n${listing.rawText}`,
           },
         ],
-      }),
-    });
+      },
+      {
+        timeoutMs: 15_000,
+        onRetry: (attempt, reason) =>
+          console.warn(`[scoring:ai] transient failure (${reason}) — retry ${attempt}`),
+        fetchImpl: opts.demo ? makeDemoOpenRouterFetch() : undefined,
+      }
+    );
 
     if (!res.ok) {
       const body = await res.text().catch(() => '');

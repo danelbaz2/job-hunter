@@ -66,6 +66,7 @@ export async function scoreListing(
     seniorities: Seniority[];
     resumeText: string;
     intentText: string;
+    demo?: boolean;
   }
 ): Promise<ScoredListing> {
   const locationScore = scoreLocation(criteria.locations, listing.location);
@@ -73,7 +74,7 @@ export async function scoreListing(
   const seniorityScore = scoreSeniority(criteria.seniorities, listing);
 
   const candidateText = buildCandidateText(criteria.resumeText, criteria.intentText);
-  const skills = await scoreSkillsFit(candidateText, listing);
+  const skills = await scoreSkillsFit(candidateText, listing, { demo: criteria.demo });
 
   const overallScore = computeOverallScore({
     locationScore,

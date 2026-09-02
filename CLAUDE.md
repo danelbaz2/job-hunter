@@ -30,6 +30,8 @@ Multi-platform job matching app for Israel: aggregates listings via Apify scrape
 - A returned listing always shows at least one matched point, and a gap point unless the score is 100% — an empty explanation is a bug, not an edge case.
 - Prefer a small pipeline that correctly handles 3-5 real listings over a broad one that handles many listings unreliably. This project's proof-of-concept bar is explicit in SPEC.md Part 4 — don't quietly raise it.
 - When a source (Apify actor, resume parse, AI call) fails or returns nothing usable, degrade visibly to the user rather than silently dropping results.
+- Transient-failure retries are bounded on purpose: Apify ≤2 per source (`lib/sources/apifyRunner.ts`) since each retry can cost another paid run — reuse a successful run rather than re-calling the actor; OpenRouter ≤2 and only for network/timeout/429/5xx (`lib/openrouter.ts`), never for 4xx or quote-verification failures. Don't raise these caps for "robustness".
+- The demo failure scenario (`lib/demo/faults.ts`, "Run failure scenario" button) is intentionally always visible in every environment — it's a graded deliverable. `isDemoAllowed()` returns true by design; don't re-gate it. It must keep exercising the real pipeline with zero external calls — never let it become a pure front-end animation, and never let its fault fixtures leak into a non-demo run.
 
 ## How work should be approached
 
