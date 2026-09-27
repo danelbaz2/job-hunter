@@ -6,7 +6,7 @@ Looking for a developer job in Israel meant running the same search four times, 
 
 That's what Job Hunter does. You give it a location, a domain and a level, plus your resume or a few lines about what you're looking for. It pulls listings from the four boards, removes duplicates, and ranks what's left by fit. For each job you see what matches, what's missing, and, if you want, how you could adjust your resume for it.
 
-**Try it live:** [job-hunter-zeta-liard.vercel.app](https://job-hunter-zeta-liard.vercel.app/search). You'll need to sign in with Google or create an account first. The "Run failure scenario" button on the search page is free to try and makes no real calls.
+**Try it live:** [job-hunter-zeta-liard.vercel.app](https://job-hunter-zeta-liard.vercel.app). Create an account or sign in with Google to run a search. Once in, the "Run failure scenario" button on the search page is free to try and makes no real calls.
 
 ![Results screen (design mockup)](design_handoff_job_hunter_ui/screenshots/results-grid.png)
 
