@@ -1,6 +1,17 @@
 # Job Hunter
 
-Next.js app implementing `design_handoff_job_hunter_ui/` per `SPEC.md` and `CLAUDE.md` at the repo root.
+Searching for a job in Israel means running the same search on AllJobs, Drushim, LinkedIn and Indeed, then reading every listing to guess whether you fit. Job Hunter does both in one pass: it pulls listings from all four boards, removes duplicates, ranks them by fit against your resume or a short description of what you want, and shows for each listing what matches, what is missing, and how to adjust your resume.
+
+**How it works**
+
+- **One adapter layer for all sources.** Each board is reached through an Apify actor behind a single interface, so scoring and UI code never talk to a scraper directly.
+- **Deterministic where possible, AI only where needed.** Location, domain and seniority are scored in code. Only skills fit is delegated to an LLM (through OpenRouter, model swappable by config).
+- **No unverified AI claims.** Every match or gap point the model returns must quote the listing word for word. If the quote is not an exact substring of the listing text, the point is dropped.
+- **Built to degrade, not fail.** Scraper and LLM calls retry on transient errors with a low cap, and a failing source shows as partial results instead of breaking the search.
+
+**Stack:** Next.js 15, TypeScript, PostgreSQL (Drizzle ORM), Auth.js (Google OAuth + email/password with scrypt), Apify, OpenRouter, Tailwind.
+
+The full requirements and design decisions are in [`SPEC.md`](SPEC.md). The UI follows `design_handoff_job_hunter_ui/`.
 
 ## Setup
 
