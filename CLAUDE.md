@@ -1,52 +1,52 @@
 # Job Hunter
 
-Multi-platform job matching app for Israel: aggregates listings via Apify scrapers, scores fit against the user's resume, and suggests resume edits.
+Job-search app for Israel: aggregates listings from several job boards, scores fit against the user's resume, tailors an ATS-friendly resume per listing, and helps close skill gaps with verifiable learning. v2 is a rebuild on FastAPI + React; the v1 Next.js app lives in git history.
 
-**Read SPEC.md first, every session.** It is the "what to build" — goal, testable criteria, architecture boundaries, validation case, pitfalls. This file is standing context that doesn't change per feature; SPEC.md does.
+**Read SPEC.md first, every session.** It is the "what to build": goal, testable criteria, architecture, delivery phases, pitfalls, open decisions. This file is standing context that doesn't change per feature; SPEC.md does.
 
 ## Non-negotiables (read these twice)
 
-- Never let scoring or AI output claim a match/gap point that isn't actually present in the source listing text. Hallucinated fit claims break the app's entire value.
-- Apify calls cost money per result. Never request more results than the current task needs — default to small, bounded pulls (see SPEC.md Part 4/5).
-- Never invent qualifications in a resume suggestion. Suggestions must stay truthful to what's already in the user's resume.
-- Never store or log a plaintext password. Hash with scrypt (salted) before it touches the database.
+- Never let scoring or AI output claim a match/gap point that isn't present in the source listing text. Every quote is checked in code as a verbatim substring, Hebrew listings included.
+- Never put anything in a tailored resume that doesn't trace back to the master resume or to a verified skill proof (SPEC criteria 10 and 13). This is enforced in code, not left to the prompt.
+- Apify and LLM calls cost money. Keep pulls small and bounded, keep concurrency limited, and respect per-plan quotas.
+- Every user text and every scraped listing reaches the LLM only inside delimiters, after the injection check, and never as instructions. A detection is logged; blocks are temporary and reviewable.
+- Never store or log a plaintext password (argon2). Never log resume text, and never send it or form inputs to the analytics provider.
 
 ## Standards and processes
 
-- Stack: Next.js, Postgres (Neon/Supabase), Auth.js (Google OAuth + email/password via Credentials provider), deployed on Vercel.
-- One email can only be claimed by one auth method: whichever the account was created with wins. A Google sign-in attempt on a password-only email, or a password sign-in on a Google-only email, fails with a generic message pointing at the right method — never silently create a second account for the same email.
-- All job sourcing goes through Apify actors (AllJobs, Drushim, LinkedIn, Indeed-Israel) behind one adapter layer. Scoring/UI code never calls Apify directly — swap actors without touching callers.
-- Deterministic scoring (location, domain, seniority) is plain code, not an AI call. Only skills/resume-language fit goes through the OpenRouter AI call. Don't move deterministic scoring into a prompt "for simplicity" — it stops being testable.
-- Resume flow is upload (PDF/DOCX) → parse to text → text output only. No document regeneration; don't add file-output generation without discussing scope first.
-- Résumé is optional. The /search "In your words" free-text field is a separate candidate input (what the user wants / their background), merged with résumé text via `buildCandidateText` before the skills-fit AI call. With neither, search runs on deterministic scoring alone — `skillsScore: null` with `aiFailed: false` means "not scored", not "AI failed"; keep those two cases visually distinct.
-- SPEC criterion 5 (never an empty explanation) is held for filter-only / AI-empty listings by `deterministicPoints()` — matched/gap points synthesized from location/domain/seniority with verbatim listing quotes.
-- Resume suggestions (criterion 8): `lib/scoring/suggestions.ts`, generated on demand via `POST /api/jobs/[id]/suggestions` (one AI call per listing viewed, cached on `search_result.resumeSuggestions`) — never during the search loop. Prompt forbids inventing any qualification; `{ items: [] }` is a valid "nothing truthful to suggest" result, not an error.
-- "Applied" is a separate state from "saved" (`applied_job` table, `/api/jobs/[id]/apply`). Clicking Apply on the job-detail page marks it applied; it can also be toggled manually.
-- AI model is configured via OpenRouter, free-tier by default, swappable via config — don't hardcode a model name in application logic.
+- Stack: FastAPI, Pydantic v2, SQLAlchemy 2 async, Alembic, PostgreSQL on the backend; React, TypeScript, Vite, TanStack Query, Tailwind, shadcn/ui on the frontend. Deployed on Azure (Container Apps, Static Web Apps, Queue Storage, Key Vault, Application Insights). Local dev with docker compose.
+- Frontend API types are generated from the backend OpenAPI schema. Never hand-write a type that duplicates a backend model.
+- One email can only be claimed by one auth method: whichever the account was created with wins. A mismatched sign-in fails with a generic message pointing at the right method; never silently create a second account.
+- All job sourcing goes through Apify actors behind one adapter layer. Scoring, tailoring and UI code never call Apify directly.
+- Deterministic scoring (location, domain, seniority) is plain, unit-tested code. Only skills fit, gap extraction, resume rewording, quiz generation and rubric checks go to the LLM. Don't move deterministic scoring into a prompt "for simplicity".
+- LLM model is set in config through OpenRouter; never hardcode a model name in application logic.
+- Mobile first: design every screen at 360 px before desktop; no horizontal scroll, touch targets of at least 44 px.
+- Three services (`api`, `matching-worker`, `resume-renderer`), each with its own image and its own Postgres schema. A service never reads another service's schema; data crosses boundaries only through events (versioned Pydantic models in `contracts`) or the owning service's API. Event consumers are idempotent. Inside `api`, modules keep the same rule toward each other's tables.
+- Key product events are sent from the backend, not only the frontend. Analytics loads only after cookie consent.
 
 ## What good work looks like
 
 - Judge a change by whether it moves SPEC.md's Part 2 criteria closer to passing, not by whether code compiles or looks clean.
-- A returned listing always shows at least one matched point, and a gap point unless the score is 100% — an empty explanation is a bug, not an edge case.
-- Prefer a small pipeline that correctly handles 3-5 real listings over a broad one that handles many listings unreliably. This project's proof-of-concept bar is explicit in SPEC.md Part 4 — don't quietly raise it.
-- When a source (Apify actor, resume parse, AI call) fails or returns nothing usable, degrade visibly to the user rather than silently dropping results.
-- Transient-failure retries are bounded on purpose: Apify ≤2 per source (`lib/sources/apifyRunner.ts`) since each retry can cost another paid run — reuse a successful run rather than re-calling the actor; OpenRouter ≤2 and only for network/timeout/429/5xx (`lib/openrouter.ts`), never for 4xx or quote-verification failures. Don't raise these caps for "robustness".
-- The demo failure scenario (`lib/demo/faults.ts`, "Run failure scenario" button) is intentionally always visible in every environment — it's a graded deliverable. `isDemoAllowed()` returns true by design; don't re-gate it. It must keep exercising the real pipeline with zero external calls — never let it become a pure front-end animation, and never let its fault fixtures leak into a non-demo run.
+- A listing always shows at least one matched point, and a gap point unless the score is 100. An empty explanation is a bug.
+- Prefer a small pipeline that handles a few real listings correctly over a broad one that handles many unreliably.
+- When a source, resume parse or AI call fails, degrade visibly to the user rather than silently dropping results.
+- Retries stay bounded on purpose: Apify at most 2 per source (reuse a successful run instead of re-running a paid actor); LLM at most 2 and only for network errors, timeouts, 429 and 5xx, never for 4xx or failed quote verification.
+- Every new endpoint and every deterministic function ships with tests.
 
 ## How work should be approached
 
-- Treat SPEC.md as a hypothesis, not a fixed contract: after building toward it, note what the attempt revealed and propose a spec revision rather than silently deviating from it in code.
-- Build in small turns aimed at one part of SPEC.md's criteria at a time; verify against the named validation case (Part 4) before moving to the next turn.
-- When a decision isn't settled by SPEC.md, use its Part 1 reason (fast, trustworthy fit judgment over volume/coverage) to resolve it, and note the choice made.
-- Prefer subtracting scope or context that's causing a wrong result over adding more instructions to compensate for it.
+- Work one SPEC.md phase at a time; don't start a phase before the previous one's "done when" criteria pass.
+- Treat SPEC.md as a hypothesis: when building reveals a problem, propose a spec revision instead of silently deviating in code.
+- When SPEC.md doesn't settle a decision, use its Part 1 tie-breaker (truthful, verifiable resume and fit over volume or apparent fit) and note the choice.
+- Dan writes the business logic himself (scoring, pipeline, tailoring rules) to keep his coding fluency. Scaffolding, configuration and review are where to help most; explain non-obvious code rather than dumping it.
 
 ## When to stop and ask
 
-- Before adding a new paid dependency, new Apify actor, or anything with a per-call cost not already named in SPEC.md.
-- Before changing auth, data storage, or anything touching the user's resume/personal data.
-- Before expanding scope beyond what SPEC.md Part 2 currently requires (e.g. moving from text-output resume suggestions to file regeneration).
-- Before treating a contested/unclear point in SPEC.md as decided — surface the ambiguity instead of guessing silently.
+- Before adding a paid dependency, a new Apify actor, or anything with a per-call cost not named in SPEC.md.
+- Before changing auth, billing, data storage, or anything touching resumes or personal data.
+- Before settling anything listed under SPEC.md "Open decisions".
+- Before expanding scope beyond the current phase.
 
 ## Maintaining this file
 
-Write corrections here as rules, not complaints, the moment they're confirmed — this file starts empty every session, so anything not written here is lost. Keep it under 200 lines; if it grows past that, cut before adding.
+Write corrections here as rules, the moment they're confirmed; this file starts empty every session, so anything not written here is lost. Keep it under 200 lines; cut before adding.
