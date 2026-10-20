@@ -1,0 +1,84 @@
+# Local stack for Job Hunter v2 (SPEC Part 3, Deployment). The same service images run in production.
+#   docker compose up --build        → frontend on http://localhost:5173, API on http://localhost:8000
+#   docker compose run --rm migrate  → apply the api schema migrations
+
+x-backend-env: &backend-env
+  JH_ENVIRONMENT: local
+  JH_DATABASE_URL: postgresql+asyncpg://jobhunter:jobhunter@postgres:5432/jobhunter
+  JH_QUEUE_BACKEND: redis
+  JH_REDIS_URL: redis://redis:6379/0
+  JH_STORAGE_BACKEND: memory
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: jobhunter
+      POSTGRES_PASSWORD: jobhunter
+      POSTGRES_DB: jobhunter
+    ports: ["5432:5432"]
+    volumes: [pgdata:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U jobhunter"]
+      interval: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    ports: ["6379:6379"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      retries: 10
+
+  # S3-compatible storage for rendered resumes; the storage adapter that uses it arrives in phase 3.
+  minio:
+    image: minio/minio:latest
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: jobhunter
+      MINIO_ROOT_PASSWORD: jobhunter-local
+    ports: ["9000:9000", "9001:9001"]
+    volumes: [miniodata:/data]
+
+  migrate:
+    build: { context: ./backend, target: api }
+    command: ["alembic", "upgrade", "head"]
+    environment: *backend-env
+    depends_on:
+      postgres: { condition: service_healthy }
+    profiles: [tools]
+
+  api:
+    build: { context: ./backend, target: api }
+    environment: *backend-env
+    ports: ["8000:8000"]
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+
+  matching-worker:
+    build: { context: ./backend, target: matching-worker }
+    environment: *backend-env
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+
+  resume-renderer:
+    build: { context: ./backend, target: resume-renderer }
+    environment: *backend-env
+    depends_on:
+      redis: { condition: service_healthy }
+
+  frontend:
+    build: { context: ./frontend }
+    environment:
+      API_PROXY_TARGET: http://api:8000
+    ports: ["5173:5173"]
+    volumes:
+      - ./frontend/src:/app/src
+    depends_on: [api]
+
+volumes:
+  pgdata:
+  miniodata:

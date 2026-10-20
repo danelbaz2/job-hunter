@@ -4,3 +4,13 @@ node_modules/
 .env.local
 *.tsbuildinfo
 next-env.d.ts
+
+# v2 backend
+__pycache__/
+.venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# v2 frontend
+frontend/dist/
