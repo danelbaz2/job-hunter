@@ -14,7 +14,8 @@ Job-search app for Israel: aggregates listings from several job boards, scores f
 
 ## Standards and processes
 
-- Stack: FastAPI, Pydantic v2, SQLAlchemy 2 async, Alembic, PostgreSQL on the backend; React, TypeScript, Vite, TanStack Query, Tailwind, shadcn/ui on the frontend. Deployed on Azure (Container Apps, Static Web Apps, Queue Storage, Key Vault, Application Insights). Local dev with docker compose.
+- Stack: FastAPI, Pydantic v2, SQLAlchemy 2 async, Alembic, PostgreSQL on the backend; React, TypeScript, Vite, TanStack Query, Tailwind, shadcn/ui on the frontend. Database on Neon. Provider-agnostic: queue, file storage and scheduler sit behind ports with swappable adapters (local: Redis, MinIO, a command). Local dev with docker compose.
+- Never import a cloud provider SDK in business code; only an adapter behind a port may use one.
 - Frontend API types are generated from the backend OpenAPI schema. Never hand-write a type that duplicates a backend model.
 - One email can only be claimed by one auth method: whichever the account was created with wins. A mismatched sign-in fails with a generic message pointing at the right method; never silently create a second account.
 - All job sourcing goes through Apify actors behind one adapter layer. Scoring, tailoring and UI code never call Apify directly.

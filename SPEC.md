@@ -67,24 +67,25 @@ v1 (Next.js, kept in git history) proved the core idea: search several Israeli j
 - **AI:** LLM calls through OpenRouter, model set in config. Concurrency limited in code (semaphore and queue), never unbounded.
 - **Job data:** Apify actors (AllJobs, Drushim, LinkedIn, Indeed-IL) behind one adapter layer, as in v1. Apify runs report completion by webhook rather than a process waiting on them.
 
-### Deployment (Azure)
-| Role | Service |
-|---|---|
-| `api` service | Azure Container App (consumption plan, scale to zero) |
-| `matching-worker` service | Azure Container App, scaled on queue length, scale to zero |
-| `resume-renderer` service | Azure Container App, scaled on queue length, scale to zero |
-| Daily saved-search runs | Container Apps Job on a cron schedule, publishing `search.requested` events |
-| Messaging | Azure Queue Storage (Service Bus later if topics or ordering are needed) |
-| Frontend | Azure Static Web Apps |
-| Database | Azure Database for PostgreSQL Flexible Server, or Neon (open decision) |
-| Rendered resumes | Azure Blob Storage |
-| Secrets | Azure Key Vault |
-| Logs, errors, alerts | Application Insights |
-| Infrastructure as code | Bicep (or Terraform — open decision) |
-| CI/CD | GitHub Actions with OIDC federation to Azure (no stored credentials) |
-| Local | docker compose: api, matching-worker, resume-renderer, postgres, Azurite (local queue and blob emulator), frontend |
+### Deployment (provider-agnostic)
+The app does not depend on any cloud provider. The hosting provider is chosen when phase 2 needs a public deployment (see Open decisions); until then everything runs locally.
 
-All three services share one Container Apps environment; internal calls never leave it.
+- **Services are standard Docker images**, one per service, configured only through environment variables (12-factor). Nothing in application code imports a provider SDK directly.
+- **Three ports, each with swappable adapters**, selected by config:
+
+| Port | Interface | Local adapter | Production adapters (pick with the provider) |
+|---|---|---|---|
+| Message queue | `publish(event)`, `consume(handler)` | Redis | Azure Queue Storage, AWS SQS, Google Pub/Sub, or Redis on a VPS |
+| File storage | `put`, `get`, `signed_url` | MinIO (S3 API) | Any S3-compatible store (S3, R2, MinIO), Azure Blob, Google Cloud Storage |
+| Scheduler | the daily job is a command (`python -m app.jobs.daily`) | Run by hand or by a compose profile | Cloud Scheduler, Container Apps Job, EventBridge, or cron on a VPS |
+
+- **Database:** Neon (serverless PostgreSQL, free tier without expiry, independent of any cloud). Local: PostgreSQL in docker compose. Moving host later is a `pg_dump`/`pg_restore`, not a migration.
+- **Frontend:** static build (Vite), deployable to any static host or CDN.
+- **Observability:** OpenTelemetry for traces, metrics and logs, with a correlation id on every event; the exporter (Azure Monitor, Cloud Trace, Grafana, Sentry…) is configuration.
+- **Secrets:** environment variables injected by the platform's secret store; never in the repo or the image.
+- **Infrastructure as code:** Terraform, which works with every candidate provider.
+- **CI/CD:** GitHub Actions — lint, types, tests and image builds on every PR; deployment job added once the provider is chosen, with OIDC federation (no stored cloud credentials).
+- **Local:** docker compose with `api`, `matching-worker`, `resume-renderer`, `postgres`, `redis`, `minio` and `frontend`. The same images run in production.
 
 ### Services and boundaries
 Modular monolith first, with three services extracted where load or dependencies genuinely diverge (Monolith First):
@@ -103,7 +104,7 @@ Modular monolith first, with three services extracted where load or dependencies
 ### Analytics
 - **Product analytics:** PostHog. Frontend events after consent; key events (`search_completed`, `resume_tailored`, `job_applied`, `learning_passed`) sent from the backend so ad blockers don't hide them. Users identified by internal id after login, never by email.
 - **Internal events:** an `event` table (`user_id`, `type`, `metadata` JSONB, `created_at`) feeding an `/admin` page restricted to an admin role.
-- **Ops:** Application Insights alerts on error rate, failed queue messages and job failures.
+- **Ops:** alerts on error rate, failed queue messages and job failures, from the observability backend chosen with the provider.
 
 ### Abuse protection
 - Defense in depth, in this order: (1) architecture — LLM output never becomes a fact without code verification, so an injection can at worst produce a rejected answer; (2) user text always passed to the LLM inside clear delimiters, as data, never as instructions; (3) detection — fast heuristics (known injection patterns) plus a cheap classifier call on suspicious inputs; (4) sanctions — reject, then temporary block (criteria 17–18).
@@ -132,7 +133,7 @@ Modular monolith first, with three services extracted where load or dependencies
 - `api` schema: `user` (with `ai_blocked_until`), `profile` (master resume text and parsed sections), `saved_search`, `search_run`, `application`, `tailored_resume` (versioned, linked to listing and application), `learning_path`, `learning_attempt`, `skill_proof`, `subscription`, `abuse_flag`, `event`.
 - `matching` schema: `listing` (deduplicated across runs), `match` (scores and points per user × listing), `source_run` (cost and status per Apify run).
 - `renderer` schema: `render_job` (status, output file location).
-- Rendered files go to Azure Blob Storage, never into the database.
+- Rendered files go to the file storage port, never into the database.
 
 ### Boundaries
 - Deterministic scoring (location, domain, seniority) stays in plain code and is unit-tested. Only skills fit, gap extraction, resume rewording, quiz generation and rubric checks go to the LLM.
@@ -156,18 +157,17 @@ Modular monolith first, with three services extracted where load or dependencies
 - LLM-generated course content can be wrong. Prefer linking official resources; generated material is limited to quizzes and checked against them.
 - Per-user cost (Apify + LLM) can exceed a Pro subscription if unbounded. Quotas apply to every plan and the admin page tracks cost per user.
 - Payment: Stripe availability for an Israeli business is unclear. Check Stripe directly, or use a merchant of record (Paddle, Lemon Squeezy) or an Israeli acquirer (Cardcom, Tranzila) before building billing.
-- Azure for Students credit lasts 12 months and renews only while enrolled. Plan the move to always-free tiers or pay-as-you-go before it expires.
+- Provider lock-in creeps in through SDK calls in business code. Keep every provider call behind the three ports; a test runs the full pipeline on the local adapters only.
 - Privacy: Israel's Privacy Protection Law Amendment 13 has been in force since 14 August 2025, and GDPR applies to EU visitors. Publish a privacy policy, gate analytics behind consent, never log resume text, and let a user delete their account and data.
 - Duplicate listings across sources and runs: deduplicate with fuzzy matching before scoring, or the user sees one job several times.
 - Stale listings: recheck freshness before showing old results.
-- Distributed failures: a lost or duplicated event must not corrupt state. Consumers are idempotent, failed messages go to a poison queue that is monitored, and every event carries a correlation id traced across services in Application Insights.
+- Distributed failures: a lost or duplicated event must not corrupt state. Consumers are idempotent, failed messages go to a poison queue that is monitored, and every event carries a correlation id traced across services through OpenTelemetry.
 - Over-eager abuse detection blocks honest users and kills retention. Start with warnings and a high threshold, track the false-positive rate on `/admin`, and tighten only with data.
 - Mobile resume handling: phones often store resumes in Drive or WhatsApp. Test upload from both before calling mobile done.
 
 ## Open decisions
 
-- PostgreSQL host: Azure Flexible Server (free 12 months with the student offer) vs Neon (free tier without expiry).
-- Bicep vs Terraform.
+- Hosting provider for phase 2: Google Cloud Run (permanent monthly free tier, scale to zero), Azure Container Apps (student subscription is tied to the university account), AWS (most requested in Israeli job ads; free plan limited to 6 months of credits), or a VPS running docker compose (simplest).
 - Payment provider.
 - Pro price (first guess 15–20 $/month, against Teal+ at 29 $ and Jobscan at 49.95 $).
 - Resume tailoring languages: English only first, or English and Hebrew.
