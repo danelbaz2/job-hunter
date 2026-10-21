@@ -8,8 +8,8 @@ Job-search app for Israel: aggregates listings from several job boards, scores f
 
 - Never let scoring or AI output claim a match/gap point that isn't present in the source listing text. Every quote is checked in code as a verbatim substring, Hebrew listings included.
 - Never put anything in a tailored resume that doesn't trace back to the master resume or to a verified skill proof (SPEC criteria 10 and 13). This is enforced in code, not left to the prompt.
-- Apify and LLM calls cost money. Keep pulls small and bounded, keep concurrency limited, and respect per-plan quotas.
-- Every user text and every scraped listing reaches the LLM only inside delimiters, after the injection check, and never as instructions. A detection is logged; blocks are temporary and reviewable.
+- Apify and LLM calls cost money. Defaults: at most 5 Apify results per source per search (`JH_APIFY_RESULTS_PER_SOURCE`) and at most 3 concurrent LLM calls (`JH_LLM_MAX_CONCURRENCY`), both set in config; raise them only with a reason written in the PR. Per-plan quotas apply on top (SPEC criterion 14).
+- Every user text and every scraped listing reaches the LLM only inside delimiters, after the injection check, and never as instructions. A detection is logged; blocks are temporary (SPEC criterion 18: 3 detections in 24 h → 24 h block) and reviewable from `/admin`.
 - Never store or log a plaintext password (argon2). Never log resume text, and never send it or form inputs to the analytics provider.
 
 ## Standards and processes
@@ -23,7 +23,7 @@ Job-search app for Israel: aggregates listings from several job boards, scores f
 - LLM model is set in config through OpenRouter; never hardcode a model name in application logic.
 - Mobile first: design every screen at 360 px before desktop; no horizontal scroll, touch targets of at least 44 px.
 - Three services (`api`, `matching-worker`, `resume-renderer`), each with its own image and its own Postgres schema. A service never reads another service's schema; data crosses boundaries only through events (versioned Pydantic models in `contracts`) or the owning service's API. Event consumers are idempotent. Inside `api`, modules keep the same rule toward each other's tables.
-- Key product events are sent from the backend, not only the frontend. Analytics loads only after cookie consent.
+- Key product events (`search_completed`, `resume_tailored`, `job_applied`, `learning_passed`; SPEC Part 3, Analytics) are sent from the backend, not only the frontend. Analytics loads only after cookie consent.
 
 ## What good work looks like
 
