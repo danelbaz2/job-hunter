@@ -94,42 +94,60 @@ The taxonomy has its own integrity tests (`tests/test_occupation_taxonomy.py`): 
 
 ## 3. Seniority (`score_seniority`)
 
+Module: `matching_worker/scoring/seniority.py`.
+
+Levels, in order: `Junior` < `Mid-Level` < `Senior` < `Team Lead`. The user picks one or more.
+
+**Decision — scores:** the listing's level is one of the user's → 100; one step away from the closest of the user's levels → 50; two steps or more → 0; nothing found, or no level picked → 50.
+
 **Decision — detection order:**
-1. **Title keywords first.** If the title names a level, that level decides: in the user's set → 100, otherwise 0.
-2. **Otherwise, years of experience in the text.** Take the minimum number asked for: 0–2 → `Junior`, 3–4 → `Mid-Level`, 5+ → `Senior`.
-3. **Keywords in the description body are ignored** (except years). This is what stops "you'll work with senior engineers" from rejecting a junior listing.
+1. **Title keywords first.** If the title names a level, that level decides. A title naming several ("Junior / Mid-Level") gets its best score.
+2. **Otherwise, experience asked for in the text.** Take the minimum: 0–2 years → `Junior`, 3–4 → `Mid-Level`, 5+ → `Senior`. A number of years counts only near the word "experience" / "ניסיון", so "founded 20 years ago" is ignored. "No experience required" phrases count as 0 years, which matters for the many non-tech listings that say so (`ללא ניסיון`, `לא נדרש ניסיון`).
+3. **Other keywords in the description body are ignored.** This is what stops "you'll work with senior engineers" from rejecting a junior listing.
 4. Nothing found → 50.
 
 **Title keywords:**
 
 | Level | Terms |
 |---|---|
-| `Junior` | junior, jr, entry level, entry-level, graduate, student, ג'וניור, ג׳וניור, ג׳ וניור, מתחיל, ללא ניסיון, סטודנט |
+| `Junior` | junior, jr, entry level, entry-level, graduate, student, intern, internship, ג'וניור, ג׳וניור, ג׳ וניור, מתחיל, ללא ניסיון, סטודנט |
 | `Mid-Level` | mid level, mid-level, intermediate |
-| `Senior` | senior, sr, sr., בכיר, סניור |
-| `Team Lead` | team lead, tech lead, lead engineer, engineering manager, ראש צוות |
+| `Senior` | senior, sr, principal, בכיר, סניור |
+| `Team Lead` | team lead, team leader, tech lead, lead engineer, lead developer, engineering manager, ראש צוות |
 
-Note the two forms of the Hebrew geresh: `'` (apostrophe) and `׳` (U+05F3). Normalize both before matching.
+Note the two forms of the Hebrew geresh: `'` (apostrophe) and `׳` (U+05F3). The shared normalization unifies them, and removes gender suffixes (`בכיר/ה` → `בכיר`).
 
-**Years patterns** (both languages): `3+ years`, `at least 3 years`, `3-5 years` (minimum = 3), `3 years of experience`, `3 שנות ניסיון`, `ניסיון של 3 שנים`, `שנתיים` (= 2), `שנה` / `שנת ניסיון` (= 1).
+**Years patterns** (both languages): `3+ years`, `at least 3 years`, `3-5 years` (minimum = 3), `3 years of experience`, `two years of experience`, `3 שנות ניסיון`, `שלוש שנות ניסיון`, `ניסיון של 3 שנים`, `שנתיים` (= 2), `שנת ניסיון` / `ניסיון של שנה` (= 1).
+
+**No-experience phrases:** `ללא ניסיון`, `לא נדרש ניסיון`, `אין צורך בניסיון`, `no experience required`, `no experience needed`, `no prior experience`.
 
 | # | User levels | Title | Text excerpt | Expected | Why |
 |---|---|---|---|---|---|
 | S1 | `Junior` | `Junior Backend Developer` | — | 100 | title keyword |
-| S2 | `Junior` | `Senior Backend Engineer` | — | 0 | conflicting title |
+| S2 | `Junior` | `Senior Backend Engineer` | — | 0 | two steps away |
 | S3 | `Junior` | `Backend Developer` | `You'll join a team of senior engineers.` | 50 | v1 returned 0: description keyword wrongly treated as the listing's level |
 | S4 | `Junior` | `Backend Developer` | `1+ years of experience with Python` | 100 | years → Junior |
-| S5 | `Junior` | `Backend Developer` | `5+ years of experience` | 0 | years → Senior |
+| S5 | `Junior` | `Backend Developer` | `5+ years of experience` | 0 | years → Senior, two steps away |
 | S6 | `Junior`, `Mid-Level` | `Backend Developer` | `3-5 years of experience` | 100 | minimum 3 → Mid-Level, selected |
 | S7 | `Junior` | `מפתח/ת בקאנד` | `ניסיון של שנתיים לפחות` | 100 | Hebrew dual form = 2 years |
 | S8 | `Junior` | `מפתח/ת בקאנד ג׳וניור` | — | 100 | geresh U+05F3 |
 | S9 | `Junior` | `מפתח/ת בקאנד ג'וניור` | — | 100 | apostrophe geresh |
 | S10 | `Junior` | `Sr. Software Engineer` | — | 0 | abbreviation |
 | S11 | `Junior` | `Software Engineer` | — | 50 | nothing found |
-| S12 | `Senior` | `מהנדס/ת תוכנה בכיר/ה` | — | 100 | Hebrew senior |
-| S13 | `Junior` | `Team Lead, Backend` | — | 0 | team lead ≠ junior |
-| S14 | `Junior` | `Junior Developer` | `Requirements: 3+ years of experience` | 100 | title wins over years (Decision) |
+| S12 | `Senior` | `מהנדס/ת תוכנה בכיר/ה` | — | 100 | Hebrew senior, gender slash |
+| S13 | `Junior` | `Team Lead, Backend` | — | 0 | team lead is three steps from junior |
+| S14 | `Junior` | `Junior Developer` | `Requirements: 3+ years of experience` | 100 | title wins over years |
 | S15 | `Junior` | `Developer` | `sr. management will review` | 50 | `sr` only counts in the title |
+| S16 | `Junior` | `Backend Developer` | `3+ years of experience` | 50 | Mid-Level, one step away |
+| S17 | `Mid-Level` | `Junior Developer` | — | 50 | one step away, the other direction |
+| S18 | `Senior` | `Team Lead` | — | 50 | one step away |
+| S19 | `Junior` | `מוכר/ת לחנות` | `לא נדרש ניסיון, הכשרה במקום` | 100 | no-experience phrase → Junior |
+| S20 | `Junior` | `Cashier` | `No experience required.` | 100 | English no-experience phrase |
+| S21 | `Junior` | `Developer` | `Founded 20 years ago.` | 50 | years without "experience" nearby are ignored |
+| S22 | `Junior` | `Developer` | `שלוש שנות ניסיון` | 50 | Hebrew number word → 3 years → Mid-Level |
+| S23 | `Junior` | `Developer` | `two years of experience` | 100 | English number word |
+| S24 | (none) | `Senior Developer` | — | 50 | no filter |
+| S25 | `Junior` | `Junior / Mid-Level Developer` | — | 100 | best of several title levels |
 
 ## 4. Overall score (`compute_overall_score`)
 
