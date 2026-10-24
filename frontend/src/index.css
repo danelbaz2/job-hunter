@@ -1,31 +1,118 @@
 @import 'tailwindcss';
 
+/* Nocturne, the v1 design system (docs/design-v1/handoff/README.md), carried over to v2. */
 @theme {
-  --color-surface: #ffffff;
-  --color-ink: #16181d;
-  --color-muted: #5f6672;
-  --color-accent: #2f5bea;
-  --color-line: #e4e6eb;
+  /* surfaces */
+  --color-bg: #161826;
+  --color-surface: #232532;
+  --color-surface-raised: #2b2d3c;
+  --color-text: #e9e9ed;
+  --color-border: #3f424d;
+
+  /* accent ramp (Nocturne blurple) */
+  --color-accent-100: #f5f4ff;
+  --color-accent-200: #e7e5fe;
+  --color-accent-300: #d2cefd;
+  --color-accent-400: #b5abfc;
+  --color-accent-500: #968ae0;
+  --color-accent-600: #796cbf;
+  --color-accent-700: #5d5294;
+  --color-accent-800: #423a6a;
+  --color-accent-900: #2b2741;
+
+  /* neutral ramp */
+  --color-neutral-100: #f3f5fe;
+  --color-neutral-200: #e4e7f5;
+  --color-neutral-300: #cfd3e5;
+  --color-neutral-400: #b2b6ca;
+  --color-neutral-500: #9397ab;
+  --color-neutral-600: #75798c;
+  --color-neutral-700: #595d6c;
+  --color-neutral-800: #3f424d;
+  --color-neutral-900: #292b31;
+
+  /* score tiers (domain-specific, on top of Nocturne) */
+  --color-tier-high-text: #4ade80;
+  --color-tier-high-bg: rgba(34, 197, 94, 0.16);
+  --color-tier-high-border: rgba(74, 222, 128, 0.4);
+  --color-tier-mid-text: #fbbf24;
+  --color-tier-mid-bg: rgba(245, 158, 11, 0.16);
+  --color-tier-mid-border: rgba(251, 191, 36, 0.4);
+  --color-tier-low-text: #f87171;
+  --color-tier-low-bg: rgba(239, 68, 68, 0.16);
+  --color-tier-low-border: rgba(248, 113, 113, 0.4);
+
+  /* type: Geist for headings, Inter for body. Neither has Hebrew glyphs, so a Hebrew
+     system font follows in the stack. */
+  --font-heading: 'Geist Variable', 'Inter Variable', 'Noto Sans Hebrew', 'Segoe UI', system-ui,
+    sans-serif;
+  --font-body: 'Inter Variable', 'Noto Sans Hebrew', 'Segoe UI', system-ui, sans-serif;
+  --text-xs: 12px;
+  --text-sm: 13px;
+  --text-base: 15px;
+  --text-lg: 18px;
+  --text-xl: 22px;
+  --text-2xl: 26px;
+  --text-3xl: 31px;
+  --text-4xl: 37px;
+  --text-5xl: 45px;
+
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 14px;
+  --radius-pill: 999px;
+
+  --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.35);
+  --shadow-md: 0 6px 18px rgba(0, 0, 0, 0.55);
+  --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.65);
+
+  /* backwards, not both: once finished the animation leaves no transform behind, which
+     would make every animated section its own stacking context and trap dropdowns. */
+  --animate-fade-in: fade-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+  }
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --color-surface: #121418;
-    --color-ink: #eceef2;
-    --color-muted: #9aa1ad;
-    --color-accent: #7c9bff;
-    --color-line: #262a31;
-  }
+html {
+  color-scheme: dark;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-neutral-700) transparent;
+  -webkit-text-size-adjust: 100%;
 }
 
 html,
 body {
-  background: var(--color-surface);
-  color: var(--color-ink);
-  -webkit-text-size-adjust: 100%;
+  margin: 0;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-body);
 }
 
-body {
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-heading);
+  font-weight: 500;
   margin: 0;
-  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Noto Sans Hebrew', sans-serif;
+  letter-spacing: -0.015em;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-accent-500);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }

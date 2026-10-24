@@ -1,10 +1,11 @@
+import { Home, Search, FileText, User, type LucideIcon } from 'lucide-react'
 import { NavLink, Outlet } from 'react-router'
 
-const tabs = [
-  { to: '/', label: 'Home', end: true },
-  { to: '/search', label: 'Search', end: false },
-  { to: '/resumes', label: 'Resumes', end: false },
-  { to: '/profile', label: 'Profile', end: false },
+const tabs: { to: string; label: string; end: boolean; icon: LucideIcon }[] = [
+  { to: '/', label: 'Home', end: true, icon: Home },
+  { to: '/search', label: 'Search', end: false, icon: Search },
+  { to: '/resumes', label: 'Resumes', end: false, icon: FileText },
+  { to: '/profile', label: 'Profile', end: false, icon: User },
 ]
 
 /**
@@ -14,9 +15,18 @@ const tabs = [
 export function AppShell() {
   return (
     <div className="flex min-h-dvh flex-col">
-      <header className="border-b border-line px-4 py-3 md:flex md:items-center md:justify-between">
-        <span className="text-lg font-semibold">Job Hunter</span>
-        <nav className="hidden gap-1 md:flex" aria-label="Main">
+      <a
+        href="#main"
+        className="sr-only rounded-md bg-accent-500 px-4 py-2 text-sm font-medium text-neutral-900 focus-visible:not-sr-only focus-visible:fixed focus-visible:top-4 focus-visible:left-4 focus-visible:z-50"
+      >
+        Skip to content
+      </a>
+
+      <header className="flex items-center gap-4 px-4 py-3 sm:px-6">
+        <span className="me-auto font-heading text-lg font-medium">
+          Job<span className="text-accent-500">Hunter</span>
+        </span>
+        <nav className="hidden items-center gap-1 md:flex" aria-label="Main">
           {tabs.map((tab) => (
             <NavLink key={tab.to} to={tab.to} end={tab.end} className={desktopTabClass}>
               {tab.label}
@@ -25,17 +35,18 @@ export function AppShell() {
         </nav>
       </header>
 
-      <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-6 pb-24 md:pb-6">
+      <main id="main" className="flex-1 pb-20 md:pb-0">
         <Outlet />
       </main>
 
       <nav
-        className="fixed inset-x-0 bottom-0 grid grid-cols-4 border-t border-line bg-surface pb-[env(safe-area-inset-bottom)] md:hidden"
+        className="fixed inset-x-0 bottom-0 grid grid-cols-4 border-t border-border bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden"
         aria-label="Main"
       >
         {tabs.map((tab) => (
           <NavLink key={tab.to} to={tab.to} end={tab.end} className={mobileTabClass}>
-            {tab.label}
+            <tab.icon size={20} strokeWidth={1.75} aria-hidden="true" />
+            <span>{tab.label}</span>
           </NavLink>
         ))}
       </nav>
@@ -44,13 +55,15 @@ export function AppShell() {
 }
 
 function mobileTabClass({ isActive }: { isActive: boolean }) {
-  return `flex min-h-14 items-center justify-center text-sm ${
-    isActive ? 'font-semibold text-accent' : 'text-muted'
+  return `flex min-h-14 flex-col items-center justify-center gap-1 text-xs transition-colors ${
+    isActive ? 'text-accent-400' : 'text-text/60 hover:text-text'
   }`
 }
 
 function desktopTabClass({ isActive }: { isActive: boolean }) {
-  return `rounded-md px-3 py-2 text-sm ${
-    isActive ? 'font-semibold text-accent' : 'text-muted hover:text-ink'
+  return `rounded-pill px-3 py-1.5 text-sm transition-colors ${
+    isActive
+      ? 'text-accent-400 shadow-[inset_0_0_0_1px_var(--color-accent-500)]'
+      : 'text-text/85 hover:bg-text/7 hover:text-text'
   }`
 }
