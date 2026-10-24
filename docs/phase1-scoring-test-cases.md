@@ -1,43 +1,48 @@
 # Phase 1 — Deterministic scoring: test cases
 
-Test cases for `backend/app/matching/scoring/deterministic.py` (SPEC criteria 1–5). Write the tests from these tables first, then the code. Every row is one assertion. Rows marked **Decision** fix a behavior the SPEC leaves open; change the value if you disagree, but keep a test for it.
+Test cases for `backend/src/jobhunter/matching_worker/scoring/deterministic.py` (SPEC criteria 1–5). Write the tests from these tables first, then the code. Every row is one assertion. Rows marked **Decision** fix a behavior the SPEC leaves open; change the value if you disagree, but keep a test for it.
 
 The v1 bugs these cases catch are named in the "Why" column.
 
 ## 1. Location (`score_location`)
 
-The user selects one or more **regions**. A listing's location is a city (Hebrew or English) mapped to a region through a lookup table. Score per listing = best score over the selected regions.
+The user chooses one **city** in the search (SPEC criterion 1). A listing's location is free text (Hebrew or English) resolved to a known city through an alias table; each known city has coordinates. The score depends on the straight-line distance between the two cities.
 
-**Decision — regions and adjacency** (Israeli job boards use roughly these regions):
+**Decision — bands** (one table in code):
 
-| Region | Example cities (EN / HE) | Adjacent to |
+| Distance from the search city | Score | Examples from Tel Aviv |
 |---|---|---|
-| `center` (Gush Dan + Merkaz) | Tel Aviv / תל אביב, Petah Tikva / פתח תקווה, Ramat Gan / רמת גן, Rosh HaAyin / ראש העין | `sharon`, `shfela` |
-| `sharon` | Herzliya / הרצליה, Netanya / נתניה, Kfar Saba / כפר סבא, Ra'anana / רעננה | `center`, `haifa` |
-| `shfela` | Rehovot / רחובות, Rishon LeZion / ראשון לציון, Modi'in / מודיעין | `center`, `jerusalem`, `south` |
-| `jerusalem` | Jerusalem / ירושלים, Beit Shemesh / בית שמש | `shfela` |
-| `haifa` | Haifa / חיפה, Yokneam / יקנעם | `sharon`, `north` |
-| `north` | Karmiel / כרמיאל, Nazareth / נצרת | `haifa` |
-| `south` | Be'er Sheva / באר שבע, Ashdod / אשדוד | `shfela` |
+| same city, or remote | 100 | Tel Aviv, Remote |
+| ≤ 15 km | 85 | Ramat Gan, Petah Tikva, Herzliya |
+| ≤ 35 km | 60 | Netanya, Rehovot, Modi'in |
+| ≤ 70 km | 40 | Jerusalem, Beit Shemesh |
+| beyond | 25 | Haifa, Be'er Sheva |
+| unknown or empty location, or no search city | 50 | neutral, and no location point is generated |
 
-**Decision — scores:** remote or listing city inside a selected region → 100; city in a region adjacent to a selected region → 50; any other known city → 0; unknown or empty location → 50 (neutral, and no location point is generated).
+**Decision:** when a listing names several known cities (`Tel Aviv / Haifa`), the closest one counts. A search city outside the alias table is a programming error (the search form only offers known cities) and raises `ValueError`.
 
-| # | Selected regions | Listing location | Expected | Why |
+| # | Search city | Listing location | Expected | Why |
 |---|---|---|---|---|
-| L1 | `center` | `Tel Aviv` | 100 | exact region |
-| L2 | `center` | `תל אביב-יפו` | 100 | Hebrew name with suffix must resolve |
-| L3 | `center` | `Petah Tikva, Israel` | 100 | country suffix ignored |
-| L4 | `center` | `Herzliya` | 50 | adjacent region |
-| L5 | `center` | `Haifa` | 0 | v1 gave 60 to every other city, so "outside your areas" never showed |
-| L6 | `center` | `באר שבע` | 0 | Hebrew, far region |
-| L7 | `center`, `haifa` | `Yokneam` | 100 | best score over several selected regions |
-| L8 | `center` | `Remote` | 100 | remote |
-| L9 | `center` | `Hybrid - Tel Aviv` | 100 | hybrid resolves to its city |
-| L10 | `center` | `` (empty) | 50 | unknown is neutral, not a match |
-| L11 | `center` | `Springfield` | 50 | unknown city is neutral |
-| L12 | (none selected) | `Haifa` | 50 | no filter, neutral |
-| L13 | `center` | `ramat gan` | 100 | case-insensitive |
-| L14 | `center` | `פ"ת` | 100 | common abbreviation (add an alias table; drop this row if you'd rather not) |
+| L1 | Tel Aviv | `Tel Aviv` | 100 | same city |
+| L2 | Tel Aviv | `תל אביב-יפו` | 100 | Hebrew name with suffix must resolve |
+| L3 | Tel Aviv | `Petah Tikva, Israel` | 85 | country suffix ignored, nearby |
+| L4 | Tel Aviv | `Herzliya` | 85 | nearby even though v1 put it in another region |
+| L5 | Tel Aviv | `Netanya` | 60 | one step further |
+| L6 | Tel Aviv | `Jerusalem` | 40 | further |
+| L7 | Tel Aviv | `Haifa` | 25 | far ranks low but stays visible (v1 gave 60 to every other city) |
+| L8 | Tel Aviv | `באר שבע` | 25 | Hebrew, far |
+| L9 | Haifa | `Yokneam` | 60 | distance works from any search city |
+| L10 | Tel Aviv | `Remote` | 100 | remote |
+| L11 | Tel Aviv | `Hybrid - Tel Aviv` | 100 | hybrid resolves to its city |
+| L12 | Tel Aviv | `` (empty) | 50 | unknown is neutral, not a match |
+| L13 | Tel Aviv | `Springfield` | 50 | unknown city is neutral |
+| L14 | (none) | `Haifa` | 50 | no filter, neutral |
+| L15 | Tel Aviv | `ramat gan` | 85 | case-insensitive |
+| L16 | Tel Aviv | `פ"ת` | 85 | common abbreviation |
+| L17 | Tel Aviv | `Tel Aviv / Haifa` | 100 | closest of several cities |
+| L18 | `Atlantis` | `Haifa` | `ValueError` | search city must be known |
+| L19 | Tel Aviv | `Jaffa`, `יפו`, `Ramat HaHayal`, `רמת החייל`, `Kiryat Atidim`, `Tel Aviv District`, `מחוז תל אביב` | 100 | neighborhoods and LinkedIn's district format are Tel Aviv |
+| L20 | Tel Aviv | `Springfield` | 50, and the location is logged | unrecognized locations feed the alias table |
 
 ## 2. Domain (`score_domain`)
 
@@ -140,7 +145,7 @@ Used when there is no resume or the AI returns nothing usable (criterion 5).
 | # | Case | Expected |
 |---|---|---|
 | P1 | Location 100, listing text contains `תל אביב` | one matched point whose `quote` is a substring of the listing text |
-| P2 | Location 0 (Haifa vs `center`) | one gap point quoting the listing's location, which must appear in the listing text |
+| P2 | Location 25 (Haifa from Tel Aviv) | one gap point quoting the listing's location, which must appear in the listing text |
 | P3 | Location 50 because the location is unknown | no location point at all (neither matched nor gap) |
 | P4 | Domain 100 from a Hebrew term | matched point quoting the line that contains the term |
 | P5 | Any generated point | `point.quote in listing.raw_text` is `True` — assert this on every case above |
