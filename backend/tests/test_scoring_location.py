@@ -1,6 +1,6 @@
 import pytest
 
-from jobhunter.matching_worker.scoring.deterministic import (
+from jobhunter.matching_worker.scoring.location import (
     CITY_ALIASES,
     CITY_COORDINATES,
     score_location,

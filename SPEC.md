@@ -4,7 +4,7 @@ v1 (Next.js, kept in git history) proved the core idea: search several Israeli j
 
 ## Part 1 — Goal and reason
 
-**Goal:** A hosted web app where a job seeker keeps a personal space (profile, master resume, saved searches, applications), gets matching listings from multiple Israeli job boards every day, sees exactly where they fit and where they don't, gets an ATS-friendly resume tailored to a chosen listing, and can close a skill gap through a short learning path that ends with verifiable proof.
+**Goal:** A hosted web app where a job seeker in any field, not only tech, keeps a personal space (profile, master resume, saved searches, applications), gets matching listings from multiple Israeli job boards every day, sees exactly where they fit and where they don't, gets an ATS-friendly resume tailored to a chosen listing, and can close a skill gap through a short learning path that ends with verifiable proof.
 
 **Reason:** Job seekers repeat the same search on four boards, guess whether they fit, and rewrite their resume by hand for every application. Existing tools (Jobscan, Teal) tailor resumes but ignore the Israeli market and Hebrew listings, and nothing connects "you're missing X for this job" to "here's how to learn X and prove it".
 
@@ -14,7 +14,7 @@ v1 (Next.js, kept in git history) proved the core idea: search several Israeli j
 
 ### Carried over from v1 (still hold)
 1. Location sub-score is distance-based from the city chosen in the search: 100 for the same city or remote, then decreasing with straight-line distance (≤ 15 km 85, ≤ 35 km 60, ≤ 70 km 40, beyond 25), so a far listing ranks lower without disappearing. An unknown location, or no city chosen, is neutral (50). The bands live in one table in code.
-2. Domain sub-score is binary and matches English **and** Hebrew terms for each domain.
+2. Occupation sub-score: the search names one or more occupations, picked from the taxonomy (a whole family or a single role) or typed as free text. A listing scores 100 when it is a chosen occupation, 50 when it is another role of a chosen role's family, 0 otherwise, and 50 when no occupation is chosen. The title decides when it names a known role; the listing body is read only when the title doesn't. English **and** Hebrew terms and synonyms match for every role.
 3. The overall score is a fixed weighted combination of stored sub-scores; recomputing it from the database reproduces the same number.
 4. Results are sorted strictly descending by overall score.
 5. Every listing shows at least one matched point and, below 100, at least one gap point. Every quote is a verbatim substring of the listing text, including Hebrew listings.
@@ -53,8 +53,11 @@ v1 (Next.js, kept in git history) proved the core idea: search several Israeli j
 24. On a job page that already has a tailored resume, one tap opens or downloads it; generating again creates a new version, never overwrites the previous one.
 
 ### Reference-measured (manual)
-25. With a real resume and real criteria, at least 3 of the top 5 listings have correct location/domain and defensible match/gap points.
+25. With a real resume and real criteria, at least 3 of the top 5 listings have correct location/occupation and defensible match/gap points.
 26. At least one tailored resume, reviewed by the user, reads as truthful and better aligned to the listing than the master version.
+
+### Occupations
+28. The occupation search bar suggests matching families and roles on every keystroke, in English or Hebrew, from synonyms as well as names, without a server call per keystroke. Typed text that matches nothing can still be submitted as a free-text occupation.
 
 ### Accounts
 27. An email/password account cannot sign in until its email is verified with a 6-character code sent to that address. The code uses uppercase letters and digits without ambiguous characters (`0 O 1 I L`), is case-insensitive on entry, stored hashed, expires after 15 minutes and is invalidated after 5 wrong attempts. Resending is limited to once per minute and 5 times per hour. An unverified account claims nothing: a Google sign-in or a new verified signup with the same email replaces it. Google accounts skip this step.
@@ -68,7 +71,8 @@ v1 (Next.js, kept in git history) proved the core idea: search several Israeli j
 - **Auth:** Google OAuth (Authlib) and email/password (argon2). Session in an httpOnly cookie. One email = one auth method, as in v1, counted only once the email is verified (criterion 27). Verification codes go out through the email port.
 - **Documents:** HTML template → PDF with WeasyPrint; DOCX with python-docx.
 - **AI:** LLM calls through OpenRouter, model set in config. Concurrency limited in code (semaphore and queue), never unbounded.
-- **Job data:** Apify actors (AllJobs, Drushim, LinkedIn, Indeed-IL) behind one adapter layer, as in v1. Apify runs report completion by webhook rather than a process waiting on them.
+- **Job data:** Apify actors (AllJobs, Drushim, LinkedIn, Indeed-IL) behind one adapter layer, as in v1. The chosen occupations' English and Hebrew terms are the search keywords sent to each board.
+- **Occupation taxonomy:** a versioned data file in the repo (families, roles, English and Hebrew names, synonyms, about 25 families aligned with the Israeli boards' categories), read by `api` to serve the search bar and by `matching-worker` to score. Adding a role is a data change, never a code change. Free-text occupations that users submit often are reviewed to grow it. Apify runs report completion by webhook rather than a process waiting on them.
 
 ### Deployment (provider-agnostic)
 The app does not depend on any cloud provider. The hosting provider is chosen when phase 2 needs a public deployment (see Open decisions); until then everything runs locally.
@@ -140,13 +144,13 @@ Modular monolith first, with three services extracted where load or dependencies
 - Rendered files go to the file storage port, never into the database.
 
 ### Boundaries
-- Deterministic scoring (location, domain, seniority) stays in plain code and is unit-tested. Only skills fit, gap extraction, resume rewording, quiz generation and rubric checks go to the LLM.
+- Deterministic scoring (location, occupation, seniority) stays in plain code and is unit-tested. Only skills fit, gap extraction, resume rewording, quiz generation and rubric checks go to the LLM.
 - Scoring, tailoring and UI code never call Apify directly.
 - Every LLM output that claims a fact about a listing or a resume is verified in code against the source text before it is stored.
 
 ## Part 4 — Delivery phases and validation
 
-1. **Core v2:** new stack with the three services, event contracts and per-service schemas, mobile-first layout, injection check on every LLM input, auth, profile with stored resume, search, scoring fixes (Hebrew terms, distance-based location, Drushim location, bounded LLM concurrency), tests on deterministic scoring. *Done when criteria 1–5, 7, 17, 19, 20, 25 and 27 pass.*
+1. **Core v2:** new stack with the three services, event contracts and per-service schemas, mobile-first layout, injection check on every LLM input, auth, profile with stored resume, search, scoring fixes (Hebrew terms, distance-based location, Drushim location, bounded LLM concurrency), tests on deterministic scoring. *Done when criteria 1–5, 7, 17, 19, 20, 25, 27 and 28 pass.*
 2. **Daily use:** saved searches, daily job, PWA and push notifications, temporary blocks and admin review, "new since last visit", application states, analytics and admin page. *Done when 6, 8, 15, 16, 18, 21 and 22 pass, and 10 real job seekers have used it for a week.*
 3. **ATS tailoring:** PDF/DOCX export, keyword coverage before/after, resume library with versions. *Done when 9–11, 23, 24 and 26 pass.*
 4. **Subscription:** plans, quotas, payment provider. *Done when 14 passes with a real test payment.*
@@ -175,3 +179,4 @@ Modular monolith first, with three services extracted where load or dependencies
 - Payment provider.
 - Pro price (first guess 15–20 $/month, against Teal+ at 29 $ and Jobscan at 49.95 $).
 - Resume tailoring languages: English only first, or English and Hebrew.
+- Learning proof outside tech (phase 5): criterion 13's mini-project with a GitHub link only fits technical skills. Decide what verifiable proof means for other occupations before building phase 5.

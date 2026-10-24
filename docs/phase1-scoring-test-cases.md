@@ -1,10 +1,12 @@
 # Phase 1 — Deterministic scoring: test cases
 
-Test cases for `backend/src/jobhunter/matching_worker/scoring/deterministic.py` (SPEC criteria 1–5). Write the tests from these tables first, then the code. Every row is one assertion. Rows marked **Decision** fix a behavior the SPEC leaves open; change the value if you disagree, but keep a test for it.
+Test cases for the deterministic scoring in `backend/src/jobhunter/matching_worker/scoring/` (SPEC criteria 1–5). Write the tests from these tables first, then the code. Every row is one assertion. Rows marked **Decision** fix a behavior the SPEC leaves open; change the value if you disagree, but keep a test for it.
 
 The v1 bugs these cases catch are named in the "Why" column.
 
 ## 1. Location (`score_location`)
+
+Module: `matching_worker/scoring/location.py`.
 
 The user chooses one **city** in the search (SPEC criterion 1). A listing's location is free text (Hebrew or English) resolved to a known city through an alias table; each known city has coordinates. The score depends on the straight-line distance between the two cities.
 
@@ -44,31 +46,51 @@ The user chooses one **city** in the search (SPEC criterion 1). A listing's loca
 | L19 | Tel Aviv | `Jaffa`, `יפו`, `Ramat HaHayal`, `רמת החייל`, `Kiryat Atidim`, `Tel Aviv District`, `מחוז תל אביב` | 100 | neighborhoods and LinkedIn's district format are Tel Aviv |
 | L20 | Tel Aviv | `Springfield` | 50, and the location is logged | unrecognized locations feed the alias table |
 
-## 2. Domain (`score_domain`)
+## 2. Occupation (`score_occupation`)
 
-Binary: 100 if the listing title or text contains a term of any selected domain, else 0. No domain selected → 50.
+Module: `matching_worker/scoring/occupation.py`. Taxonomy: `backend/src/jobhunter/occupations/occupations.json` (families of roles, English and Hebrew names, synonyms).
 
-**Decision — terms** (substring, case-insensitive; Hebrew has no reliable word boundaries, so plain substring is acceptable):
+The user picks, in the search bar, any mix of whole **families** (all their roles count), single **roles**, and **free text** for an occupation the taxonomy doesn't have yet.
 
-| Domain | Terms |
-|---|---|
-| `backend` | backend, back-end, back end, server side, server-side, בקאנד, בק-אנד, בק אנד, צד שרת |
-| `fullstack` | full stack, full-stack, fullstack, פולסטאק, פול סטאק, פול-סטאק |
-| `frontend` | frontend, front-end, front end, פרונטאנד, פרונט-אנד, צד לקוח |
+**Decision — scores:** 100 when the listing is a chosen occupation; 50 when it is another role of a chosen role's family (a Full Stack listing for a Backend search); 0 otherwise; 50 when nothing is chosen.
 
-**Decision:** a full-stack listing does **not** match `backend` alone. Users who accept both select both.
+**Decision — title first:**
+1. Free text found in the title → 100.
+2. The title is read for known roles. When one term sits inside a longer matched term, only the longer counts ("QA Automation Engineer" is QA automation, not plain QA; "עובד מטבח" is kitchen worker, not cook).
+3. If the title names a chosen role → 100. If it names a specific role that isn't chosen → 50 or 0 by family, **and the body is ignored**: "work with the backend team" doesn't make a Frontend listing a Backend match.
+4. If the title names only a **generic** role ("Software Engineer", "QA Engineer", "Technician"), the body may pick a chosen role **of that same family** → 100; otherwise 50 or 0 by family.
+5. If the title names no role, the body decides: a chosen role's term or the free text → 100, else 0.
 
-| # | Selected | Title | Text excerpt | Expected | Why |
+**Decision — matching words:** text is normalized (lowercase, one kind of quote mark, no niqqud, and Hebrew gender suffixes removed: `מפתח/ת` → `מפתח`). Latin terms must be whole words (`nurse` ≠ `nursery`, `sales` ≠ `wholesale`); Hebrew terms match anywhere, because one-letter prefixes attach to the word (`והנהלת חשבונות`).
+
+| # | Chosen | Title | Text excerpt | Expected | Why |
 |---|---|---|---|---|---|
-| D1 | `backend` | `Backend Developer` | — | 100 | English title |
-| D2 | `backend` | `מפתח/ת בקאנד` | — | 100 | v1 only knew English terms: every Hebrew listing scored 0 |
-| D3 | `backend` | `Software Engineer` | `...פיתוח צד שרת ב-Python...` | 100 | term in text, not title |
-| D4 | `backend` | `Back-End Engineer` | — | 100 | hyphenated |
-| D5 | `backend` | `Full Stack Developer` | — | 0 | Decision above |
-| D6 | `backend`, `fullstack` | `Full Stack Developer` | — | 100 | any selected domain |
-| D7 | `backend` | `QA Automation Engineer` | — | 0 | no term |
-| D8 | (none) | `QA Automation Engineer` | — | 50 | no filter |
-| D9 | `fullstack` | `מפתח/ת פולסטאק` | — | 100 | Hebrew fullstack |
+| O1 | role `backend-developer` | `Backend Developer` | — | 100 | English title |
+| O2 | role `backend-developer` | `מפתח/ת בקאנד` | — | 100 | v1 only knew English terms: every Hebrew listing scored 0 |
+| O3 | role `backend-developer` | `Software Engineer` | `...פיתוח צד שרת ב-Python...` | 100 | generic title, body picks a role of its family |
+| O4 | role `backend-developer` | `Software Engineer` | `Build great products.` | 50 | generic title, same family |
+| O5 | role `backend-developer` | `Full Stack Developer` | — | 50 | same family |
+| O6 | role `backend-developer` | `Frontend Developer` | `You'll work closely with the backend team.` | 50 | title wins over body |
+| O7 | role `backend-developer` | `QA Automation Engineer` | — | 0 | other family |
+| O8 | (none) | `QA Automation Engineer` | — | 50 | no filter |
+| O9 | family `software` | `Full Stack Developer` | — | 100 | a whole family covers its roles |
+| O10 | role `accountant` | `רואה/ת חשבון` | — | 100 | Hebrew gender slash |
+| O11 | role `accountant` | `Accountant` | — | 100 | non-tech role |
+| O12 | role `accountant` | `מנהל/ת חשבונות` | — | 50 | bookkeeper, same family |
+| O13 | role `nurse` | `Nursery Assistant` | — | 0 | Latin terms are whole words |
+| O14 | role `sales-representative` | `Wholesale Coordinator` | — | 0 | `sales` is not in `wholesale` |
+| O15 | role `cook` | `עובד/ת מטבח` | — | 50 | longest Hebrew term wins (kitchen worker, not `טבח`) |
+| O16 | free `sommelier` | `Sommelier` | — | 100 | free text in the title |
+| O17 | free `sommelier` | `Waiter` | `We love wine.` | 0 | title names another role |
+| O18 | free `glassblower` | `Workshop team member` | `Experienced glassblower wanted.` | 100 | title names no role, body decides |
+| O19 | role `truck-driver` | `Device Driver Engineer` | — | 0 | `device driver` is embedded software |
+| O20 | role `teacher` | `מורה דרך` | — | 0 | tour guide is not teacher |
+| O21 | role `data-analyst` | `אנליסט/ית פיננסי/ת` | — | 0 | financial analyst, other family |
+| O22 | role `caregiver` | `Caregiver` | — | 100 | non-tech role |
+| O23 | role `astronaut` | `Astronaut` | — | `ValueError` | ids come from the taxonomy |
+| O24 | role `backend-developer` | `QA Engineer` | `Test our backend` | 0 | a generic title's body only picks inside its own family |
+
+The taxonomy has its own integrity tests (`tests/test_occupation_taxonomy.py`): unique ids, every family and role named in both languages, no term shared by two roles, at most one generic role per family.
 
 ## 3. Seniority (`score_seniority`)
 
@@ -111,11 +133,11 @@ Note the two forms of the Hebrew geresh: `'` (apostrophe) and `׳` (U+05F3). Nor
 
 ## 4. Overall score (`compute_overall_score`)
 
-Weights: location 0.25, domain 0.25, seniority 0.20, skills 0.30. When skills is `None`, the other three weights are renormalized (divide by 0.70).
+Weights: location 0.25, occupation 0.25, seniority 0.20, skills 0.30. When skills is `None`, the other three weights are renormalized (divide by 0.70).
 
 **Decision — rounding:** half up, like v1 (JavaScript `Math.round`). Python's built-in `round()` rounds half to even (`round(12.5) == 12`), so don't use it here.
 
-| # | Location | Domain | Seniority | Skills | Computation | Expected |
+| # | Location | Occupation | Seniority | Skills | Computation | Expected |
 |---|---|---|---|---|---|---|
 | O1 | 100 | 100 | 100 | 100 | 100 | 100 |
 | O2 | 100 | 100 | 50 | 70 | 25 + 25 + 10 + 21 = 81 | 81 |
@@ -147,6 +169,6 @@ Used when there is no resume or the AI returns nothing usable (criterion 5).
 | P1 | Location 100, listing text contains `תל אביב` | one matched point whose `quote` is a substring of the listing text |
 | P2 | Location 25 (Haifa from Tel Aviv) | one gap point quoting the listing's location, which must appear in the listing text |
 | P3 | Location 50 because the location is unknown | no location point at all (neither matched nor gap) |
-| P4 | Domain 100 from a Hebrew term | matched point quoting the line that contains the term |
+| P4 | Occupation 100 from a Hebrew term | matched point quoting the line that contains the term |
 | P5 | Any generated point | `point.quote in listing.raw_text` is `True` — assert this on every case above |
-| P6 | Location, domain and seniority all at 100 | no gap point: the function never invents a gap to fill the list |
+| P6 | Location, occupation and seniority all at 100 | no gap point: the function never invents a gap to fill the list |
