@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
-import { useId, useMemo, useState } from 'react'
+import { Check, Plus, Search, X } from 'lucide-react'
+import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { api } from '../api/client'
 import { buildIndex, hasHebrew, normalize, search, type Suggestion } from '../lib/occupationSearch'
 
@@ -35,22 +36,41 @@ export function OccupationPicker({
   const [active, setActive] = useState(0)
   const listId = useId()
   const inputId = useId()
+  const rootRef = useRef<HTMLDivElement>(null)
 
+  // The list closes only on a deliberate tap outside the picker. Not on blur: on a phone,
+  // closing the keyboard blurs the field. Not on pointerdown: a finger starting to scroll
+  // the page fires it. The browser fires `click` only for a real tap, never for a scroll.
+  useEffect(() => {
+    if (!open) return
+    function onClick(e: MouseEvent) {
+      if (!rootRef.current?.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('click', onClick)
+    return () => document.removeEventListener('click', onClick)
+  }, [open])
+
+  // Picked items stay in the list, marked as selected, so tapping one again unselects it.
   const options = useMemo<Option[]>(() => {
     const trimmed = query.trim()
     if (!trimmed) return []
     const hebrew = hasHebrew(trimmed)
-    const picked = new Set(value.map((p) => (p.kind === 'free' ? `free:${normalize(p.text)}` : p.id)))
-    const suggestions: Option[] = search(index, trimmed)
-      .filter((s) => !picked.has(s.id))
-      .map((suggestion) => ({ kind: 'suggestion', suggestion, hebrew }))
-    const free: Option[] = picked.has(`free:${normalize(trimmed)}`)
-      ? []
-      : [{ kind: 'free', text: trimmed }]
-    return [...suggestions, ...free]
-  }, [query, index, value])
+    const suggestions: Option[] = search(index, trimmed).map((suggestion) => ({
+      kind: 'suggestion',
+      suggestion,
+      hebrew,
+    }))
+    return [...suggestions, { kind: 'free', text: trimmed }]
+  }, [query, index])
 
-  function choose(option: Option) {
+  const pickedKeys = useMemo(() => new Set(value.map(pickKey)), [value])
+
+  function toggle(option: Option) {
+    const key = optionKey(option)
+    if (pickedKeys.has(key)) {
+      onChange(value.filter((pick) => pickKey(pick) !== key))
+      return
+    }
     const pick: OccupationPick =
       option.kind === 'free'
         ? { kind: 'free', text: option.text, label: option.text }
@@ -59,9 +79,8 @@ export function OccupationPicker({
             id: option.suggestion.id,
             label: option.hebrew ? option.suggestion.he : option.suggestion.en,
           }
+    // The query and the list stay, so several occupations can be picked in a row.
     onChange([...value, pick])
-    setQuery('')
-    setActive(0)
   }
 
   function remove(i: number) {
@@ -78,7 +97,7 @@ export function OccupationPicker({
       setActive((a) => (a - 1 + options.length) % options.length)
     } else if (e.key === 'Enter' && open && options[active]) {
       e.preventDefault()
-      choose(options[active])
+      toggle(options[active])
     } else if (e.key === 'Escape') {
       setOpen(false)
     } else if (e.key === 'Backspace' && !query && value.length) {
@@ -89,8 +108,17 @@ export function OccupationPicker({
   const expanded = open && options.length > 0
 
   return (
-    <div className="space-y-2">
-      <label htmlFor={inputId} className="block text-sm font-medium">
+    <div
+      ref={rootRef}
+      className="space-y-3"
+      onBlur={(e) => {
+        // Tab to another field closes the list. A blur with no next focus (the phone
+        // keyboard closing) leaves it open.
+        const next = e.relatedTarget
+        if (next && !e.currentTarget.contains(next)) setOpen(false)
+      }}
+    >
+      <label htmlFor={inputId} className="sr-only">
         Occupation
       </label>
 
@@ -102,15 +130,13 @@ export function OccupationPicker({
                 type="button"
                 onClick={() => remove(i)}
                 aria-label={`Remove ${pick.label}`}
-                className="flex min-h-11 items-center gap-2 rounded-full border border-line px-3 text-sm"
+                className="flex min-h-11 items-center gap-2 rounded-pill border border-accent-500 bg-accent-500/12 ps-4 pe-3 text-base text-accent-300 transition-colors hover:bg-accent-500/20"
                 dir="auto"
               >
                 <span>{pick.label}</span>
-                {pick.kind === 'family' && <span className="text-xs text-muted">all roles</span>}
-                {pick.kind === 'free' && <span className="text-xs text-muted">free text</span>}
-                <span aria-hidden="true" className="text-muted">
-                  ×
-                </span>
+                {pick.kind === 'family' && <span className="text-xs text-accent-300/70">all roles</span>}
+                {pick.kind === 'free' && <span className="text-xs text-accent-300/70">free text</span>}
+                <X size={15} aria-hidden="true" className="text-accent-300/80" />
               </button>
             </li>
           ))}
@@ -118,6 +144,12 @@ export function OccupationPicker({
       )}
 
       <div className="relative">
+        <Search
+          size={18}
+          strokeWidth={1.75}
+          aria-hidden="true"
+          className="pointer-events-none absolute start-4 top-1/2 -translate-y-1/2 text-neutral-500"
+        />
         <input
           id={inputId}
           type="text"
@@ -128,7 +160,7 @@ export function OccupationPicker({
           aria-activedescendant={expanded ? `${listId}-${active}` : undefined}
           autoComplete="off"
           dir="auto"
-          placeholder="e.g. Backend developer, רואה חשבון, nurse…"
+          placeholder="Backend developer, רואה חשבון, nurse…"
           value={query}
           onChange={(e) => {
             setQuery(e.target.value)
@@ -136,44 +168,68 @@ export function OccupationPicker({
             setOpen(true)
           }}
           onFocus={() => setOpen(true)}
-          onBlur={() => setOpen(false)}
           onKeyDown={onKeyDown}
           // 16px text keeps iOS from zooming into the field.
-          className="min-h-11 w-full rounded-lg border border-line bg-surface px-3 text-base outline-none focus:border-accent"
+          className="min-h-12 w-full rounded-lg border border-border bg-transparent ps-11 pe-12 text-[16px] text-text caret-accent-500 transition-colors placeholder:text-neutral-500 hover:border-text/45 focus:border-accent-500 focus:outline-none"
         />
+        {query && (
+          <button
+            type="button"
+            onClick={() => {
+              setQuery('')
+              setActive(0)
+            }}
+            aria-label="Clear the search text"
+            className="absolute end-0.5 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-md text-neutral-500 transition-colors hover:text-text"
+          >
+            <X size={17} aria-hidden="true" />
+          </button>
+        )}
 
         {expanded && (
           <ul
             id={listId}
             role="listbox"
-            className="absolute inset-x-0 top-full z-10 mt-1 max-h-80 overflow-y-auto rounded-lg border border-line bg-surface shadow-lg"
+            aria-multiselectable="true"
+            className="absolute inset-x-0 top-full z-20 mt-2 max-h-80 animate-fade-in overflow-y-auto overscroll-contain rounded-lg border border-border bg-surface p-1.5 shadow-md"
           >
-            {options.map((option, i) => (
-              <li
-                key={option.kind === 'free' ? 'free' : option.suggestion.id}
-                id={`${listId}-${i}`}
-                role="option"
-                aria-selected={i === active}
-                // mousedown, not click: the input's blur would close the list first.
-                onMouseDown={(e) => {
-                  e.preventDefault()
-                  choose(option)
-                }}
-                onMouseEnter={() => setActive(i)}
-                className={`flex min-h-11 cursor-pointer flex-col justify-center px-3 py-2 ${
-                  i === active ? 'bg-accent/10' : ''
-                }`}
-              >
-                <OptionContent option={option} />
-              </li>
-            ))}
+            {options.map((option, i) => {
+              const selected = pickedKeys.has(optionKey(option))
+              return (
+                <li
+                  key={optionKey(option)}
+                  id={`${listId}-${i}`}
+                  role="option"
+                  aria-selected={selected}
+                  // mousedown, not click: keeps focus in the field on desktop.
+                  onMouseDown={(e) => {
+                    e.preventDefault()
+                    toggle(option)
+                  }}
+                  onMouseEnter={() => setActive(i)}
+                  className={`flex min-h-11 cursor-pointer items-center gap-3 rounded-md px-3 py-2 transition-colors ${
+                    selected ? 'bg-accent-500/12' : ''
+                  } ${i === active ? (selected ? 'bg-accent-500/18' : 'bg-text/7') : ''}`}
+                >
+                  <div className="flex min-w-0 flex-1 flex-col">
+                    <OptionContent option={option} selected={selected} />
+                  </div>
+                  {selected && (
+                    <Check size={18} aria-hidden="true" className="shrink-0 text-accent-400" />
+                  )}
+                </li>
+              )
+            })}
           </ul>
         )}
       </div>
 
       {taxonomy.isError && (
-        <p className="text-sm text-red-600" role="status">
-          Couldn't load the occupation list. You can still type an occupation and add it as
+        <p
+          className="rounded-lg border border-tier-low-border bg-tier-low-bg px-4 py-3 text-sm text-tier-low-text"
+          role="status"
+        >
+          Couldn&apos;t load the occupation list. You can still type an occupation and add it as
           free text.
         </p>
       )}
@@ -181,11 +237,26 @@ export function OccupationPicker({
   )
 }
 
-function OptionContent({ option }: { option: Option }) {
+function pickKey(pick: OccupationPick): string {
+  return pick.kind === 'free' ? `free:${normalize(pick.text)}` : pick.id
+}
+
+function optionKey(option: Option): string {
+  return option.kind === 'free' ? `free:${normalize(option.text)}` : option.suggestion.id
+}
+
+function OptionContent({ option, selected }: { option: Option; selected: boolean }) {
   if (option.kind === 'free') {
     return (
-      <span dir="auto">
-        Search for “{option.text}” <span className="text-xs text-muted">as free text</span>
+      <span
+        className={`flex items-center gap-2 text-base ${selected ? 'text-accent-300' : 'text-text/85'}`}
+        dir="auto"
+      >
+        {!selected && <Plus size={16} aria-hidden="true" className="shrink-0 text-accent-400" />}
+        <span>
+          {selected ? `“${option.text}”` : `Add “${option.text}”`}{' '}
+          <span className="text-sm text-text/45">as free text</span>
+        </span>
       </span>
     )
   }
@@ -194,11 +265,18 @@ function OptionContent({ option }: { option: Option }) {
   const family = hebrew ? s.familyHe : s.familyEn
   return (
     <>
-      <span dir="auto">
+      <span
+        className={`flex items-center gap-2 text-base ${selected ? 'text-accent-300' : 'text-text'}`}
+        dir="auto"
+      >
         {primary}
-        {s.kind === 'family' && <span className="ms-2 text-xs text-muted">all roles</span>}
+        {s.kind === 'family' && (
+          <span className="rounded-pill border border-accent-500/50 px-2 py-0.5 text-xs text-accent-300">
+            all roles
+          </span>
+        )}
       </span>
-      <span className="text-xs text-muted" dir="auto">
+      <span className="text-sm text-text/50" dir="auto">
         {secondary}
         {family && ` · ${family}`}
         {s.matchedSynonym && ` · matches “${s.matchedSynonym}”`}
