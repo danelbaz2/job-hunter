@@ -39,7 +39,7 @@ Job-search app for Israel: aggregates listings from several job boards, scores f
 - Work one SPEC.md phase at a time; don't start a phase before the previous one's "done when" criteria pass.
 - Treat SPEC.md as a hypothesis: when building reveals a problem, propose a spec revision instead of silently deviating in code.
 - When SPEC.md doesn't settle a decision, use its Part 1 tie-breaker (truthful, verifiable resume and fit over volume or apparent fit) and note the choice.
-- Dan writes the business logic himself (scoring, pipeline, tailoring rules) to keep his coding fluency. Scaffolding, configuration and review are where to help most; explain non-obvious code rather than dumping it.
+- Before implementing business logic (scoring, pipeline, tailoring rules), explain to Dan in plain terms what the function is for and the plan, and wait for his go. Explain non-obvious code rather than dumping it.
 
 ## When to stop and ask
 

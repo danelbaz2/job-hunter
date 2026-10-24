@@ -13,7 +13,7 @@ v1 (Next.js, kept in git history) proved the core idea: search several Israeli j
 ## Part 2 — Testable success criteria
 
 ### Carried over from v1 (still hold)
-1. Location sub-score: 100 on exact or remote match, 0 when outside every selected region, a defined partial value for a nearby region (distance-based, see Part 3).
+1. Location sub-score is distance-based from the city chosen in the search: 100 for the same city or remote, then decreasing with straight-line distance (≤ 15 km 85, ≤ 35 km 60, ≤ 70 km 40, beyond 25), so a far listing ranks lower without disappearing. An unknown location, or no city chosen, is neutral (50). The bands live in one table in code.
 2. Domain sub-score is binary and matches English **and** Hebrew terms for each domain.
 3. The overall score is a fixed weighted combination of stored sub-scores; recomputing it from the database reproduces the same number.
 4. Results are sorted strictly descending by overall score.
