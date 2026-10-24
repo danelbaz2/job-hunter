@@ -21,7 +21,7 @@ v1 (Next.js, kept in git history) proved the core idea: search several Israeli j
 
 ### Daily use
 6. A user can save a search; a scheduled job reruns every saved search once a day and the user sees only listings not seen before ("new since last visit").
-7. The master resume is stored once on the profile and reused by every search, tailoring and gap analysis.
+7. The profile holds the master resume, or, without one, a written description of the user's skills of at least 200 characters. It is stored once and reused by every search and gap analysis. A search can't start without one of the two: the API refuses it with a message pointing to the profile, and the search form says so before submitting. Tailoring (criteria 9–11) needs the master resume itself, since every tailored line must trace back to it.
 8. An application moves through states `saved → applied → follow_up → interview → offer | rejected`, each change timestamped.
 
 ### ATS resume tailoring
@@ -39,7 +39,7 @@ v1 (Next.js, kept in git history) proved the core idea: search several Israeli j
 16. Analytics events load only after cookie consent. Resume text and form inputs are never sent to the analytics provider (session replay masks all inputs).
 
 ### Abuse protection
-17. Every user-supplied text sent to an LLM (resume, intent, quiz answers, mini-project code) passes an injection check first. A detected attempt rejects that request with a short explanation of the rule, without revealing how detection works.
+17. Every user-supplied text sent to an LLM (resume, skills description, intent, quiz answers, mini-project code) passes an injection check first. A detected attempt rejects that request with a short explanation of the rule, without revealing how detection works.
 18. Three detections within 24 hours block the account's AI features for 24 hours. The user sees why and until when. Each detection is logged in `event`, and an admin can review and lift a block from `/admin`.
 19. A deliberate injection placed in a resume or in mini-project code cannot change a score, add a resume line or pass a rubric. Covered by automated tests with known injection samples.
 
@@ -138,7 +138,7 @@ Modular monolith first, with three services extracted where load or dependencies
 | Application tracking | Yes | Yes |
 
 ### Data model (main tables, by owning service)
-- `api` schema: `user` (with `ai_blocked_until`), `profile` (master resume text and parsed sections), `saved_search`, `search_run`, `application`, `tailored_resume` (versioned, linked to listing and application), `learning_path`, `learning_attempt`, `skill_proof`, `subscription`, `abuse_flag`, `event`.
+- `api` schema: `user` (with `ai_blocked_until`), `profile` (master resume text and parsed sections, or the skills description), `saved_search`, `search_run`, `application`, `tailored_resume` (versioned, linked to listing and application), `learning_path`, `learning_attempt`, `skill_proof`, `subscription`, `abuse_flag`, `event`.
 - `matching` schema: `listing` (deduplicated across runs), `match` (scores and points per user × listing), `source_run` (cost and status per Apify run).
 - `renderer` schema: `render_job` (status, output file location).
 - Rendered files go to the file storage port, never into the database.

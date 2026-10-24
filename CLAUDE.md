@@ -10,7 +10,7 @@ Job-search app for Israel: aggregates listings from several job boards, scores f
 - Never put anything in a tailored resume that doesn't trace back to the master resume or to a verified skill proof (SPEC criteria 10 and 13). This is enforced in code, not left to the prompt.
 - Apify and LLM calls cost money. Defaults: at most 5 Apify results per source per search (`JH_APIFY_RESULTS_PER_SOURCE`) and at most 3 concurrent LLM calls (`JH_LLM_MAX_CONCURRENCY`), both set in config; raise them only with a reason written in the PR. Per-plan quotas apply on top (SPEC criterion 14).
 - Every user text and every scraped listing reaches the LLM only inside delimiters, after the injection check, and never as instructions. A detection is logged; blocks are temporary (SPEC criterion 18: 3 detections in 24 h → 24 h block) and reviewable from `/admin`.
-- Never store or log a plaintext password (argon2). Never log resume text, and never send it or form inputs to the analytics provider.
+- Never store or log a plaintext password (argon2). Never log resume text or the skills description, and never send them or form inputs to the analytics provider.
 
 ## Standards and processes
 

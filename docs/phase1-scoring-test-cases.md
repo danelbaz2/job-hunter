@@ -180,7 +180,7 @@ Criterion 4 says strictly descending, so ties need a rule. **Decision:** overall
 
 ## 6. Deterministic points (`deterministic_points`)
 
-Used when there is no resume or the AI returns nothing usable (criterion 5).
+Used when the AI step fails or returns nothing usable (criterion 5). Every search has a resume or a skills description (SPEC criterion 7), so this is the fallback for an AI failure, shown as such to the user, never the normal path.
 
 | # | Case | Expected |
 |---|---|---|
