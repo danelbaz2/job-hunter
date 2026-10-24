@@ -172,7 +172,8 @@
       "roles": [
         {"id": "nurse", "en": "Nurse", "he": "אח מוסמך", "synonyms": ["registered nurse", "rn", "אחות", "אחות מוסמכת"]},
         {"id": "caregiver", "en": "Caregiver", "he": "מטפל סיעודי", "synonyms": ["care worker", "home care", "מטפל", "מטפלת", "מטפלת סיעודית"]},
-        {"id": "physician", "en": "Physician", "he": "רופא", "synonyms": ["doctor", "רופאה", "רופא משפחה"]},
+        {"id": "physician", "en": "Physician", "he": "רופא", "synonyms": ["doctor", "general practitioner", "medical doctor", "medical resident", "psychiatrist", "cardiologist", "radiologist", "gynecologist", "מתמחה ברפואה", "פסיכיאטר", "קרדיולוג", "רדיולוג", "גינקולוג"]},
+        {"id": "veterinarian", "en": "Veterinarian", "he": "וטרינר", "synonyms": ["vet", "veterinary", "veterinary technician", "וטרינרית", "מרפאה וטרינרית"]},
         {"id": "dentist", "en": "Dentist", "he": "רופא שיניים", "synonyms": ["dental", "dental hygienist", "dental assistant", "רופאת שיניים", "שיננית", "סייעת לרופא שיניים", "סייעת שיניים"]},
         {"id": "pharmacist", "en": "Pharmacist", "he": "רוקח", "synonyms": ["pharmacy", "pharmacy technician", "רוקחת", "בית מרקחת", "עוזר רוקח"]},
         {"id": "physiotherapist", "en": "Physiotherapist", "he": "פיזיותרפיסט", "synonyms": ["physical therapist", "physiotherapy", "פיזיותרפיה"]},
