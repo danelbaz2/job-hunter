@@ -1,6 +1,46 @@
 {
   "components": {
     "schemas": {
+      "BoardResult": {
+        "additionalProperties": false,
+        "properties": {
+          "board": {
+            "title": "Board",
+            "type": "string"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          },
+          "listings": {
+            "title": "Listings",
+            "type": "integer"
+          },
+          "status": {
+            "enum": [
+              "ok",
+              "empty",
+              "failed"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "board",
+          "status",
+          "listings"
+        ],
+        "title": "BoardResult",
+        "type": "object"
+      },
       "Family": {
         "additionalProperties": false,
         "properties": {
@@ -69,6 +109,145 @@
         "title": "HealthResponse",
         "type": "object"
       },
+      "ListingResult": {
+        "additionalProperties": false,
+        "properties": {
+          "company": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Company"
+          },
+          "listing_id": {
+            "title": "Listing Id",
+            "type": "string"
+          },
+          "location": {
+            "title": "Location",
+            "type": "string"
+          },
+          "overall_score": {
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Overall Score",
+            "type": "integer"
+          },
+          "partial_text": {
+            "title": "Partial Text",
+            "type": "boolean"
+          },
+          "points": {
+            "items": {
+              "$ref": "#/components/schemas/ResultPoint"
+            },
+            "title": "Points",
+            "type": "array"
+          },
+          "posted_at": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Posted At"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          },
+          "sub_scores": {
+            "$ref": "#/components/schemas/SubScores"
+          },
+          "summary": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Shown above the gaps when nothing matched (criterion 5).",
+            "title": "Summary"
+          },
+          "text": {
+            "description": "The full listing text the quotes come from.",
+            "title": "Text",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "url": {
+            "title": "Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "listing_id",
+          "source",
+          "url",
+          "title",
+          "company",
+          "location",
+          "posted_at",
+          "text",
+          "partial_text",
+          "overall_score",
+          "sub_scores",
+          "points"
+        ],
+        "title": "ListingResult",
+        "type": "object"
+      },
+      "ResultPoint": {
+        "additionalProperties": false,
+        "properties": {
+          "claim": {
+            "title": "Claim",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "matched",
+              "gap"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "origin": {
+            "enum": [
+              "deterministic",
+              "ai"
+            ],
+            "title": "Origin",
+            "type": "string"
+          },
+          "quote": {
+            "description": "Verbatim substring of the listing text (SPEC criterion 5).",
+            "title": "Quote",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "claim",
+          "quote",
+          "origin"
+        ],
+        "title": "ResultPoint",
+        "type": "object"
+      },
       "Role": {
         "additionalProperties": false,
         "properties": {
@@ -105,6 +284,133 @@
           "he"
         ],
         "title": "Role",
+        "type": "object"
+      },
+      "SearchResults": {
+        "additionalProperties": false,
+        "properties": {
+          "boards": {
+            "items": {
+              "$ref": "#/components/schemas/BoardResult"
+            },
+            "title": "Boards",
+            "type": "array"
+          },
+          "demo": {
+            "default": false,
+            "description": "Recorded listings scored without the AI step, for show.",
+            "title": "Demo",
+            "type": "boolean"
+          },
+          "results": {
+            "description": "Best score first (criterion 4).",
+            "items": {
+              "$ref": "#/components/schemas/ListingResult"
+            },
+            "title": "Results",
+            "type": "array"
+          },
+          "search": {
+            "$ref": "#/components/schemas/SearchSummary"
+          },
+          "version": {
+            "default": 1,
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "search",
+          "boards",
+          "results"
+        ],
+        "title": "SearchResults",
+        "type": "object"
+      },
+      "SearchSummary": {
+        "additionalProperties": false,
+        "properties": {
+          "city": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "City"
+          },
+          "keyword": {
+            "title": "Keyword",
+            "type": "string"
+          },
+          "levels": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Levels",
+            "type": "array"
+          },
+          "occupations": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Occupations",
+            "type": "array"
+          }
+        },
+        "required": [
+          "keyword",
+          "city",
+          "occupations",
+          "levels"
+        ],
+        "title": "SearchSummary",
+        "type": "object"
+      },
+      "SubScores": {
+        "additionalProperties": false,
+        "properties": {
+          "location": {
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Location",
+            "type": "integer"
+          },
+          "occupation": {
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Occupation",
+            "type": "integer"
+          },
+          "seniority": {
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Seniority",
+            "type": "integer"
+          },
+          "skills": {
+            "anyOf": [
+              {
+                "maximum": 100.0,
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "None when the AI step failed or didn't run.",
+            "title": "Skills"
+          }
+        },
+        "required": [
+          "location",
+          "occupation",
+          "seniority"
+        ],
+        "title": "SubScores",
         "type": "object"
       },
       "Taxonomy": {
@@ -246,6 +552,28 @@
         "summary": "List Occupations",
         "tags": [
           "occupations"
+        ]
+      }
+    },
+    "/api/searches/demo": {
+      "get": {
+        "description": "A sample search on real recorded listings, scored without the AI step. Free to call:\nno board or LLM is contacted.",
+        "operationId": "demo_results_api_searches_demo_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SearchResults"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Demo Results",
+        "tags": [
+          "searches"
         ]
       }
     }

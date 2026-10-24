@@ -3,6 +3,10 @@ import type { components } from './schema'
 // Types come from the backend's OpenAPI schema (`npm run gen:api`), never written by hand.
 export type HealthResponse = components['schemas']['HealthResponse']
 export type Taxonomy = components['schemas']['Taxonomy']
+export type SearchResults = components['schemas']['SearchResults']
+export type ListingResult = components['schemas']['ListingResult']
+export type BoardResult = components['schemas']['BoardResult']
+export type ResultPoint = components['schemas']['ResultPoint']
 
 export class ApiError extends Error {
   readonly status: number
@@ -25,4 +29,5 @@ export const api = {
   health: () => getJson<HealthResponse>('/api/health'),
   // The browser caches it (Cache-Control + ETag), so the search bar filters locally.
   occupations: () => getJson<Taxonomy>('/api/occupations'),
+  demoResults: () => getJson<SearchResults>('/api/searches/demo'),
 }
