@@ -1,0 +1,316 @@
+{
+  "version": 1,
+  "families": [
+    {
+      "id": "software", "en": "Software Development", "he": "פיתוח תוכנה",
+      "roles": [
+        {"id": "software-engineer", "en": "Software Engineer", "he": "מהנדס תוכנה", "synonyms": ["software developer", "developer", "programmer", "software architect", "solution architect", "solutions architect", "מפתח תוכנה", "מפתח", "מתכנת", "תוכניתן"], "generic": true},
+        {"id": "backend-developer", "en": "Backend Developer", "he": "מפתח בקאנד", "synonyms": ["backend", "back-end", "back end", "server side", "server-side", "בקאנד", "בק-אנד", "בק אנד", "צד שרת"]},
+        {"id": "frontend-developer", "en": "Frontend Developer", "he": "מפתח פרונטאנד", "synonyms": ["frontend", "front-end", "front end", "client side", "פרונטאנד", "פרונט-אנד", "פרונט אנד", "צד לקוח"]},
+        {"id": "fullstack-developer", "en": "Full Stack Developer", "he": "מפתח פולסטאק", "synonyms": ["full stack", "full-stack", "fullstack", "פולסטאק", "פולסטק", "פול סטאק", "פול-סטאק"]},
+        {"id": "mobile-developer", "en": "Mobile Developer", "he": "מפתח מובייל", "synonyms": ["ios developer", "android developer", "react native", "flutter developer", "מובייל", "אנדרואיד"]},
+        {"id": "embedded-developer", "en": "Embedded Software Engineer", "he": "מפתח אמבדד", "synonyms": ["embedded", "firmware", "device driver", "אמבדד", "קושחה"]},
+        {"id": "game-developer", "en": "Game Developer", "he": "מפתח משחקים", "synonyms": ["unity developer", "game programmer", "פיתוח משחקים"]}
+      ]
+    },
+    {
+      "id": "data", "en": "Data & AI", "he": "דאטה ובינה מלאכותית",
+      "roles": [
+        {"id": "data-analyst", "en": "Data Analyst", "he": "אנליסט נתונים", "synonyms": ["אנליסט", "אנליסט דאטה", "product analyst"]},
+        {"id": "business-analyst", "en": "Business Analyst", "he": "אנליסט עסקי", "synonyms": ["system analyst", "מנתח מערכות"]},
+        {"id": "bi-developer", "en": "BI Developer", "he": "מפתח BI", "synonyms": ["business intelligence", "bi analyst", "bi engineer", "power bi", "tableau"]},
+        {"id": "data-engineer", "en": "Data Engineer", "he": "מהנדס נתונים", "synonyms": ["big data engineer", "etl developer", "data architect", "מהנדס דאטה"]},
+        {"id": "data-scientist", "en": "Data Scientist", "he": "מדען נתונים", "synonyms": ["data science", "דאטה סיינטיסט", "דאטה סיינס"]},
+        {"id": "ml-engineer", "en": "Machine Learning Engineer", "he": "מהנדס למידת מכונה", "synonyms": ["ml engineer", "machine learning", "ai engineer", "deep learning", "computer vision", "nlp", "llm", "למידת מכונה", "בינה מלאכותית"]}
+      ]
+    },
+    {
+      "id": "qa", "en": "QA & Testing", "he": "QA ובדיקות תוכנה",
+      "roles": [
+        {"id": "qa-engineer", "en": "QA Engineer", "he": "בודק תוכנה", "synonyms": ["qa", "quality assurance", "software tester", "tester", "manual qa", "בדיקות תוכנה", "בודק qa"], "generic": true},
+        {"id": "qa-automation", "en": "QA Automation Engineer", "he": "מהנדס אוטומציה", "synonyms": ["qa automation", "automation engineer", "test automation", "sdet", "אוטומציה", "בודק אוטומציה"]},
+        {"id": "validation-engineer", "en": "Validation Engineer", "he": "מהנדס ולידציה", "synonyms": ["verification engineer", "ולידציה", "וריפיקציה"]}
+      ]
+    },
+    {
+      "id": "it", "en": "IT & Infrastructure", "he": "מערכות מידע ותשתיות",
+      "roles": [
+        {"id": "devops-engineer", "en": "DevOps Engineer", "he": "מהנדס DevOps", "synonyms": ["devops", "sre", "site reliability", "platform engineer", "דבאופס", "דבופס"]},
+        {"id": "system-administrator", "en": "System Administrator", "he": "איש סיסטם", "synonyms": ["sysadmin", "system admin", "system engineer", "סיסטם", "מנהל מערכות"]},
+        {"id": "network-engineer", "en": "Network Engineer", "he": "מהנדס רשתות", "synonyms": ["network administrator", "noc", "איש רשתות", "מנהל רשת", "תקשורת נתונים"]},
+        {"id": "it-support", "en": "IT Support Technician", "he": "טכנאי מחשבים", "synonyms": ["helpdesk", "help desk", "it support", "desktop support", "it technician", "הלפדסק", "תומך מחשוב", "תמיכת מחשוב"]},
+        {"id": "it-manager", "en": "IT Manager", "he": "מנהל מערכות מידע", "synonyms": ["cio", "head of it", "מנמ\"ר", "מנהל it"]},
+        {"id": "dba", "en": "Database Administrator", "he": "מנהל בסיסי נתונים", "synonyms": ["dba", "מנהל מסדי נתונים"]},
+        {"id": "cloud-engineer", "en": "Cloud Engineer", "he": "מהנדס ענן", "synonyms": ["cloud architect", "aws engineer", "azure engineer"]},
+        {"id": "erp-consultant", "en": "ERP Consultant", "he": "מיישם ERP", "synonyms": ["sap consultant", "priority consultant", "erp", "מיישם", "מיישם פריוריטי", "יועץ erp"]}
+      ]
+    },
+    {
+      "id": "cyber", "en": "Cybersecurity", "he": "סייבר ואבטחת מידע",
+      "roles": [
+        {"id": "security-analyst", "en": "Security Analyst", "he": "אנליסט סייבר", "synonyms": ["soc analyst", "soc", "cyber analyst", "אנליסט soc"]},
+        {"id": "security-engineer", "en": "Security Engineer", "he": "מהנדס סייבר", "synonyms": ["cyber security engineer", "cybersecurity engineer", "application security", "appsec", "מהנדס אבטחת מידע", "אבטחת מידע"]},
+        {"id": "penetration-tester", "en": "Penetration Tester", "he": "בודק חוסן", "synonyms": ["pentester", "pen tester", "penetration testing", "ethical hacker", "בדיקות חוסן"]},
+        {"id": "security-researcher", "en": "Security Researcher", "he": "חוקר סייבר", "synonyms": ["vulnerability researcher", "malware researcher", "reverse engineer", "חוקר חולשות"]},
+        {"id": "ciso", "en": "Information Security Manager", "he": "מנהל אבטחת מידע", "synonyms": ["ciso", "head of security", "ממונה אבטחת מידע"]}
+      ]
+    },
+    {
+      "id": "product-design", "en": "Product & Design", "he": "מוצר ועיצוב",
+      "roles": [
+        {"id": "product-manager", "en": "Product Manager", "he": "מנהל מוצר", "synonyms": ["product owner", "product lead", "ניהול מוצר", "פרודקט"]},
+        {"id": "ux-designer", "en": "UX/UI Designer", "he": "מעצב UX/UI", "synonyms": ["ux", "ui designer", "ux designer", "product designer", "ux researcher", "מעצב ux", "מעצב ui", "חוויית משתמש"]},
+        {"id": "graphic-designer", "en": "Graphic Designer", "he": "מעצב גרפי", "synonyms": ["graphic design", "visual designer", "גרפיקאי", "עיצוב גרפי", "מעצב"]},
+        {"id": "motion-designer", "en": "Motion Designer", "he": "מעצב מושן", "synonyms": ["motion graphics", "animator", "אנימטור", "מושן"]},
+        {"id": "interior-designer", "en": "Interior Designer", "he": "מעצב פנים", "synonyms": ["interior design", "אדריכל פנים", "עיצוב פנים"]}
+      ]
+    },
+    {
+      "id": "engineering", "en": "Engineering", "he": "הנדסה",
+      "roles": [
+        {"id": "electrical-engineer", "en": "Electrical Engineer", "he": "מהנדס חשמל", "synonyms": ["electronics engineer", "hardware engineer", "board designer", "מהנדס אלקטרוניקה", "מהנדס חומרה"]},
+        {"id": "mechanical-engineer", "en": "Mechanical Engineer", "he": "מהנדס מכונות", "synonyms": ["mechanical design engineer", "solidworks", "מהנדס מכני", "מתכנן מכני"]},
+        {"id": "civil-engineer", "en": "Civil Engineer", "he": "מהנדס אזרחי", "synonyms": ["structural engineer", "מהנדס בניין", "מהנדס קונסטרוקציה", "מהנדס מבנים", "הנדסאי בניין"]},
+        {"id": "industrial-engineer", "en": "Industrial Engineer", "he": "מהנדס תעשייה וניהול", "synonyms": ["industrial engineering", "מהנדס תו\"נ", "מהנדס תעשייה", "הנדסת תעשייה"]},
+        {"id": "chemical-engineer", "en": "Chemical Engineer", "he": "מהנדס כימיה", "synonyms": ["process engineer", "מהנדס תהליך", "מהנדס תהליכים", "מהנדס כימי"]},
+        {"id": "chip-design-engineer", "en": "Chip Design Engineer", "he": "מהנדס תכנון שבבים", "synonyms": ["asic", "vlsi", "fpga", "rtl", "physical design", "analog design", "chip design", "שבבים"]},
+        {"id": "drafter", "en": "Drafter", "he": "שרטט", "synonyms": ["draftsman", "autocad", "שרטוט"]}
+      ]
+    },
+    {
+      "id": "finance", "en": "Finance & Accounting", "he": "כספים וחשבונאות",
+      "roles": [
+        {"id": "accountant", "en": "Accountant", "he": "רואה חשבון", "synonyms": ["cpa", "רו\"ח", "רואת חשבון", "staff accountant"]},
+        {"id": "bookkeeper", "en": "Bookkeeper", "he": "מנהל חשבונות", "synonyms": ["bookkeeping", "accounts payable", "accounts receivable", "הנהלת חשבונות", "מנהלת חשבונות", "מנה\"ח", "הנה\"ח", "חשבונות ספקים", "גבייה"]},
+        {"id": "payroll-specialist", "en": "Payroll Specialist", "he": "חשב שכר", "synonyms": ["payroll", "חשבת שכר", "מחלקת שכר"]},
+        {"id": "controller", "en": "Controller", "he": "קונטרולר", "synonyms": ["financial controller", "comptroller", "חשב חברה", "חשבת חברה"]},
+        {"id": "financial-analyst", "en": "Financial Analyst", "he": "אנליסט פיננסי", "synonyms": ["fp&a", "finance analyst", "economist", "אנליסט כלכלי", "כלכלן"]},
+        {"id": "finance-manager", "en": "Finance Manager", "he": "מנהל כספים", "synonyms": ["cfo", "head of finance", "finance director", "סמנכ\"ל כספים"]},
+        {"id": "bank-clerk", "en": "Bank Clerk", "he": "פקיד בנק", "synonyms": ["bank teller", "teller", "banker", "בנקאי", "טלר"]},
+        {"id": "insurance-agent", "en": "Insurance Agent", "he": "סוכן ביטוח", "synonyms": ["underwriter", "claims adjuster", "חיתום", "יועץ ביטוח", "סוכן פנסיוני", "יועץ פנסיוני", "סילוק תביעות"]},
+        {"id": "auditor", "en": "Auditor", "he": "מבקר פנים", "synonyms": ["internal auditor", "audit", "ביקורת פנים"]},
+        {"id": "tax-advisor", "en": "Tax Advisor", "he": "יועץ מס", "synonyms": ["tax consultant", "יועצת מס", "מיסוי"]}
+      ]
+    },
+    {
+      "id": "sales", "en": "Sales", "he": "מכירות",
+      "roles": [
+        {"id": "sales-representative", "en": "Sales Representative", "he": "איש מכירות", "synonyms": ["sales", "salesperson", "sales rep", "inside sales", "telesales", "נציג מכירות", "אנשי מכירות", "מכירות", "טלמרקטינג", "מכירות טלפוניות"]},
+        {"id": "sales-manager", "en": "Sales Manager", "he": "מנהל מכירות", "synonyms": ["head of sales", "vp sales", "sales director", "sales team lead", "סמנכ\"ל מכירות"]},
+        {"id": "account-manager", "en": "Account Manager", "he": "מנהל לקוחות", "synonyms": ["key account manager", "kam", "מנהל תיק לקוחות", "מנהל קשרי לקוחות"]},
+        {"id": "business-development", "en": "Business Development", "he": "פיתוח עסקי", "synonyms": ["business developer", "business development manager", "bdr", "sdr", "מפתח עסקי"]},
+        {"id": "sales-engineer", "en": "Sales Engineer", "he": "מהנדס מכירות", "synonyms": ["pre-sales", "presales", "pre sales", "solutions engineer", "פריסייל", "מהנדס פריסייל"]},
+        {"id": "field-sales-agent", "en": "Field Sales Agent", "he": "סוכן שטח", "synonyms": ["sales agent", "field sales", "outside sales", "סוכן מכירות", "סוכן", "נציג שטח"]}
+      ]
+    },
+    {
+      "id": "customer-service", "en": "Customer Service & Support", "he": "שירות לקוחות ותמיכה",
+      "roles": [
+        {"id": "customer-service-rep", "en": "Customer Service Representative", "he": "נציג שירות לקוחות", "synonyms": ["customer service", "customer support", "customer care", "נציג שירות", "שירות לקוחות"]},
+        {"id": "call-center-agent", "en": "Call Center Agent", "he": "מוקדן", "synonyms": ["call center", "contact center", "telephone operator", "מוקדנית", "מוקדן טלפוני"]},
+        {"id": "technical-support", "en": "Technical Support Representative", "he": "נציג תמיכה טכנית", "synonyms": ["technical support", "tech support", "support engineer", "support specialist", "תמיכה טכנית", "נציג תמיכה"]},
+        {"id": "customer-success", "en": "Customer Success Manager", "he": "מנהל הצלחת לקוח", "synonyms": ["customer success", "csm", "הצלחת לקוח", "הצלחת לקוחות"]},
+        {"id": "retention-rep", "en": "Retention Representative", "he": "נציג שימור", "synonyms": ["retention", "שימור לקוחות"]}
+      ]
+    },
+    {
+      "id": "marketing", "en": "Marketing, Content & Media", "he": "שיווק, תוכן ופרסום",
+      "roles": [
+        {"id": "marketing-manager", "en": "Marketing Manager", "he": "מנהל שיווק", "synonyms": ["head of marketing", "cmo", "vp marketing", "marketing director", "brand manager", "product marketing", "סמנכ\"ל שיווק", "מנהל מותג"]},
+        {"id": "digital-marketing", "en": "Digital Marketing Specialist", "he": "מנהל שיווק דיגיטלי", "synonyms": ["digital marketing", "performance marketing", "ppc", "sem", "media buyer", "user acquisition", "growth marketing", "שיווק דיגיטלי", "קמפיינר"]},
+        {"id": "seo-specialist", "en": "SEO Specialist", "he": "מקדם אתרים", "synonyms": ["seo", "קידום אתרים", "קידום אורגני"]},
+        {"id": "social-media-manager", "en": "Social Media Manager", "he": "מנהל סושיאל", "synonyms": ["social media", "community manager", "סושיאל", "רשתות חברתיות", "מנהל קהילה"]},
+        {"id": "content-writer", "en": "Content Writer", "he": "כותב תוכן", "synonyms": ["copywriter", "technical writer", "content manager", "קופירייטר", "כתיבה טכנית", "כותב טכני", "מנהל תוכן", "כתיבת תוכן"]},
+        {"id": "public-relations", "en": "Public Relations", "he": "יחסי ציבור", "synonyms": ["pr manager", "communications manager", "יח\"צ", "יחצ\"ן", "דוברות"]},
+        {"id": "video-editor", "en": "Video Editor", "he": "עורך וידאו", "synonyms": ["videographer", "video production", "צלם וידאו", "עריכת וידאו"]},
+        {"id": "photographer", "en": "Photographer", "he": "צלם", "synonyms": ["photography", "צלמת"]},
+        {"id": "translator", "en": "Translator", "he": "מתרגם", "synonyms": ["translation", "localization", "interpreter", "תרגום", "לוקליזציה"]}
+      ]
+    },
+    {
+      "id": "admin", "en": "Administration & Office", "he": "אדמיניסטרציה ומשרד",
+      "roles": [
+        {"id": "office-manager", "en": "Office Manager", "he": "מנהל משרד", "synonyms": ["office administrator", "מנהלת משרד", "מנהל אדמיניסטרטיבי"]},
+        {"id": "secretary", "en": "Secretary", "he": "מזכיר", "synonyms": ["executive assistant", "personal assistant", "administrative assistant", "מזכירה", "עוזר אישי", "עוזרת אישית", "מזכירות"]},
+        {"id": "receptionist", "en": "Receptionist", "he": "פקיד קבלה", "synonyms": ["front desk", "reception", "פקידת קבלה"]},
+        {"id": "data-entry-clerk", "en": "Data Entry Clerk", "he": "קלדן", "synonyms": ["data entry", "הקלדה", "הזנת נתונים"]},
+        {"id": "office-clerk", "en": "Office Clerk", "he": "פקיד", "synonyms": ["clerk", "back office", "בק אופיס", "עובד משרד"]}
+      ]
+    },
+    {
+      "id": "hr", "en": "Human Resources", "he": "משאבי אנוש",
+      "roles": [
+        {"id": "hr-manager", "en": "HR Manager", "he": "מנהל משאבי אנוש", "synonyms": ["head of hr", "hr director", "vp hr", "hrbp", "hr business partner", "סמנכ\"ל משאבי אנוש", "מנהל מש\"א", "שותף עסקי משאבי אנוש"]},
+        {"id": "recruiter", "en": "Recruiter", "he": "רכז גיוס", "synonyms": ["talent acquisition", "technical recruiter", "sourcer", "רכזת גיוס", "מגייס", "רכז השמה", "יועץ השמה"]},
+        {"id": "hr-generalist", "en": "HR Generalist", "he": "רכז משאבי אנוש", "synonyms": ["hr", "hr coordinator", "hr specialist", "people operations", "משאבי אנוש"]},
+        {"id": "training-coordinator", "en": "Training Coordinator", "he": "רכז הדרכה", "synonyms": ["learning and development", "l&d", "training manager", "trainer", "מנהל הדרכה"]}
+      ]
+    },
+    {
+      "id": "logistics", "en": "Logistics & Warehouse", "he": "לוגיסטיקה ומחסנים",
+      "roles": [
+        {"id": "warehouse-worker", "en": "Warehouse Worker", "he": "עובד מחסן", "synonyms": ["warehouse", "storekeeper", "picker", "packer", "מחסנאי", "מחסן", "מלקט", "ליקוט", "אורז"]},
+        {"id": "warehouse-manager", "en": "Warehouse Manager", "he": "מנהל מחסן", "synonyms": ["logistics manager", "distribution center manager", "מנהל לוגיסטיקה", "מנהל מרכז הפצה"]},
+        {"id": "forklift-operator", "en": "Forklift Operator", "he": "מלגזן", "synonyms": ["forklift", "reach truck", "מלגזה", "מפעיל מלגזה"]},
+        {"id": "logistics-coordinator", "en": "Logistics Coordinator", "he": "רכז לוגיסטיקה", "synonyms": ["logistics", "supply chain", "freight forwarder", "import export", "customs broker", "לוגיסטיקה", "שרשרת אספקה", "שילוח", "יבוא ויצוא", "עמיל מכס"]},
+        {"id": "procurement-specialist", "en": "Procurement Specialist", "he": "קניין", "synonyms": ["buyer", "purchasing", "procurement", "רכש", "רכז רכש", "מנהל רכש"]}
+      ]
+    },
+    {
+      "id": "drivers", "en": "Drivers & Transportation", "he": "נהגים ותחבורה",
+      "roles": [
+        {"id": "driver", "en": "Driver", "he": "נהג", "synonyms": ["chauffeur", "delivery driver", "נהג פרטי", "נהג חלוקה", "נהג משלוחים"]},
+        {"id": "truck-driver", "en": "Truck Driver", "he": "נהג משאית", "synonyms": ["lorry driver", "heavy vehicle driver", "נהג רכב כבד", "נהג סמיטריילר"]},
+        {"id": "bus-driver", "en": "Bus Driver", "he": "נהג אוטובוס", "synonyms": ["shuttle driver", "taxi driver", "נהג הסעות", "נהג מונית"]},
+        {"id": "courier", "en": "Courier", "he": "שליח", "synonyms": ["delivery person", "messenger", "delivery rider", "שליחה", "שליח אופנוע", "שליחויות"]},
+        {"id": "dispatcher", "en": "Dispatcher", "he": "סדרן נסיעות", "synonyms": ["סדרן תחבורה", "סדרן הסעות"]},
+        {"id": "fleet-manager", "en": "Fleet Manager", "he": "קצין רכב", "synonyms": ["fleet", "מנהל צי רכב", "ניהול צי רכב"]}
+      ]
+    },
+    {
+      "id": "healthcare", "en": "Healthcare & Nursing", "he": "רפואה, סיעוד ובריאות",
+      "roles": [
+        {"id": "nurse", "en": "Nurse", "he": "אח מוסמך", "synonyms": ["registered nurse", "rn", "אחות", "אחות מוסמכת"]},
+        {"id": "caregiver", "en": "Caregiver", "he": "מטפל סיעודי", "synonyms": ["care worker", "home care", "מטפל", "מטפלת", "מטפלת סיעודית"]},
+        {"id": "physician", "en": "Physician", "he": "רופא", "synonyms": ["doctor", "general practitioner", "medical doctor", "medical resident", "psychiatrist", "cardiologist", "radiologist", "gynecologist", "מתמחה ברפואה", "פסיכיאטר", "קרדיולוג", "רדיולוג", "גינקולוג"]},
+        {"id": "veterinarian", "en": "Veterinarian", "he": "וטרינר", "synonyms": ["vet", "veterinary", "veterinary technician", "וטרינרית", "מרפאה וטרינרית"]},
+        {"id": "dentist", "en": "Dentist", "he": "רופא שיניים", "synonyms": ["dental", "dental hygienist", "dental assistant", "רופאת שיניים", "שיננית", "סייעת לרופא שיניים", "סייעת שיניים"]},
+        {"id": "pharmacist", "en": "Pharmacist", "he": "רוקח", "synonyms": ["pharmacy", "pharmacy technician", "רוקחת", "בית מרקחת", "עוזר רוקח"]},
+        {"id": "physiotherapist", "en": "Physiotherapist", "he": "פיזיותרפיסט", "synonyms": ["physical therapist", "physiotherapy", "פיזיותרפיה"]},
+        {"id": "allied-therapist", "en": "Occupational & Speech Therapist", "he": "מרפא בעיסוק", "synonyms": ["occupational therapist", "speech therapist", "ריפוי בעיסוק", "קלינאית תקשורת", "קלינאי תקשורת"]},
+        {"id": "psychologist", "en": "Psychologist", "he": "פסיכולוג", "synonyms": ["psychotherapist", "פסיכולוגית", "פסיכותרפיסט", "מטפל רגשי"]},
+        {"id": "medical-secretary", "en": "Medical Secretary", "he": "מזכירה רפואית", "synonyms": ["medical receptionist", "מזכיר רפואי"]},
+        {"id": "paramedic", "en": "Paramedic", "he": "פרמדיק", "synonyms": ["emt", "חובש", "חובשת"]}
+      ]
+    },
+    {
+      "id": "education", "en": "Education & Teaching", "he": "חינוך והוראה",
+      "roles": [
+        {"id": "teacher", "en": "Teacher", "he": "מורה", "synonyms": ["teaching", "educator", "high school teacher", "elementary teacher", "מחנך", "מחנכת", "מורה מקצועי"]},
+        {"id": "kindergarten-teacher", "en": "Kindergarten Teacher", "he": "גננת", "synonyms": ["preschool teacher", "nursery teacher"]},
+        {"id": "kindergarten-assistant", "en": "Kindergarten Assistant", "he": "סייעת", "synonyms": ["teaching assistant", "assistant teacher", "סייעת גן"]},
+        {"id": "tutor", "en": "Private Tutor", "he": "מורה פרטי", "synonyms": ["tutor", "tutoring", "מורה פרטית", "שיעורים פרטיים"]},
+        {"id": "instructor", "en": "Instructor & Lecturer", "he": "מדריך", "synonyms": ["instructor", "lecturer", "course instructor", "מדריכה", "מרצה"]},
+        {"id": "school-counselor", "en": "School Counselor", "he": "יועץ חינוכי", "synonyms": ["educational counselor", "יועצת חינוכית"]},
+        {"id": "special-education-teacher", "en": "Special Education Teacher", "he": "מורה לחינוך מיוחד", "synonyms": ["special education", "special ed", "חינוך מיוחד", "מורה שילוב"]}
+      ]
+    },
+    {
+      "id": "hospitality", "en": "Restaurants, Hotels & Events", "he": "מסעדנות, מלונאות ואירועים",
+      "roles": [
+        {"id": "waiter", "en": "Waiter", "he": "מלצר", "synonyms": ["waitress", "מלצרית", "מלצרות"]},
+        {"id": "bartender", "en": "Bartender", "he": "ברמן", "synonyms": ["barman", "mixologist", "ברמנית"]},
+        {"id": "barista", "en": "Barista", "he": "בריסטה"},
+        {"id": "cook", "en": "Cook", "he": "טבח", "synonyms": ["chef", "line cook", "sous chef", "pastry chef", "baker", "שף", "טבחית", "סו שף", "קונדיטור", "אופה"]},
+        {"id": "kitchen-worker", "en": "Kitchen Worker", "he": "עובד מטבח", "synonyms": ["kitchen assistant", "dishwasher", "kitchen porter", "שוטף כלים", "עוזר טבח"]},
+        {"id": "restaurant-manager", "en": "Restaurant Manager", "he": "מנהל מסעדה", "synonyms": ["f&b manager", "kitchen manager", "מנהל מטבח", "מנהל בר", "מנהל מזון ומשקאות"]},
+        {"id": "hotel-receptionist", "en": "Hotel Receptionist", "he": "פקיד קבלה במלון", "synonyms": ["hotel receptionist", "night auditor", "concierge", "קבלה במלון", "קונסיירז'"]},
+        {"id": "housekeeper", "en": "Housekeeper", "he": "חדרנית", "synonyms": ["housekeeping", "room attendant", "חדרן"]},
+        {"id": "tour-guide", "en": "Tour Guide", "he": "מורה דרך", "synonyms": ["מדריך טיולים"]},
+        {"id": "event-coordinator", "en": "Event Coordinator", "he": "מפיק אירועים", "synonyms": ["event manager", "event planner", "הפקת אירועים", "מפיקת אירועים"]}
+      ]
+    },
+    {
+      "id": "retail", "en": "Retail & Stores", "he": "קמעונאות וחנויות",
+      "roles": [
+        {"id": "sales-associate", "en": "Sales Associate", "he": "מוכר", "synonyms": ["shop assistant", "store associate", "retail associate", "sales assistant", "מוכרת"]},
+        {"id": "cashier", "en": "Cashier", "he": "קופאי", "synonyms": ["checkout", "קופאית"]},
+        {"id": "shelf-stocker", "en": "Shelf Stocker", "he": "סדרן", "synonyms": ["stocker", "merchandiser", "merchandising", "סדרן סחורה", "סדרנית", "מרצ'נדייזר"]},
+        {"id": "store-manager", "en": "Store Manager", "he": "מנהל חנות", "synonyms": ["shop manager", "branch manager", "assistant store manager", "מנהל סניף"]},
+        {"id": "deli-worker", "en": "Deli & Butcher", "he": "עובד מעדנייה", "synonyms": ["butcher", "deli", "מעדנייה", "קצבייה", "עובד קצבייה"]}
+      ]
+    },
+    {
+      "id": "construction", "en": "Construction & Real Estate", "he": "בנייה ונדל\"ן",
+      "roles": [
+        {"id": "site-manager", "en": "Site Manager", "he": "מנהל עבודה", "synonyms": ["construction manager", "foreman", "site supervisor", "מנהלת עבודה", "מנהל אתר"]},
+        {"id": "construction-worker", "en": "Construction Worker", "he": "פועל בניין", "synonyms": ["laborer", "general laborer", "builder", "בנאי", "פועל"]},
+        {"id": "architect", "en": "Architect", "he": "אדריכל", "synonyms": ["architectural designer", "הנדסאי אדריכלות"]},
+        {"id": "quantity-surveyor", "en": "Quantity Surveyor", "he": "כמאי", "synonyms": ["estimator", "כמאית"]},
+        {"id": "land-surveyor", "en": "Land Surveyor", "he": "מודד", "synonyms": ["surveyor", "מודדת", "מדידות"]},
+        {"id": "real-estate-agent", "en": "Real Estate Agent", "he": "מתווך", "synonyms": ["realtor", "מתווך נדל\"ן", "סוכן נדל\"ן", "יועץ נדל\"ן", "מתווכת"]},
+        {"id": "property-manager", "en": "Property Manager", "he": "מנהל נכסים", "synonyms": ["property management", "ניהול נכסים"]},
+        {"id": "appraiser", "en": "Appraiser", "he": "שמאי", "synonyms": ["שמאי מקרקעין", "שמאית"]}
+      ]
+    },
+    {
+      "id": "manufacturing", "en": "Manufacturing & Production", "he": "ייצור ותעשייה",
+      "roles": [
+        {"id": "production-worker", "en": "Production Worker", "he": "עובד ייצור", "synonyms": ["production operator", "assembly worker", "פועל ייצור", "מרכיב", "עובד פס ייצור", "קו ייצור"]},
+        {"id": "machine-operator", "en": "Machine Operator", "he": "מפעיל מכונה", "synonyms": ["cnc operator", "cnc machinist", "machinist", "cnc programmer", "מפעיל cnc", "מפעיל מכונות", "מפעיל", "חרט", "כרסם", "מתכנת cnc"]},
+        {"id": "welder", "en": "Welder", "he": "רתך", "synonyms": ["welding", "ריתוך"]},
+        {"id": "quality-control", "en": "Quality Control Inspector", "he": "בקר איכות", "synonyms": ["qc", "quality control", "quality engineer", "מהנדס איכות", "בקרת איכות", "אבטחת איכות"]},
+        {"id": "production-manager", "en": "Production Manager", "he": "מנהל ייצור", "synonyms": ["plant manager", "production planner", "מנהל מפעל", "מתכנן ייצור", "תכנון ייצור"]}
+      ]
+    },
+    {
+      "id": "legal", "en": "Legal", "he": "משפטים",
+      "roles": [
+        {"id": "lawyer", "en": "Lawyer", "he": "עורך דין", "synonyms": ["attorney", "legal counsel", "counsel", "general counsel", "עו\"ד", "עורכת דין", "יועץ משפטי", "יועצת משפטית"]},
+        {"id": "paralegal", "en": "Paralegal", "he": "משפטן", "synonyms": ["legal assistant", "משפטנית", "עוזר משפטי"]},
+        {"id": "legal-secretary", "en": "Legal Secretary", "he": "מזכירה משפטית", "synonyms": ["מזכיר משפטי"]},
+        {"id": "compliance-officer", "en": "Compliance Officer", "he": "ממונה ציות", "synonyms": ["compliance", "regulatory affairs", "aml", "קצין ציות", "רגולציה", "איסור הלבנת הון"]},
+        {"id": "contract-manager", "en": "Contract Manager", "he": "מנהל חוזים", "synonyms": ["contracts manager", "ניהול חוזים"]}
+      ]
+    },
+    {
+      "id": "security", "en": "Security & Guarding", "he": "אבטחה ושמירה",
+      "roles": [
+        {"id": "security-guard", "en": "Security Guard", "he": "מאבטח", "synonyms": ["guard", "מאבטחת", "שומר", "שמירה", "אבטחה", "מוקדן אבטחה"]},
+        {"id": "security-officer", "en": "Security Officer", "he": "קב\"ט", "synonyms": ["קצין ביטחון", "מנהל אבטחה", "ממונה ביטחון"]},
+        {"id": "investigator", "en": "Investigator", "he": "חוקר פרטי", "synonyms": ["fraud investigator", "חקירות", "חוקר ביטוח"]}
+      ]
+    },
+    {
+      "id": "social-work", "en": "Social Work & Welfare", "he": "רווחה ועבודה סוציאלית",
+      "roles": [
+        {"id": "social-worker", "en": "Social Worker", "he": "עובד סוציאלי", "synonyms": ["case manager", "עובדת סוציאלית", "עו\"ס"]},
+        {"id": "youth-worker", "en": "Youth Worker", "he": "מדריך נוער", "synonyms": ["youth counselor", "רכז נוער", "נוער בסיכון"]},
+        {"id": "rehabilitation-counselor", "en": "Rehabilitation Counselor", "he": "מדריך שיקום", "synonyms": ["rehabilitation", "שיקום", "רכז שיקום", "הוסטל"]},
+        {"id": "community-coordinator", "en": "Community Coordinator", "he": "רכז קהילה", "synonyms": ["community worker", "רכזת קהילה", "עבודה קהילתית"]}
+      ]
+    },
+    {
+      "id": "maintenance", "en": "Technicians & Maintenance", "he": "טכנאים ואחזקה",
+      "roles": [
+        {"id": "electrician", "en": "Electrician", "he": "חשמלאי", "synonyms": ["electrical technician", "הנדסאי חשמל"]},
+        {"id": "plumber", "en": "Plumber", "he": "אינסטלטור", "synonyms": ["plumbing", "אינסטלציה", "שרברב"]},
+        {"id": "hvac-technician", "en": "HVAC Technician", "he": "טכנאי מיזוג אוויר", "synonyms": ["hvac", "air conditioning technician", "refrigeration technician", "טכנאי מזגנים", "מיזוג אוויר", "טכנאי קירור"]},
+        {"id": "maintenance-technician", "en": "Maintenance Technician", "he": "טכנאי אחזקה", "synonyms": ["maintenance", "handyman", "facility manager", "building maintenance", "אחזקה", "איש אחזקה", "איש תחזוקה", "תחזוקה", "מנהל אחזקה", "הנדימן"]},
+        {"id": "auto-mechanic", "en": "Auto Mechanic", "he": "מכונאי רכב", "synonyms": ["mechanic", "car mechanic", "מכונאי", "מוסך", "חשמלאי רכב"]},
+        {"id": "field-technician", "en": "Field Service Technician", "he": "טכנאי שטח", "synonyms": ["technician", "field technician", "service technician", "טכנאי", "טכנאי שירות"], "generic": true},
+        {"id": "cleaner", "en": "Cleaner", "he": "עובד ניקיון", "synonyms": ["cleaning", "janitor", "עובדת ניקיון", "מנקה", "ניקיון"]},
+        {"id": "gardener", "en": "Gardener", "he": "גנן", "synonyms": ["gardening", "landscaping", "גינון"]}
+      ]
+    },
+    {
+      "id": "science", "en": "Science & Research", "he": "מדע ומחקר",
+      "roles": [
+        {"id": "lab-technician", "en": "Lab Technician", "he": "טכנאי מעבדה", "synonyms": ["laboratory technician", "lab assistant", "laborant", "לבורנט", "עובד מעבדה"]},
+        {"id": "research-scientist", "en": "Research Scientist", "he": "חוקר מדעי", "synonyms": ["scientist", "researcher", "postdoc", "biologist", "chemist", "מדען", "ביולוג", "כימאי", "פוסט דוקטורט"]},
+        {"id": "clinical-research", "en": "Clinical Research Associate", "he": "מתאם מחקר קליני", "synonyms": ["cra", "clinical trials", "clinical research", "מחקר קליני", "ניסויים קליניים"]},
+        {"id": "food-technologist", "en": "Food Technologist", "he": "טכנולוג מזון", "synonyms": ["food technology", "טכנולוגית מזון", "הנדסת מזון", "מהנדס מזון"]},
+        {"id": "bioinformatician", "en": "Bioinformatician", "he": "ביואינפורמטיקאי", "synonyms": ["bioinformatics", "computational biology", "ביואינפורמטיקה"]}
+      ]
+    },
+    {
+      "id": "management", "en": "Management & Operations", "he": "ניהול ותפעול",
+      "roles": [
+        {"id": "project-manager", "en": "Project Manager", "he": "מנהל פרויקטים", "synonyms": ["program manager", "pmo", "מנהל פרויקט", "ניהול פרויקטים"]},
+        {"id": "operations-manager", "en": "Operations Manager", "he": "מנהל תפעול", "synonyms": ["operations", "head of operations", "coo", "operations coordinator", "תפעול", "סמנכ\"ל תפעול", "אופרציה", "רכז תפעול"]},
+        {"id": "general-manager", "en": "General Manager", "he": "מנכ\"ל", "synonyms": ["ceo", "managing director", "country manager", "מנכ\"לית", "מנהל כללי"]},
+        {"id": "management-consultant", "en": "Management Consultant", "he": "יועץ ארגוני", "synonyms": ["business consultant", "strategy consultant", "יועץ עסקי", "ייעוץ ארגוני"]}
+      ]
+    },
+    {
+      "id": "fitness-beauty", "en": "Fitness & Beauty", "he": "כושר, יופי וטיפוח",
+      "roles": [
+        {"id": "fitness-trainer", "en": "Fitness Trainer", "he": "מאמן כושר", "synonyms": ["personal trainer", "gym instructor", "pilates instructor", "yoga teacher", "מאמן אישי", "מאמנת כושר", "מדריך כושר", "מדריך חדר כושר", "מדריכת פילאטיס"]},
+        {"id": "lifeguard", "en": "Lifeguard", "he": "מציל", "synonyms": ["מצילה"]},
+        {"id": "hairdresser", "en": "Hairdresser", "he": "מעצב שיער", "synonyms": ["barber", "hair stylist", "מעצבת שיער", "ספרית", "מספרה"]},
+        {"id": "beautician", "en": "Beautician", "he": "קוסמטיקאית", "synonyms": ["cosmetician", "manicurist", "nail technician", "makeup artist", "esthetician", "קוסמטיקאי", "מניקוריסטית", "מאפרת"]},
+        {"id": "massage-therapist", "en": "Massage Therapist", "he": "מעסה", "synonyms": ["massage", "spa therapist", "עיסוי", "מטפל ספא"]}
+      ]
+    }
+  ]
+}

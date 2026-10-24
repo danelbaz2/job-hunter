@@ -1,12 +1,14 @@
-"""Deterministic sub-scores (SPEC criteria 1 to 4): plain code, never an LLM call.
+"""Location sub-score (SPEC criterion 1): plain code, never an LLM call.
 
-The expected behavior is fixed by docs/phase1-scoring-test-cases.md; each row of its
-tables is one test in tests/test_scoring_location.py (and the files that follow it).
+The expected behavior is fixed by docs/phase1-scoring-test-cases.md, section 1; each row
+of its table is one test in tests/test_scoring_location.py.
 """
 
 import logging
 import math
 import re
+
+from jobhunter.text import normalize
 
 logger = logging.getLogger(__name__)
 
@@ -43,7 +45,8 @@ CITY_COORDINATES: dict[str, tuple[float, float]] = {
     "ashkelon": (31.6688, 34.5743),
 }
 
-# Other spellings, Hebrew names and abbreviations, already normalized (see `_normalize`).
+# Other spellings, Hebrew names and abbreviations, already normalized
+# (see `jobhunter.text.normalize`).
 # The canonical names above resolve to themselves without being listed here.
 CITY_ALIASES: dict[str, str] = {
     "tel-aviv": "tel aviv",
@@ -142,7 +145,7 @@ def score_location(search_city: str | None, listing_location: str) -> int:
     if reference is None:
         raise ValueError(f"unknown search city: {search_city!r}")
 
-    text = _normalize(listing_location)
+    text = normalize(listing_location)
     if any(term in text for term in REMOTE_TERMS):
         return SAME_CITY_SCORE
 
@@ -158,21 +161,8 @@ def score_location(search_city: str | None, listing_location: str) -> int:
 
 def resolve_city(name: str) -> str | None:
     """Canonical name of a known city, or None. Accepts any spelling in CITY_ALIASES."""
-    cities = _cities_in(_normalize(name))
+    cities = _cities_in(normalize(name))
     return cities[0] if cities else None
-
-
-def _normalize(text: str) -> str:
-    """Lowercase, one kind of quote mark, single spaces.
-
-    Hebrew abbreviations use the gershayim (U+05F4) or a straight double quote, and names
-    like Ra'anana use the geresh (U+05F3) or an apostrophe; job boards mix all of them,
-    along with typographic quotes.
-    """
-    text = text.lower()
-    text = re.sub(r"[\u05f4\u201c\u201d]", '"', text)
-    text = re.sub(r"[\u05f3\u2018\u2019`]", "'", text)
-    return " ".join(text.split())
 
 
 def _cities_in(text: str) -> list[str]:
