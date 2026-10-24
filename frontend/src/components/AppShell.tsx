@@ -1,5 +1,5 @@
 import { Home, Search, FileText, User, type LucideIcon } from 'lucide-react'
-import { NavLink, Outlet } from 'react-router'
+import { NavLink, Outlet, ScrollRestoration } from 'react-router'
 
 const tabs: { to: string; label: string; end: boolean; icon: LucideIcon }[] = [
   { to: '/', label: 'Home', end: true, icon: Home },
@@ -38,6 +38,8 @@ export function AppShell() {
       <main id="main" className="flex-1 pb-20 md:pb-0">
         <Outlet />
       </main>
+      {/* A new page opens at the top; Back returns to where the list was scrolled. */}
+      <ScrollRestoration />
 
       <nav
         className="fixed inset-x-0 bottom-0 grid grid-cols-4 border-t border-border bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden"

@@ -136,15 +136,45 @@ def _seniority_point(listing: Listing, criteria: SearchCriteria) -> MatchPoint |
 # Lines, then sentences inside a line. Each piece is a substring of the raw text, so it
 # can be quoted as is, while matching ran on the normalized text.
 _SENTENCE_END = re.compile(r"(?<=[.!?;])\s+")
+_WORD = re.compile(r"\S+")
+# Longest quote shown; a longer line or sentence is cut to a window of whole words around
+# the matched term. Some boards send a whole listing as one unpunctuated line.
+MAX_QUOTE_CHARS = 140
 
 
 def _segment_with(listing: Listing, evidence: str) -> str | None:
-    """The first line or sentence of the raw text whose normalized form holds `evidence`."""
+    """A short verbatim piece of the raw text whose normalized form holds `evidence`: the
+    first line or sentence that does, cut down to whole words around it when too long."""
     for line in listing.raw_text.splitlines():
         for segment in _SENTENCE_END.split(line):
-            if segment.strip() and evidence in normalize(segment):
-                return segment.strip()
+            segment = segment.strip()
+            if segment and evidence in normalize(segment):
+                return segment if len(segment) <= MAX_QUOTE_CHARS else _window(segment, evidence)
     return None
+
+
+def _window(segment: str, evidence: str) -> str:
+    """The shortest run of whole words holding `evidence`, widened word by word on both
+    sides while it fits MAX_QUOTE_CHARS. Always a substring of `segment`."""
+    words = [(m.start(), m.end()) for m in _WORD.finditer(segment)]
+    best: tuple[int, int] | None = None
+    for i in range(len(words)):
+        for j in range(i, len(words)):
+            if evidence in normalize(segment[words[i][0] : words[j][1]]):
+                if best is None or j - i < best[1] - best[0]:
+                    best = (i, j)
+                break
+    if best is None:  # the term spans the whole segment's normalization oddly; keep it all
+        return segment
+    i, j = best
+    while True:
+        grown = False
+        if j + 1 < len(words) and words[j + 1][1] - words[i][0] <= MAX_QUOTE_CHARS:
+            j, grown = j + 1, True
+        if i > 0 and words[j][1] - words[i - 1][0] <= MAX_QUOTE_CHARS:
+            i, grown = i - 1, True
+        if not grown:
+            return segment[words[i][0] : words[j][1]]
 
 
 def _display(city: str) -> str:

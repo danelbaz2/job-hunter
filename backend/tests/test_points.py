@@ -151,3 +151,15 @@ def test_listing_text_must_contain_title_and_location():
             location="Haifa",
             raw_text="Dev\nbody",
         )
+
+
+def test_a_long_unpunctuated_text_is_quoted_as_a_short_window_around_the_term():
+    # JobNet sends a whole listing as one line with no sentence ending.
+    filler = "עבודה בצוות דינאמי ואחריות על תהליכים רבים בסביבה טכנולוגית מתקדמת " * 4
+    body = filler + "ניסיון של 5 שנים לפחות בתחום " + filler
+    item = listing("Support Lead", body=body)
+    [point] = deterministic_points(item, search(levels=["Junior"]))
+    assert point.quote in item.raw_text
+    assert "5 שנים" in point.quote
+    assert len(point.quote) <= 140
+    assert point.quote == point.quote.strip()

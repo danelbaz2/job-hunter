@@ -1,0 +1,418 @@
+{
+  "version": 1,
+  "demo": true,
+  "search": {
+    "keyword": "מפתח",
+    "city": "Tel Aviv",
+    "occupations": [
+      "Software Development"
+    ],
+    "levels": [
+      "Junior",
+      "Mid-Level"
+    ]
+  },
+  "boards": [
+    {
+      "board": "drushim",
+      "status": "ok",
+      "listings": 3,
+      "error": null
+    },
+    {
+      "board": "alljobs",
+      "status": "ok",
+      "listings": 2,
+      "error": null
+    },
+    {
+      "board": "jobnet",
+      "status": "ok",
+      "listings": 2,
+      "error": null
+    },
+    {
+      "board": "ethosia",
+      "status": "ok",
+      "listings": 1,
+      "error": null
+    },
+    {
+      "board": "jobmaster",
+      "status": "ok",
+      "listings": 3,
+      "error": null
+    }
+  ],
+  "results": [
+    {
+      "listing_id": "alljobs:8650814",
+      "source": "alljobs",
+      "url": "https://www.alljobs.co.il/Search/UploadSingle.aspx?JobID=8650814",
+      "title": "מפתח /ת למידה טכנולוגי /ת",
+      "company": null,
+      "location": "פתח תקווה, ראש העין, הרצליה, נתניה, חדרה",
+      "posted_at": "2026-10-22",
+      "text": "מפתח /ת למידה טכנולוגי /ת\nפתח תקווה, ראש העין, הרצליה, נתניה, חדרה\nהתפקיד כולל:- פיתוח תכנים לתהליכי למידה חדשניים המקנים לתלמידים ידע, מיומנויות וגישה לפתרון בעיות באמצעות טכנולוגיה- פיתוח תהליכי הוראה: מערכי שיעור בשפות תכנות, חומרי למידה והדרכה למדריכים- ניתוח פידבק העולה מהשטח וביצוע התאמות בתכנים בהתאם- התפקיד הינו חלק מצוות חשיבה המתכנן את האסטרטגיה הפדגוגית של התוכניות בחטיבת הביניים וחלק מצוות ההכשרה של אנשי ההוראה של התוכניות.מיקום: ראש העין בשילוב עבודה מהביתדרישות: - בוגר/ת תואר ראשון במקצועות ההנדסה, המדעים והמחשבים או שירות ביחידה צבאית טכנולוגית- ניסיון משמעותי (לפחות שנתיים) בפיתוח תכנים לימודיים טכנולוגיים לבני נוער והיכרות משמעותית עם שכבת גיל זו- עניין רב בפדגוגיה, סקרנות, הנעה פנימית ללמידה ויכולת למידה עצמית גבוהה- היכרות עם טכנולוגיות מבוססות בינה מלאכותית- יתרון- יכולת הובלה ותקשורת בינאישית טובה- מחויבות אישית וחברתית גבוהה- היכרות עם טכנולוגיות מבוססות בינה מלאכותית - יתרון המשרה מיועדת לנשים ולגברים כאחד.",
+      "partial_text": false,
+      "overall_score": 95,
+      "sub_scores": {
+        "location": 85,
+        "occupation": 100,
+        "seniority": 100,
+        "skills": null
+      },
+      "points": [
+        {
+          "kind": "matched",
+          "claim": "Near Tel Aviv (10 km)",
+          "quote": "פתח תקווה, ראש העין, הרצליה, נתניה, חדרה",
+          "origin": "deterministic"
+        },
+        {
+          "kind": "matched",
+          "claim": "Software Engineer role",
+          "quote": "מפתח /ת למידה טכנולוגי /ת",
+          "origin": "deterministic"
+        },
+        {
+          "kind": "matched",
+          "claim": "Junior position",
+          "quote": "והמחשבים או שירות ביחידה צבאית טכנולוגית- ניסיון משמעותי (לפחות שנתיים) בפיתוח תכנים לימודיים טכנולוגיים לבני נוער והיכרות משמעותית עם שכבת",
+          "origin": "deterministic"
+        }
+      ],
+      "summary": null
+    },
+    {
+      "listing_id": "drushim:38713339",
+      "source": "drushim",
+      "url": "https://www.drushim.co.il/job/38713339/678dca4e/",
+      "title": "מפתח/ת דאטה",
+      "company": "Malam מערכות",
+      "location": "פתח תקווה",
+      "posted_at": "2026-10-12",
+      "text": "מפתח/ת דאטה\nMalam מערכות\nפתח תקווה\nלחברת ביטוח מובילה דרוש/ה מפתח/ת דאטה מנוסה, בעל/ת אוריינטציה הנדסית חזקה ויכולת מוכחת לתכנן, לפתח, לבדוק ולהעלות לייצור פתרונות דאטה בסביבות ארגוניות מורכבות. התפקיד כולל עבודה בסביבות On-Prem ובענן, עם מסדי נתונים רלציוניים ולא רלציוניים. כמו כן, תכנון, פיתוח ותחזוקה של תהליכי ‎ETL/ELT‎, תהליכי עיבוד נתונים וממשקים בין-מערכתיים בסביבות עתירות נתונים\n- ניסיון של ‎2-3 שנים לפחות בפיתוח פתרונות דאטה ותהליכי ‎ETL/ELT‎ בסביבות ארגוניות מורכבות. - שליטה גבוהה ב-‎SQL‎, לרבות כתיבת פרוצדורות ופונקציות, ניתוח תוכניות ביצוע ואופטימיזציה של שאילתות. - ניסיון בפיתוח תהליכי אינטגרציה, עיבוד והעברת נתונים, כולל טיפול בתקלות ותמיכה בסביבות ייצור. - ניסיון בעבודה עם מסדי נתונים רלציוניים; היכרות מעשית עם מסדי נתונים לא רלציוניים.",
+      "partial_text": false,
+      "overall_score": 95,
+      "sub_scores": {
+        "location": 85,
+        "occupation": 100,
+        "seniority": 100,
+        "skills": null
+      },
+      "points": [
+        {
+          "kind": "matched",
+          "claim": "Near Tel Aviv (10 km)",
+          "quote": "פתח תקווה",
+          "origin": "deterministic"
+        },
+        {
+          "kind": "matched",
+          "claim": "Software Engineer role",
+          "quote": "מפתח/ת דאטה",
+          "origin": "deterministic"
+        },
+        {
+          "kind": "matched",
+          "claim": "Junior position",
+          "quote": "- ניסיון של ‎2-3 שנים לפחות בפיתוח פתרונות דאטה ותהליכי ‎ETL/ELT‎ בסביבות ארגוניות מורכבות.",
+          "origin": "deterministic"
+        }
+      ],
+      "summary": null
+    },
+    {
+      "listing_id": "jobnet:12831148",
+      "source": "jobnet",
+      "url": "https://www.jobnet.co.il/jobs?positionid=12831148",
+      "title": "אחראי/ת משמרת למוקד תמיכה!",
+      "company": null,
+      "location": "מרכז - תל אביב, פתח תקווה, רמת גן וגבעתיים, בקעת אונו וגבעת שמואל, חולון ובת-ים",
+      "posted_at": null,
+      "text": "אחראי/ת משמרת למוקד תמיכה!\nמרכז - תל אביב, פתח תקווה, רמת גן וגבעתיים, בקעת אונו וגבעת שמואל, חולון ובת-ים\nתיאור תפקיד: מחפש/ת תפקיד שמשלב אחריות, הובלה ועבודה בסביבה טכנולוגית מתקדמת?זו ההזדמנות שלך להיכנס לעמדת מפתח במוקד תמיכה צעיר ודינאמי, לתפקיד הכולל אחריות על ניהול המשמרת בזמן אמת והובלת איכות השירות.מה כולל התפקיד?- בקרה על זמינות הנציגים ועמידה ביעדי SLA- תעדוף, ניהול ומעקב אחר קריאות שירות- תזמון הפסקות וניהול עומסים בזמן אמת- מעקב אחר נוכחות, איחורים- בקרה על עמידה ביעדי שירות- אחריות על מענה ערוצי הדיגיטל- הפקת דוחות, ביצוע בקרה שוטפת ובניית סידורי עבודה דרישות: - ניסיון של חצי שנה לפחות בתפקיד דומה כאחראי/ת משמרת במוקד שירות/תמיכה- יכולות ניהול, סדר וראייה תפעולית רחבה- אסרטיביות לצד ש",
+      "partial_text": true,
+      "overall_score": 86,
+      "sub_scores": {
+        "location": 100,
+        "occupation": 100,
+        "seniority": 50,
+        "skills": null
+      },
+      "points": [
+        {
+          "kind": "matched",
+          "claim": "In Tel Aviv",
+          "quote": "מרכז - תל אביב, פתח תקווה, רמת גן וגבעתיים, בקעת אונו וגבעת שמואל, חולון ובת-ים",
+          "origin": "deterministic"
+        },
+        {
+          "kind": "matched",
+          "claim": "Software Engineer role",
+          "quote": "אחריות, הובלה ועבודה בסביבה טכנולוגית מתקדמת?זו ההזדמנות שלך להיכנס לעמדת מפתח במוקד תמיכה צעיר ודינאמי, לתפקיד הכולל אחריות על ניהול המשמרת",
+          "origin": "deterministic"
+        }
+      ],
+      "summary": null
+    },
+    {
+      "listing_id": "alljobs:8810687",
+      "source": "alljobs",
+      "url": "https://www.alljobs.co.il/Search/UploadSingle.aspx?JobID=8810687",
+      "title": "למכון טכנולוגי דרוש.ה מפתח. למידה",
+      "company": "מכון טכנולוגי חולון",
+      "location": "חולון",
+      "posted_at": "2026-10-22",
+      "text": "למכון טכנולוגי דרוש.ה מפתח. למידה\nמכון טכנולוגי חולון\nחולון\nלמכון טכנולוגי חולון, למרכז לקידום ההוראה ב- HIT, דרוש.ה מפתח.ת למידה עם חשיבה פדגוגית, הבנה טכנולוגית ותשוקה לעיצוב תהליכי הוראה ולמידה באקדמיה. יצירתי/ת, בעל/ת מיומנויות ניהול עצמי ועבודה בצוות ויחסי אנוש מצוינים.תיאור התפקיד: פיתוח והפקת פתרונות למידה מקצה לקצה: תחקור מומחי תוכן, אפיון פתרונות והפקתם בכלים המובילים בשוק. ייעוץ וליווי טכנו-פדגוגי לסגל האקדמי: יישום מתודולוגיות ופרקטיקות להוראה מיטבית, שילוב טכנולוגיות עדכניות בתחום, הכשרה לשימוש בכלים מתקדמים להוראה ולמידה ועוד. הובלת יוזמות ופרויקטים רוחביים: פיתוח והנחיה של הכשרות, יצירת תכנים פדגוגיים ומדריכים, ליווי תהליכים משלב הרעיון ועד היישום, כתיבת תוכן שיווקי ועוד.דרישות: ניסיון בפיתוח והפקת פתרונות למידה מקצה לקצה ניסיון מעשי בעבודה עם כלי AI לצרכי הוראה ולמידה (באקדמיה - יתרון) ניסיון מעשי עם תוכנות וכלים כגון Rise, Storyline, Genially יכולת עיצוב וחשיבה ויזואלית יכולות ביטוי וניסוח בכתב ובעל פה עמידה בזמנים תוך ניהול מספר פרויקטים במקביל הכרות עם עולם האקדמיה וההשכלה הגבוהה - יתרון ניסיון בעריכת ווידאו - יתרוןהמשרה מיודעת לנשים וגברים כאחדהיקף משרה 70-50% המשרה מיועדת לנשים ולגברים כאחד.",
+      "partial_text": false,
+      "overall_score": 80,
+      "sub_scores": {
+        "location": 85,
+        "occupation": 100,
+        "seniority": 50,
+        "skills": null
+      },
+      "points": [
+        {
+          "kind": "matched",
+          "claim": "Near Tel Aviv (8 km)",
+          "quote": "חולון",
+          "origin": "deterministic"
+        },
+        {
+          "kind": "matched",
+          "claim": "Software Engineer role",
+          "quote": "למכון טכנולוגי דרוש.ה מפתח.",
+          "origin": "deterministic"
+        }
+      ],
+      "summary": null
+    },
+    {
+      "listing_id": "jobmaster:9883771",
+      "source": "jobmaster",
+      "url": "https://www.jobmaster.co.il/jobs/checknum.asp?key=9883771",
+      "title": "מפתח אינפורמטיקה",
+      "company": "אקורייט תוכנה בע\"מ",
+      "location": "לוד , פתח תקווה , ראשון לציון , תל אביב יפו",
+      "posted_at": null,
+      "text": "מפתח אינפורמטיקה\nאקורייט תוכנה בע\"מ\nלוד , פתח תקווה , ראשון לציון , תל אביב יפו\nהשתלבות בצוות הדאטה של ארגון גדול ומוביל, לעבודה על מערך נתונים מרכזי ומשמעותי. תכנון, פיתוח מקצה לקצה ותחזוקה של תהליכי ETL מורכבים באמצעות כלי Informatica....",
+      "partial_text": true,
+      "overall_score": 80,
+      "sub_scores": {
+        "location": 85,
+        "occupation": 100,
+        "seniority": 50,
+        "skills": null
+      },
+      "points": [
+        {
+          "kind": "matched",
+          "claim": "Near Tel Aviv (10 km)",
+          "quote": "לוד , פתח תקווה , ראשון לציון , תל אביב יפו",
+          "origin": "deterministic"
+        },
+        {
+          "kind": "matched",
+          "claim": "Software Engineer role",
+          "quote": "מפתח אינפורמטיקה",
+          "origin": "deterministic"
+        }
+      ],
+      "summary": null
+    },
+    {
+      "listing_id": "drushim:38755424",
+      "source": "drushim",
+      "url": "https://www.drushim.co.il/job/38755424/2f2baff9/",
+      "title": "מפתח/ת תוכניות בדיקה (Automation QA)",
+      "company": "עוז תוכנה בע\"מ",
+      "location": "ירושלים",
+      "posted_at": "2026-10-15",
+      "text": "מפתח/ת תוכניות בדיקה (Automation QA)\nעוז תוכנה בע\"מ\nירושלים\nלארגון בטחוני מוביל עם מס' תקנים דרוש/ה מפתח/ת תוכניות בדיקה (Automation QA)\n- הנדסאי/ת, מהנדס/ת או תואר ראשון בתוכנה, אלקטרוניקה, הנדסה ביו-רפואית, מערכות מידע או בוגר/ת הסבה לאוטומציה. - ניסיון של לפחות 3 שנים בפיתוח וכתיבת סקריפטים ב-Python ו/או C# – חובה. - הסמכת ISTQB או קורס בדיקות – יתרון. - ניסיון בבדיקת מערכות מורכבות ופרוטוקולי תקשורת: TCP/IP, RS422, SNMP, WebSocket, REST API – יתרון. - ניסיון בכלי ניטור רשת, עומסים וביצועים – יתרון. - היכרות עם מתודולוגיות בדיקות תוכנה ומסמכי STD / STP / STR. - ניסיון בעבודה עם JIRA ו/או Azure DevOps. - אנגלית ברמה טובה.",
+      "partial_text": false,
+      "overall_score": 79,
+      "sub_scores": {
+        "location": 40,
+        "occupation": 100,
+        "seniority": 100,
+        "skills": null
+      },
+      "points": [
+        {
+          "kind": "gap",
+          "claim": "54 km from Tel Aviv",
+          "quote": "ירושלים",
+          "origin": "deterministic"
+        },
+        {
+          "kind": "matched",
+          "claim": "Software Engineer role",
+          "quote": "מפתח/ת תוכניות בדיקה (Automation QA)",
+          "origin": "deterministic"
+        },
+        {
+          "kind": "matched",
+          "claim": "Mid-Level position",
+          "quote": "- ניסיון של לפחות 3 שנים בפיתוח וכתיבת סקריפטים ב-Python ו/או C# – חובה.",
+          "origin": "deterministic"
+        }
+      ],
+      "summary": null
+    },
+    {
+      "listing_id": "drushim:38620106",
+      "source": "drushim",
+      "url": "https://www.drushim.co.il/job/38620106/3e8d508a/",
+      "title": "דרוש/ה מפתח/ת Python בכיר/ה",
+      "company": "QPOINT Technologies",
+      "location": "לוד",
+      "posted_at": "2026-10-24",
+      "text": "דרוש/ה מפתח/ת Python בכיר/ה\nQPOINT Technologies\nלוד\nמפתח/ת Python בכיר/ה לפיתוח פתרונות AI/GenAI מבוססי LLM ומערכות Backend בסקייל גבוה. התפקיד כולל פיתוח ב-Python, עבודה עם AWS ו-Kubernetes, תכנון מערכות מבוזרות והטמעת פתרונות AI בסביבת Production.\n8+ שנות ניסיון בפיתוח תוכנה בסביבת Production. 5+ שנות ניסיון ב-Python וב-JavaScript/TypeScript. 3+ שנות ניסיון ב-AWS, Docker ו-Kubernetes. 4+ שנות ניסיון בתכנון Microservices ומערכות Backend מבוזרות בסקייל גבוה. ניסיון ב-CI/CD, Observability ו-Messaging / Streaming (Kafka, SQS). ניסיון בפיתוח פתרונות LLM / GenAI בסביבת Production.",
+      "partial_text": false,
+      "overall_score": 71,
+      "sub_scores": {
+        "location": 60,
+        "occupation": 100,
+        "seniority": 50,
+        "skills": null
+      },
+      "points": [
+        {
+          "kind": "gap",
+          "claim": "18 km from Tel Aviv",
+          "quote": "לוד",
+          "origin": "deterministic"
+        },
+        {
+          "kind": "matched",
+          "claim": "Software Engineer role",
+          "quote": "דרוש/ה מפתח/ת Python בכיר/ה",
+          "origin": "deterministic"
+        },
+        {
+          "kind": "gap",
+          "claim": "Senior position, one step from yours",
+          "quote": "דרוש/ה מפתח/ת Python בכיר/ה",
+          "origin": "deterministic"
+        }
+      ],
+      "summary": null
+    },
+    {
+      "listing_id": "jobmaster:9875845",
+      "source": "jobmaster",
+      "url": "https://www.jobmaster.co.il/jobs/checknum.asp?key=9875845",
+      "title": "מיישם.ת ומפתח לוגיסטי Priority",
+      "company": "קבוצת ניאופרם",
+      "location": "עמק חפר",
+      "posted_at": null,
+      "text": "מיישם.ת ומפתח לוגיסטי Priority\nקבוצת ניאופרם\nעמק חפר\nאחריות על שיפור וייעול תהליכי עבודה במערכת Priority , ניתוח צרכים עסקיים, אפיון ופיתוח פתרונות מערכתיים, ביצוע בדיקות ותיעוד תהליכים בהתאם לנהלי האיכות, וכן ...",
+      "partial_text": true,
+      "overall_score": 68,
+      "sub_scores": {
+        "location": 50,
+        "occupation": 100,
+        "seniority": 50,
+        "skills": null
+      },
+      "points": [
+        {
+          "kind": "matched",
+          "claim": "Software Engineer role",
+          "quote": "מיישם.ת ומפתח לוגיסטי Priority",
+          "origin": "deterministic"
+        }
+      ],
+      "summary": null
+    },
+    {
+      "listing_id": "jobmaster:9903618",
+      "source": "jobmaster",
+      "url": "https://www.jobmaster.co.il/jobs/checknum.asp?key=9903618",
+      "title": "מפתח /ת תוכנה Full Stack (.NET Core)",
+      "company": "Heracles גיוס והשמה",
+      "location": "תל אביב יפו",
+      "posted_at": null,
+      "text": "מפתח /ת תוכנה Full Stack (.NET Core)\nHeracles גיוס והשמה\nתל אביב יפו\nלחברה מובילה בתחום הטכנולוגיה דרוש/ה מפתח/ת תוכנה Full Stack מנוסה לפיתוח רכיבי ליבה במערכת ארגונית מורכבת. התפקיד כולל פיתוח מקצה לקצה, תכנון פתרונות טכנולוגיי...",
+      "partial_text": true,
+      "overall_score": 68,
+      "sub_scores": {
+        "location": 50,
+        "occupation": 100,
+        "seniority": 50,
+        "skills": null
+      },
+      "points": [
+        {
+          "kind": "matched",
+          "claim": "Software Engineer role",
+          "quote": "מפתח /ת תוכנה Full Stack (.NET Core)",
+          "origin": "deterministic"
+        }
+      ],
+      "summary": null
+    },
+    {
+      "listing_id": "jobnet:13468981",
+      "source": "jobnet",
+      "url": "https://www.jobnet.co.il/jobs?positionid=13468981",
+      "title": "מנהל/ת פרויקטים טכנולוגיים",
+      "company": null,
+      "location": "מרכז - תל אביב, פתח תקווה, רמת גן וגבעתיים, בקעת אונו וגבעת שמואל, חולון ובת-ים, מודיעין, שוהם",
+      "posted_at": null,
+      "text": "מנהל/ת פרויקטים טכנולוגיים\nמרכז - תל אביב, פתח תקווה, רמת גן וגבעתיים, בקעת אונו וגבעת שמואל, חולון ובת-ים, מודיעין, שוהם\nתיאור תפקיד: קבוצת יעל מגייסת מנהל/ת פרויקטים טכנולוגיים לארגון מוביל בלוד- הובלת פרויקטים טכנולוגיים מקצה לקצה - מאפיון הצורך, דרך בחינת חלופות ויישום, ועד עלייה לאוויר והטמעה- הובלת פרויקטים בעולמות הדאטה וה-BI - הבנת הצורך העסקי, אפיון ותכלול מול מפתחי ה-BI עד להשלמת היישום- פיתוח ויישום פתרונות בסביבות AI - זיהוי הזדמנויות, בניית תוצרים והטמעתם בתהליכי העבודה בארגון- עבודה שוטפת מול ספקים ושותפים טכנולוגיים - בחינת פתרונות, ליווי מקצועי ובקרת ביצוע- ליווי ותמיכה במערכות שבאחריות התחום, לרבות מערכות שטח ולוויין- עבודה מול גורמי תשתיות, DBA ואבטחת מידע בהיבטי אינטגרציה, הרשאות וזמינות- השתתפ",
+      "partial_text": true,
+      "overall_score": 50,
+      "sub_scores": {
+        "location": 100,
+        "occupation": 0,
+        "seniority": 50,
+        "skills": null
+      },
+      "points": [
+        {
+          "kind": "matched",
+          "claim": "In Tel Aviv",
+          "quote": "מרכז - תל אביב, פתח תקווה, רמת גן וגבעתיים, בקעת אונו וגבעת שמואל, חולון ובת-ים, מודיעין, שוהם",
+          "origin": "deterministic"
+        },
+        {
+          "kind": "gap",
+          "claim": "Different occupation (Project Manager)",
+          "quote": "מנהל/ת פרויקטים טכנולוגיים",
+          "origin": "deterministic"
+        }
+      ],
+      "summary": null
+    },
+    {
+      "listing_id": "ethosia:76873",
+      "source": "ethosia",
+      "url": "https://ethosia.co.il/content/sales-manager/",
+      "title": "Sales Manager",
+      "company": null,
+      "location": "כל הארץ",
+      "posted_at": "2026-09-14",
+      "text": "Sales Manager\nכל הארץ\nאנגלית ברמת שפת אם, ספרגית /פורטוגזית יתרון נכונות לטיסות הבנה בחוזים, מכרזים ניהול מול לקוחות תהליכי מכירה מורכבים מחברות מולטידספלינריות מעולם האוטוטמוטיב, בטחוניות החברה מפתחת מערכות בטיחות לתעשיית הרכבות. יושבים ברעננה כפוף לסמנכ&#8221;ל המכירות והפיתוח בעסקי",
+      "partial_text": true,
+      "overall_score": 32,
+      "sub_scores": {
+        "location": 50,
+        "occupation": 0,
+        "seniority": 50,
+        "skills": null
+      },
+      "points": [
+        {
+          "kind": "gap",
+          "claim": "Different occupation (Sales Manager)",
+          "quote": "Sales Manager",
+          "origin": "deterministic"
+        }
+      ],
+      "summary": "Nothing in this listing matches your search."
+    }
+  ]
+}

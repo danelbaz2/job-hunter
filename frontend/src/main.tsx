@@ -7,7 +7,9 @@ import '@fontsource-variable/geist'
 import '@fontsource-variable/inter'
 import './index.css'
 import { HomePage } from './pages/HomePage'
+import { JobDetailPage } from './pages/JobDetailPage'
 import { PlaceholderPage } from './pages/PlaceholderPage'
+import { ResultsPage } from './pages/ResultsPage'
 import { SearchPage } from './pages/SearchPage'
 
 const queryClient = new QueryClient({
@@ -20,6 +22,8 @@ const router = createBrowserRouter([
     children: [
       { index: true, element: <HomePage /> },
       { path: 'search', element: <SearchPage /> },
+      { path: 'results/demo', element: <ResultsPage /> },
+      { path: 'results/demo/:listingId', element: <JobDetailPage /> },
       { path: 'resumes', element: <PlaceholderPage title="My resumes" phase={3} /> },
       { path: 'profile', element: <PlaceholderPage title="Profile" phase={1} /> },
     ],

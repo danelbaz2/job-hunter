@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router'
 import { OccupationPicker, type OccupationPick } from '../components/OccupationPicker'
 import { PageContainer, SectionLabel } from '../components/PageContainer'
 
@@ -44,6 +45,12 @@ export function SearchPage() {
           <p className="text-center text-xs text-text/40">
             Searching turns on once the search endpoint lands.
           </p>
+          <Link
+            to="/results/demo"
+            className="mt-2 inline-flex min-h-11 items-center rounded-md border border-dashed border-border px-4 text-sm text-accent-400 transition-colors hover:bg-accent-500/10"
+          >
+            See a demo search on real listings
+          </Link>
         </div>
       </form>
     </PageContainer>
