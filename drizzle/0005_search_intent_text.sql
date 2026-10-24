@@ -1,1 +1,0 @@
-ALTER TABLE "search" ADD COLUMN "intentText" text DEFAULT '' NOT NULL;
