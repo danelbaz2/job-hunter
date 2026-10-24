@@ -71,7 +71,19 @@ v1 (Next.js, kept in git history) proved the core idea: search several Israeli j
 - **Auth:** Google OAuth (Authlib) and email/password (argon2). Session in an httpOnly cookie. One email = one auth method, as in v1, counted only once the email is verified (criterion 27). Verification codes go out through the email port.
 - **Documents:** HTML template → PDF with WeasyPrint; DOCX with python-docx.
 - **AI:** LLM calls through OpenRouter, model set in config. Concurrency limited in code (semaphore and queue), never unbounded.
-- **Job data:** Apify actors (AllJobs, Drushim, LinkedIn, Indeed-IL) behind one adapter layer, as in v1. The chosen occupations' English and Hebrew terms are the search keywords sent to each board.
+- **Job data:** seven boards through Apify actors behind one adapter layer. The chosen occupations' English and Hebrew terms are the search keywords sent to each board. Chosen after paid trial runs on real listings (October 2026):
+
+| Board | Actor | Listing text |
+|---|---|---|
+| Drushim | `bovi/drushim-co-il-scraper` | full (description and requirements) |
+| AllJobs | `amrameng/israeli-job-boards-scraper` | full |
+| JobNet | `amrameng/israeli-job-boards-scraper` | partial (cut at 600 characters), no employer |
+| Ethosia | `amrameng/israeli-job-boards-scraper` | partial (short) |
+| JobMaster | `swerve/jobmaster-scraper` | partial (about 160-character excerpt) |
+| LinkedIn | to choose and trial with its adapter | ? |
+| Indeed-IL | to choose and trial with its adapter | ? |
+
+  GotFriends is left out for now: the multi-board actor read its listings but kept none for a Hebrew keyword. The adapter counts listings per board and reports an empty or failed board to the user, never trusting the actor's own status: in the trial the multi-board actor reported success while Drushim had failed. A listing from a board that gives partial text says so, with a link to the full listing, since its skills fit rests on less text.
 - **Occupation taxonomy:** a versioned data file in the repo (families, roles, English and Hebrew names, synonyms, about 25 families aligned with the Israeli boards' categories), read by `api` to serve the search bar and by `matching-worker` to score. Adding a role is a data change, never a code change. Free-text occupations that users submit often are reviewed to grow it. Apify runs report completion by webhook rather than a process waiting on them.
 
 ### Deployment (provider-agnostic)
@@ -158,12 +170,12 @@ Modular monolith first, with three services extracted where load or dependencies
 
 ## Part 5 — Known pitfalls
 
-- All job sources are scrapers in a ToS gray area; they break silently and cost per result. Keep pulls bounded and degrade visibly when a source fails.
+- All job sources are scrapers in a ToS gray area; they break silently and cost per result. Keep pulls bounded and degrade visibly when a source fails. Community actors have few users and can stop working without notice; recheck a board with a small capped run before blaming the pipeline.
 - Hebrew listings: the model may answer in English, so quotes fail verification. Prompt for quotes in the listing's language and keep the code check strict.
 - A tailored resume that overstates the candidate hurts the user in interview. Criterion 10 is enforced in code for this reason.
 - A short course does not make someone proficient. Criterion 13's proof and placement rules exist so the resume stays defensible.
 - LLM-generated course content can be wrong. Prefer linking official resources; generated material is limited to quizzes and checked against them.
-- Per-user cost (Apify + LLM) can exceed a Pro subscription if unbounded. Quotas apply to every plan and the admin page tracks cost per user.
+- Per-user cost (Apify + LLM) can exceed a Pro subscription if unbounded. Quotas apply to every plan and the admin page tracks cost per user. With seven boards at five results each, Apify alone costs about $0.10–0.15 per search at October 2026 prices, before LLM calls.
 - Payment: Stripe availability for an Israeli business is unclear. Check Stripe directly, or use a merchant of record (Paddle, Lemon Squeezy) or an Israeli acquirer (Cardcom, Tranzila) before building billing.
 - Provider lock-in creeps in through SDK calls in business code. Keep every provider call behind the three ports; a test runs the full pipeline on the local adapters only.
 - Privacy: Israel's Privacy Protection Law Amendment 13 has been in force since 14 August 2025, and GDPR applies to EU visitors. Publish a privacy policy, gate analytics behind consent, never log resume text, and let a user delete their account and data.
