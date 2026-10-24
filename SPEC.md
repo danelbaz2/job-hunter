@@ -17,7 +17,7 @@ v1 (Next.js, kept in git history) proved the core idea: search several Israeli j
 2. Occupation sub-score: the search names one or more occupations, picked from the taxonomy (a whole family or a single role) or typed as free text. A listing scores 100 when it is a chosen occupation, 50 when it is another role of a chosen role's family, 0 otherwise, and 50 when no occupation is chosen. The title decides when it names a known role; the listing body is read only when the title doesn't. English **and** Hebrew terms and synonyms match for every role.
 3. The overall score is a fixed weighted combination of stored sub-scores; recomputing it from the database reproduces the same number.
 4. Results are sorted strictly descending by overall score.
-5. Every listing shows at least one matched point and, below 100, at least one gap point. Every quote is a verbatim substring of the listing text, including Hebrew listings.
+5. Every listing shows at least one matched point and, below 100, at least one gap point. When nothing in the listing matches the search, it says so plainly above its gaps instead of inventing a match. Every quote is a verbatim substring of the listing text (title and location line included), including Hebrew listings.
 
 ### Daily use
 6. A user can save a search; a scheduled job reruns every saved search once a day and the user sees only listings not seen before ("new since last visit").

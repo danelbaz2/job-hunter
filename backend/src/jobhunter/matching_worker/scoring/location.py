@@ -7,6 +7,7 @@ of its table is one test in tests/test_scoring_location.py.
 import logging
 import math
 import re
+from dataclasses import dataclass
 
 from jobhunter.text import normalize
 
@@ -132,6 +133,15 @@ NEUTRAL_SCORE = 50
 _EARTH_RADIUS_KM = 6371.0
 
 
+@dataclass(frozen=True)
+class LocationAssessment:
+    score: int
+    remote: bool = False
+    # The listing city that decided the score, and how far it is from the search city.
+    city: str | None = None
+    distance_km: float | None = None
+
+
 def score_location(search_city: str | None, listing_location: str) -> int:
     """How close the listing is to the city chosen in the search (SPEC criterion 1).
 
@@ -139,15 +149,20 @@ def score_location(search_city: str | None, listing_location: str) -> int:
     neutral 50 when the listing's city is unknown or no search city was chosen. When the
     listing names several known cities, the closest one counts.
     """
+    return assess_location(search_city, listing_location).score
+
+
+def assess_location(search_city: str | None, listing_location: str) -> LocationAssessment:
+    """`score_location` with the evidence behind it, for the explanation points."""
     if search_city is None:
-        return NEUTRAL_SCORE
+        return LocationAssessment(NEUTRAL_SCORE)
     reference = resolve_city(search_city)
     if reference is None:
         raise ValueError(f"unknown search city: {search_city!r}")
 
     text = normalize(listing_location)
     if any(term in text for term in REMOTE_TERMS):
-        return SAME_CITY_SCORE
+        return LocationAssessment(SAME_CITY_SCORE, remote=True)
 
     cities = _cities_in(text)
     if not cities:
@@ -155,8 +170,13 @@ def score_location(search_city: str | None, listing_location: str) -> int:
             # Only the location string, which is public listing data. These logs are how
             # CITY_ALIASES grows from what the boards really send.
             logger.info("unrecognized listing location %r", listing_location)
-        return NEUTRAL_SCORE
-    return max(_score_between(reference, city) for city in cities)
+        return LocationAssessment(NEUTRAL_SCORE)
+    city = min(cities, key=lambda c: _distance_km(CITY_COORDINATES[reference], CITY_COORDINATES[c]))
+    return LocationAssessment(
+        _score_between(reference, city),
+        city=city,
+        distance_km=_distance_km(CITY_COORDINATES[reference], CITY_COORDINATES[city]),
+    )
 
 
 def resolve_city(name: str) -> str | None:

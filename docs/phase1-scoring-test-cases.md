@@ -184,7 +184,19 @@ Criterion 4 says strictly descending, so ties need a rule. **Decision:** overall
 
 ## 6. Deterministic points (`deterministic_points`)
 
+Module: `matching_worker/points.py`; listings are `matching_worker/listing.py`.
+
 Used when the AI step fails or returns nothing usable (criterion 5). Every search has a resume or a skills description (SPEC criterion 7), so this is the fallback for an AI failure, shown as such to the user, never the normal path.
+
+**Decision — what is quoted against:** `Listing.raw_text` is the full text as the user sees it, built by the adapter as title, company, location and body, one per line. The model refuses a `raw_text` that lacks the title or the location, so those can always be quoted.
+
+**Decision — how quotes are cut:** matching runs on normalized text (`מפתח/ת` → `מפתח`), but a quote must be the original words. A point quotes the whole line, or the sentence within the line, of the raw text whose normalized form contains the matched term. The location point quotes the location string itself.
+
+**Decision — when a point is made:** location 100 or 85 → matched, 60 or less → gap, unknown → none. Occupation 100 → matched, 50 or 0 → gap, nothing chosen → none. Seniority 100 → matched, one step or more away → gap, level unknown or none picked → none.
+
+**Decision — nothing matched:** when no point is a match, the listing shows its gaps under "Nothing in this listing matches your search." (`summary`), never an invented match.
+
+`quote_point` is the only way to build a point, for these and for the AI's: it raises when the quote isn't a verbatim substring of `raw_text`.
 
 | # | Case | Expected |
 |---|---|---|
@@ -194,3 +206,9 @@ Used when the AI step fails or returns nothing usable (criterion 5). Every searc
 | P4 | Occupation 100 from a Hebrew term | matched point quoting the line that contains the term |
 | P5 | Any generated point | `point.quote in listing.raw_text` is `True` — assert this on every case above |
 | P6 | Location, occupation and seniority all at 100 | no gap point: the function never invents a gap to fill the list |
+| P7 | Hebrew title `מפתח/ת בקאנד ג'וניור` | the quote is the title as written, gender slash included |
+| P8 | Junior search, body `Requirements: 5+ years of experience. Python.` | gap "Senior position" quoting `Requirements: 5+ years of experience.` |
+| P9 | Backend search, title `Full Stack Developer` / `Cashier` | gap "Related role (Full Stack Developer)…" / "Different occupation (Cashier)" |
+| P10 | Backend search from Tel Aviv, `Cashier` in Haifa | only gaps, and `summary` says nothing matched |
+| P11 | A quote absent from `raw_text`, or blank | `quote_point` raises `QuoteNotInListingError` |
+| P12 | `raw_text` without the title, or without the location | `Listing` refuses it |
