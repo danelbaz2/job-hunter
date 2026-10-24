@@ -151,23 +151,27 @@ Note the two forms of the Hebrew geresh: `'` (apostrophe) and `׳` (U+05F3). The
 
 ## 4. Overall score (`compute_overall_score`)
 
+Module: `matching_worker/scoring/overall.py` (with `sort_matches`). Cases are W1–W7 (weighted), not to be confused with the occupation cases O1–O24.
+
 Weights: location 0.25, occupation 0.25, seniority 0.20, skills 0.30. When skills is `None`, the other three weights are renormalized (divide by 0.70).
 
-**Decision — rounding:** half up, like v1 (JavaScript `Math.round`). Python's built-in `round()` rounds half to even (`round(12.5) == 12`), so don't use it here.
+**Decision — rounding:** half up, like v1 (JavaScript `Math.round`). Python's built-in `round()` rounds half to even (`round(12.5) == 12`), so don't use it here. The sum is computed as an exact fraction with integer weights (25, 25, 20, 30), so 12.5 can't drift to 12.4999 through float error.
 
 | # | Location | Occupation | Seniority | Skills | Computation | Expected |
 |---|---|---|---|---|---|---|
-| O1 | 100 | 100 | 100 | 100 | 100 | 100 |
-| O2 | 100 | 100 | 50 | 70 | 25 + 25 + 10 + 21 = 81 | 81 |
-| O3 | 100 | 100 | 50 | None | 60 / 0.70 = 85.71 | 86 |
-| O4 | 50 | 0 | 0 | 0 | 12.5 | **13** (built-in `round` gives 12) |
-| O5 | 0 | 0 | 0 | 0 | 0 | 0 |
-| O6 | 50 | 100 | 50 | None | 47.5 / 0.70 = 67.86 | 68 |
-| O7 | 100 | 0 | 100 | 90 | 25 + 0 + 20 + 27 = 72 | 72 |
+| W1 | 100 | 100 | 100 | 100 | 100 | 100 |
+| W2 | 100 | 100 | 50 | 70 | 25 + 25 + 10 + 21 = 81 | 81 |
+| W3 | 100 | 100 | 50 | None | 60 / 0.70 = 85.71 | 86 |
+| W4 | 50 | 0 | 0 | 0 | 12.5 | **13** (built-in `round` gives 12) |
+| W5 | 0 | 0 | 0 | 0 | 0 | 0 |
+| W6 | 50 | 100 | 50 | None | 47.5 / 0.70 = 67.86 | 68 |
+| W7 | 100 | 0 | 100 | 90 | 25 + 0 + 20 + 27 = 72 | 72 |
 
-Property test worth adding: recomputing from the stored sub-scores always returns the stored overall score (criterion 3).
+Property tests, over every combination of sub-scores in steps of 5 (with and without skills): the score stays in 0–100, recomputing gives the same result (criterion 3), and raising a sub-score never lowers it.
 
 ## 5. Ordering (`sort_matches`)
+
+Also tested: the order never depends on the input order (every permutation of a mixed list gives the same result).
 
 Criterion 4 says strictly descending, so ties need a rule. **Decision:** overall score descending, then `posted_at` descending (most recent first, missing dates last), then listing id ascending so the order is stable.
 
