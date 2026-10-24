@@ -1,6 +1,7 @@
 from functools import lru_cache
 from typing import Literal
 
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -20,6 +21,11 @@ class Settings(BaseSettings):
     redis_url: str = "redis://localhost:6379/0"
 
     storage_backend: Literal["memory", "s3"] = "memory"
+
+    # Cost limits (CLAUDE.md, Non-negotiables). Raise only with a reason written in the PR.
+    # The upper bounds stop a typo in an environment variable from becoming an Apify bill.
+    apify_results_per_source: int = Field(default=5, ge=1, le=50)
+    llm_max_concurrency: int = Field(default=3, ge=1, le=10)
 
 
 @lru_cache

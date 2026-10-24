@@ -6,9 +6,11 @@ Looking for a developer job in Israel meant running the same search four times, 
 
 That's what Job Hunter does. You give it a location, a domain and a level, plus your resume or a few lines about what you're looking for. It pulls listings from the four boards, removes duplicates, and ranks what's left by fit. For each job you see what matches, what's missing, and, if you want, how you could adjust your resume for it.
 
-**Try it live:** [job-hunter-zeta-liard.vercel.app](https://job-hunter-zeta-liard.vercel.app). Create an account or sign in with Google to run a search. Once in, the "Run failure scenario" button on the search page is free to try and makes no real calls.
+> **v2 rebuild in progress.** This repository is moving to FastAPI + React, with daily saved searches, ATS resume tailoring and verified skill-gap learning (see [`SPEC.md`](SPEC.md) and [`DEVELOPMENT.md`](DEVELOPMENT.md)). Everything below describes v1, the Next.js app, kept at tag [`v1`](https://github.com/danelbaz2/job-hunter/tree/v1).
 
-![Results screen (design mockup)](design_handoff_job_hunter_ui/screenshots/results-grid.png)
+**Try v1 live:** [job-hunter-zeta-liard.vercel.app](https://job-hunter-zeta-liard.vercel.app). Create an account or sign in with Google to run a search. Once in, the "Run failure scenario" button on the search page is free to try and makes no real calls.
+
+![Results screen (design mockup)](docs/design-v1/handoff/screenshots/results-grid.png)
 
 ## The part I cared about most: no made-up matches
 
@@ -25,9 +27,15 @@ So every match or gap point the model returns has to quote the listing word for 
 
 **Stack:** Next.js 15, TypeScript, PostgreSQL with Drizzle, Auth.js (Google or email/password, hashed with scrypt), Apify, OpenRouter, Tailwind. Deployed on Vercel.
 
-If you want the full reasoning behind these choices, it's in [`SPEC.md`](SPEC.md).
+The v1 reasoning is in [`SPEC.md` at tag v1](https://github.com/danelbaz2/job-hunter/blob/v1/SPEC.md).
 
-## Running it locally
+## Running v2 locally
+
+See [`DEVELOPMENT.md`](DEVELOPMENT.md): `docker compose up --build`.
+
+## Running v1 locally
+
+Check out the `v1` tag first (`git checkout v1`), then:
 
 1. `npm install`
 2. Copy `.env.example` to `.env.local` and fill in:
@@ -38,7 +46,7 @@ If you want the full reasoning behind these choices, it's in [`SPEC.md`](SPEC.md
 3. `npm run db:generate && npm run db:migrate`
 4. `npm run dev`
 
-## Things worth knowing
+## Things worth knowing (v1)
 
 - **Scrapers drift.** The field mappings in `lib/sources/*.ts` match common scraper output, but whichever Apify actor you pick for a board may name things differently. Expect to adjust them, and to swap actors now and then when one stops being maintained.
 - **Results per board are capped on purpose** (`APIFY_RESULTS_PER_SOURCE`, 5 by default). Apify charges per result, and five good listings per board are enough to judge whether the matching works.

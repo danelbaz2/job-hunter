@@ -1,6 +1,6 @@
 # Developing Job Hunter v2
 
-The v1 Next.js app still sits at the repository root until v2 replaces it. v2 lives in `backend/` and `frontend/`. Read `SPEC.md` first.
+v2 lives in `backend/` and `frontend/`; the v1 Next.js app is kept at the `v1` tag. Read `SPEC.md` first.
 
 ## Layout
 
@@ -20,6 +20,7 @@ backend/                    Python 3.12, FastAPI, managed with uv
 frontend/                   React, TypeScript, Vite, Tailwind, TanStack Query, React Router
   src/api/schema.d.ts       generated from the backend OpenAPI schema; never edit by hand
 docs/phase1-scoring-test-cases.md   test cases to write the deterministic scoring from
+docs/design-v1/                     v1 design mockups, kept as reference for the v2 screens
 ```
 
 ## Everything in Docker
