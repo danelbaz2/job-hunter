@@ -1,7 +1,7 @@
 from functools import lru_cache
 from typing import Literal
 
-from pydantic import Field
+from pydantic import Field, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -26,6 +26,12 @@ class Settings(BaseSettings):
     # The upper bounds stop a typo in an environment variable from becoming an Apify bill.
     apify_results_per_source: int = Field(default=5, ge=1, le=50)
     llm_max_concurrency: int = Field(default=3, ge=1, le=10)
+    # Hard spending cap Apify enforces on each actor run, whatever the actor does.
+    apify_max_charge_per_run_usd: float = Field(default=0.25, gt=0, le=1)
+
+    # Never logged: SecretStr prints as "**********".
+    apify_token: SecretStr | None = None
+    apify_run_timeout_seconds: int = Field(default=240, ge=30, le=900)
 
 
 @lru_cache

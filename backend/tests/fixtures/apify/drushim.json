@@ -1,0 +1,388 @@
+[
+  {
+    "jobId": 38620106,
+    "title": "דרוש/ה מפתח/ת Python בכיר/ה",
+    "url": "https://www.drushim.co.il/job/38620106/3e8d508a/",
+    "applyUrl": "https://www.drushim.co.il/sendcv.aspx?jobcode=38620106",
+    "company": "QPOINT Technologies",
+    "companyCode": 283597,
+    "companyUrl": "https://www.drushim.co.il/דרושים-283597-qpoint-technologies/",
+    "isConfidential": false,
+    "datePosted": "2026-10-24",
+    "dateActual": "2026-10-24T10:47:29.153Z",
+    "firstPublishedDate": "2026-10-05",
+    "postingAge": "לפני 11 שעות",
+    "employmentType": "משרה מלאה, היברידי",
+    "employmentTypeCodes": [
+      1,
+      6
+    ],
+    "region": [
+      "תל אביב",
+      "רמת גן / גבעתיים",
+      "חולון / בת ים",
+      "ראשון לציון",
+      "פתח תקווה",
+      "אור יהודה / יהוד",
+      "לוד / רמלה",
+      "מודיעין",
+      "ראש העין",
+      "נתניה / אבן יהודה",
+      "רעננה / כפר סבא",
+      "הרצליה / רמת השרון",
+      "הוד השרון",
+      "חדרה",
+      "אשדוד / גן יבנה",
+      "רחובות / נס ציונה/ גדרה",
+      "יבנה"
+    ],
+    "regionCodes": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17
+    ],
+    "zone": "Center",
+    "zones": [
+      {
+        "en": "Center",
+        "he": "מרכז",
+        "code": 1
+      },
+      {
+        "en": "Hasharon",
+        "he": "שרון",
+        "code": 16
+      },
+      {
+        "en": "Ashfela",
+        "he": "שפלה",
+        "code": 17
+      }
+    ],
+    "cities": [
+      {
+        "city": "לוד",
+        "cityEn": "Lod",
+        "latitude": 31.951014,
+        "longitude": 34.888075
+      }
+    ],
+    "primaryCity": "לוד",
+    "latitude": 31.951014,
+    "longitude": 34.888075,
+    "categories": [
+      "הייטק-תוכנה"
+    ],
+    "categoryCodes": [
+      6
+    ],
+    "subCategories": [
+      "Python",
+      "JavaScript",
+      "Machine Learning"
+    ],
+    "subCategoryCodes": [
+      481,
+      508,
+      512
+    ],
+    "experience": "7 שנים ומעלה",
+    "experienceCode": 5,
+    "allowNoCv": false,
+    "isHitech": true,
+    "isSponsored": true,
+    "isTopJob": false,
+    "isHotJob": false,
+    "isExpired": false,
+    "isClassifiedJob": false,
+    "isRemote": false,
+    "isHybrid": true,
+    "salaryRange": null,
+    "salaryMin": null,
+    "salaryMax": null,
+    "salaryRaw": null,
+    "description": "מפתח/ת Python בכיר/ה לפיתוח פתרונות AI/GenAI מבוססי LLM ומערכות Backend בסקייל גבוה. התפקיד כולל פיתוח ב-Python, עבודה עם AWS ו-Kubernetes, תכנון מערכות מבוזרות והטמעת פתרונות AI בסביבת Production.",
+    "requirements": "8+ שנות ניסיון בפיתוח תוכנה בסביבת Production. 5+ שנות ניסיון ב-Python וב-JavaScript/TypeScript. 3+ שנות ניסיון ב-AWS, Docker ו-Kubernetes. 4+ שנות ניסיון בתכנון Microservices ומערכות Backend מבוזרות בסקייל גבוה. ניסיון ב-CI/CD, Observability ו-Messaging / Streaming (Kafka, SQS). ניסיון בפיתוח פתרונות LLM / GenAI בסביבת Production.",
+    "source": "drushim.co.il",
+    "contentHash": "94f460f0e8fb0d6f"
+  },
+  {
+    "jobId": 38755424,
+    "title": "מפתח/ת תוכניות בדיקה (Automation QA)",
+    "url": "https://www.drushim.co.il/job/38755424/2f2baff9/",
+    "applyUrl": "https://www.drushim.co.il/sendcv.aspx?jobcode=38755424",
+    "company": "עוז תוכנה בע\"מ",
+    "companyCode": 2284810,
+    "companyUrl": "https://www.drushim.co.il/דרושים-2284810-פרדסיה-פרויקטים/",
+    "isConfidential": false,
+    "datePosted": "2026-10-15",
+    "dateActual": "2026-10-15T10:55:43.323Z",
+    "firstPublishedDate": "2026-10-15",
+    "postingAge": "לפני 10 שעות",
+    "employmentType": "משרה מלאה",
+    "employmentTypeCodes": [
+      1
+    ],
+    "region": [
+      "אשדוד / גן יבנה",
+      "רחובות / נס ציונה/ גדרה",
+      "יבנה",
+      "ירושלים",
+      "בית שמש",
+      "מעלה אדומים",
+      "חיפה",
+      "קריות",
+      "עכו / נהריה",
+      "גליל / גולן",
+      "טבריה",
+      "עפולה / נצרת",
+      "יקנעם / רמת ישי",
+      "זכרון יעקב / בנימינה",
+      "פרדס חנה כרכור",
+      "באר שבע",
+      "אשקלון",
+      "קרית גת / קרית מלאכי",
+      "דימונה / ערד / ים המלח",
+      "אילת / ערבה"
+    ],
+    "regionCodes": [
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27,
+      28,
+      29,
+      30,
+      31,
+      32,
+      33,
+      34
+    ],
+    "zone": "Ashfela",
+    "zones": [
+      {
+        "en": "Ashfela",
+        "he": "שפלה",
+        "code": 17
+      },
+      {
+        "en": "Jerusalem",
+        "he": "ירושלים",
+        "code": 2
+      },
+      {
+        "en": "North",
+        "he": "צפון",
+        "code": 3
+      },
+      {
+        "en": "South",
+        "he": "דרום",
+        "code": 4
+      }
+    ],
+    "cities": [
+      {
+        "city": "ירושלים",
+        "cityEn": "Jerusalem",
+        "latitude": 31.768319,
+        "longitude": 35.21371
+      },
+      {
+        "city": "באר שבע",
+        "cityEn": "Beer Sheva",
+        "latitude": 31.252973,
+        "longitude": 34.791462
+      },
+      {
+        "city": "חיפה",
+        "cityEn": "Haifa",
+        "latitude": 32.7940463,
+        "longitude": 34.989571
+      },
+      {
+        "city": "כרמיאל",
+        "cityEn": "Karmiel",
+        "latitude": 32.914671,
+        "longitude": 35.292417
+      }
+    ],
+    "primaryCity": "ירושלים",
+    "latitude": 31.768319,
+    "longitude": 35.21371,
+    "categories": [
+      "הייטק-QA"
+    ],
+    "categoryCodes": [
+      24
+    ],
+    "subCategories": [
+      "איש/ת / הנדסאי/ת QA",
+      "בדיקות אוטומטיות",
+      "בדיקות ידניות"
+    ],
+    "subCategoryCodes": [
+      297,
+      307,
+      306
+    ],
+    "experience": "3-4 שנים",
+    "experienceCode": 3,
+    "allowNoCv": false,
+    "isHitech": false,
+    "isSponsored": true,
+    "isTopJob": false,
+    "isHotJob": false,
+    "isExpired": false,
+    "isClassifiedJob": false,
+    "isRemote": false,
+    "isHybrid": false,
+    "salaryRange": null,
+    "salaryMin": null,
+    "salaryMax": null,
+    "salaryRaw": null,
+    "description": "לארגון בטחוני מוביל עם מס' תקנים דרוש/ה מפתח/ת תוכניות בדיקה (Automation QA)",
+    "requirements": "- הנדסאי/ת, מהנדס/ת או תואר ראשון בתוכנה, אלקטרוניקה, הנדסה ביו-רפואית, מערכות מידע או בוגר/ת הסבה לאוטומציה. - ניסיון של לפחות 3 שנים בפיתוח וכתיבת סקריפטים ב-Python ו/או C# – חובה. - הסמכת ISTQB או קורס בדיקות – יתרון. - ניסיון בבדיקת מערכות מורכבות ופרוטוקולי תקשורת: TCP/IP, RS422, SNMP, WebSocket, REST API – יתרון. - ניסיון בכלי ניטור רשת, עומסים וביצועים – יתרון. - היכרות עם מתודולוגיות בדיקות תוכנה ומסמכי STD / STP / STR. - ניסיון בעבודה עם JIRA ו/או Azure DevOps. - אנגלית ברמה טובה.",
+    "source": "drushim.co.il",
+    "contentHash": "0ee5b7ef4b98d94b"
+  },
+  {
+    "jobId": 38713339,
+    "title": "מפתח/ת דאטה",
+    "url": "https://www.drushim.co.il/job/38713339/678dca4e/",
+    "applyUrl": "https://www.drushim.co.il/sendcv.aspx?jobcode=38713339",
+    "company": "Malam מערכות",
+    "companyCode": 2928568,
+    "companyUrl": "https://www.drushim.co.il/",
+    "isConfidential": false,
+    "datePosted": "2026-10-12",
+    "dateActual": "2026-10-12T10:37:38.703Z",
+    "firstPublishedDate": "2026-10-12",
+    "postingAge": "לפני 11 שעות",
+    "employmentType": "משרה מלאה",
+    "employmentTypeCodes": [
+      1
+    ],
+    "region": [
+      "תל אביב",
+      "רמת גן / גבעתיים",
+      "חולון / בת ים",
+      "ראשון לציון",
+      "פתח תקווה",
+      "אור יהודה / יהוד",
+      "לוד / רמלה",
+      "מודיעין",
+      "ראש העין",
+      "נתניה / אבן יהודה",
+      "רעננה / כפר סבא",
+      "הרצליה / רמת השרון",
+      "הוד השרון",
+      "חדרה",
+      "אשדוד / גן יבנה",
+      "רחובות / נס ציונה/ גדרה",
+      "יבנה"
+    ],
+    "regionCodes": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17
+    ],
+    "zone": "Center",
+    "zones": [
+      {
+        "en": "Center",
+        "he": "מרכז",
+        "code": 1
+      },
+      {
+        "en": "Hasharon",
+        "he": "שרון",
+        "code": 16
+      },
+      {
+        "en": "Ashfela",
+        "he": "שפלה",
+        "code": 17
+      }
+    ],
+    "cities": [
+      {
+        "city": "פתח תקווה",
+        "cityEn": "Petah Tikva",
+        "latitude": 32.084041,
+        "longitude": 34.887762
+      }
+    ],
+    "primaryCity": "פתח תקווה",
+    "latitude": 32.084041,
+    "longitude": 34.887762,
+    "categories": [
+      "הייטק-תוכנה"
+    ],
+    "categoryCodes": [
+      6
+    ],
+    "subCategories": [
+      "BI"
+    ],
+    "subCategoryCodes": [
+      70
+    ],
+    "experience": "3-4 שנים",
+    "experienceCode": 3,
+    "allowNoCv": false,
+    "isHitech": true,
+    "isSponsored": true,
+    "isTopJob": false,
+    "isHotJob": false,
+    "isExpired": false,
+    "isClassifiedJob": false,
+    "isRemote": false,
+    "isHybrid": false,
+    "salaryRange": null,
+    "salaryMin": null,
+    "salaryMax": null,
+    "salaryRaw": null,
+    "description": "לחברת ביטוח מובילה דרוש/ה מפתח/ת דאטה מנוסה, בעל/ת אוריינטציה הנדסית חזקה ויכולת מוכחת לתכנן, לפתח, לבדוק ולהעלות לייצור פתרונות דאטה בסביבות ארגוניות מורכבות. התפקיד כולל עבודה בסביבות On-Prem ובענן, עם מסדי נתונים רלציוניים ולא רלציוניים. כמו כן, תכנון, פיתוח ותחזוקה של תהליכי ‎ETL/ELT‎, תהליכי עיבוד נתונים וממשקים בין-מערכתיים בסביבות עתירות נתונים",
+    "requirements": "- ניסיון של ‎2-3 שנים לפחות בפיתוח פתרונות דאטה ותהליכי ‎ETL/ELT‎ בסביבות ארגוניות מורכבות. - שליטה גבוהה ב-‎SQL‎, לרבות כתיבת פרוצדורות ופונקציות, ניתוח תוכניות ביצוע ואופטימיזציה של שאילתות. - ניסיון בפיתוח תהליכי אינטגרציה, עיבוד והעברת נתונים, כולל טיפול בתקלות ותמיכה בסביבות ייצור. - ניסיון בעבודה עם מסדי נתונים רלציוניים; היכרות מעשית עם מסדי נתונים לא רלציוניים.",
+    "source": "drushim.co.il",
+    "contentHash": "4d0f5905784cf5a3"
+  }
+]

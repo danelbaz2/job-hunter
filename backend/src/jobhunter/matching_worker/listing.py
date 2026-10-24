@@ -21,6 +21,11 @@ class Listing(BaseModel):
         description="The full listing text as the user sees it, title and location line "
         "included. Every quote in an explanation must be a verbatim substring of it."
     )
+    partial_text: bool = Field(
+        default=False,
+        description="The board only gives part of the listing (an excerpt or a cut-off "
+        "text). The listing says so and links to the full one; its skills fit rests on less.",
+    )
 
     @model_validator(mode="after")
     def _title_and_location_are_quotable(self) -> "Listing":
