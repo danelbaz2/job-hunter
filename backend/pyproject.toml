@@ -36,6 +36,9 @@ target-version = "py312"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP", "ASYNC", "RUF"]
+# Hebrew letters ruff mistakes for Latin look-alikes (vav, yod, final nun, geresh).
+# Listings and taxonomy terms are bilingual, so these are real text, not tricks.
+allowed-confusables = ["ו", "י", "ן", "׳"]
 
 [tool.mypy]
 python_version = "3.12"
