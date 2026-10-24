@@ -5,6 +5,7 @@ from typing import Literal
 from fastapi import Depends, FastAPI, Request
 from pydantic import BaseModel
 
+from jobhunter.api import occupations
 from jobhunter.api.db import database_is_reachable, make_engine
 from jobhunter.settings import get_settings
 
@@ -18,6 +19,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
 
 app = FastAPI(title="Job Hunter API", version="0.1.0", lifespan=lifespan)
+app.include_router(occupations.router)
 
 
 class HealthResponse(BaseModel):
