@@ -25,10 +25,47 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/occupations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Occupations
+         * @description The whole occupation taxonomy, for the search bar to filter on every keystroke
+         *     without calling the server again (SPEC criterion 28).
+         */
+        get: operations["list_occupations_api_occupations_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** Family */
+        Family: {
+            /** En */
+            en: string;
+            /** He */
+            he: string;
+            /** Id */
+            id: string;
+            /** Roles */
+            roles: components["schemas"]["Role"][];
+        };
+        /** HTTPValidationError */
+        HTTPValidationError: {
+            /** Detail */
+            detail?: components["schemas"]["ValidationError"][];
+        };
         /** HealthResponse */
         HealthResponse: {
             /**
@@ -41,6 +78,46 @@ export interface components {
              * @constant
              */
             status: "ok";
+        };
+        /** Role */
+        Role: {
+            /** En */
+            en: string;
+            /**
+             * Generic
+             * @description A title naming only this role is too broad to decide the occupation ("Software Engineer", "Technician"), so the listing body is read as well.
+             * @default false
+             */
+            generic: boolean;
+            /** He */
+            he: string;
+            /** Id */
+            id: string;
+            /**
+             * Synonyms
+             * @default []
+             */
+            synonyms: string[];
+        };
+        /** Taxonomy */
+        Taxonomy: {
+            /** Families */
+            families: components["schemas"]["Family"][];
+            /** Version */
+            version: number;
+        };
+        /** ValidationError */
+        ValidationError: {
+            /** Context */
+            ctx?: Record<string, never>;
+            /** Input */
+            input?: unknown;
+            /** Location */
+            loc: (string | number)[];
+            /** Message */
+            msg: string;
+            /** Error Type */
+            type: string;
         };
     };
     responses: never;
@@ -67,6 +144,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HealthResponse"];
+                };
+            };
+        };
+    };
+    list_occupations_api_occupations_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "if-none-match"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Taxonomy"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

@@ -2,6 +2,7 @@ import type { components } from './schema'
 
 // Types come from the backend's OpenAPI schema (`npm run gen:api`), never written by hand.
 export type HealthResponse = components['schemas']['HealthResponse']
+export type Taxonomy = components['schemas']['Taxonomy']
 
 export class ApiError extends Error {
   readonly status: number
@@ -22,4 +23,6 @@ async function getJson<T>(path: string): Promise<T> {
 
 export const api = {
   health: () => getJson<HealthResponse>('/api/health'),
+  // The browser caches it (Cache-Control + ETag), so the search bar filters locally.
+  occupations: () => getJson<Taxonomy>('/api/occupations'),
 }
