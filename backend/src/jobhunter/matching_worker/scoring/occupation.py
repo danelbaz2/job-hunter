@@ -58,27 +58,46 @@ class OccupationIndex:
             accepted |= self.roles_of[family]
         return accepted
 
-    def roles_named_in(self, text: str) -> set[str]:
-        """Roles whose terms appear in a normalized text, the most specific term winning.
+    def named_in(self, text: str) -> dict[str, str]:
+        """Roles whose terms appear in a normalized text, each with the term that named it.
 
-        A match is dropped when its term sits inside a longer matched term, so
-        "QA Automation Engineer" names QA automation and not plain QA, and "עובד מטבח"
-        names kitchen worker and not cook ("טבח").
+        The most specific term wins: a match is dropped when its term sits inside a longer
+        matched term, so "QA Automation Engineer" names QA automation and not plain QA, and
+        "עובד מטבח" names kitchen worker and not cook ("טבח").
         """
         matched = [(term, role) for term, role in self.terms if contains_term(text, term)]
-        return {
-            role
-            for term, role in matched
-            if not any(term != other and term in other for other, _ in matched)
-        }
+        named: dict[str, str] = {}
+        for term, role in matched:
+            if any(term != other and term in other for other, _ in matched):
+                continue
+            if len(term) > len(named.get(role, "")):
+                named[role] = term
+        return named
 
-    def body_names(self, text: str, roles: Collection[str]) -> bool:
-        return any(contains_term(text, term) for term, role in self.terms if role in roles)
+    def body_term(self, text: str, roles: Collection[str]) -> tuple[str, str] | None:
+        """The first (term, role) of `roles` found in a normalized body, if any."""
+        return next(
+            (
+                (term, role)
+                for term, role in self.terms
+                if role in roles and contains_term(text, term)
+            ),
+            None,
+        )
 
 
 @cache
 def _index() -> OccupationIndex:
     return OccupationIndex(load_taxonomy())
+
+
+@dataclass(frozen=True)
+class OccupationAssessment:
+    score: int
+    # The normalized term that decided the score, and the role it names (None for free
+    # text, or when nothing was found).
+    evidence: str | None = None
+    role: str | None = None
 
 
 def score_occupation(chosen: ChosenOccupations, title: str, text: str) -> int:
@@ -92,38 +111,61 @@ def score_occupation(chosen: ChosenOccupations, title: str, text: str) -> int:
     its own family only, so "QA Engineer" never becomes Backend because the body says
     "backend".
     """
+    return assess_occupation(chosen, title, text).score
+
+
+def assess_occupation(chosen: ChosenOccupations, title: str, text: str) -> OccupationAssessment:
+    """`score_occupation` with the evidence behind it, for the explanation points."""
     if chosen.is_empty():
-        return NEUTRAL_SCORE
+        return OccupationAssessment(NEUTRAL_SCORE)
     index = _index()
     accepted = index.accepted_roles(chosen)
     free_text = [term for term in (normalize(t) for t in chosen.free_text) if term]
     title, text = normalize(title), normalize(text)
 
-    if any(contains_term(title, term) for term in free_text):
-        return MATCH_SCORE
-    title_roles = index.roles_named_in(title)
-    if title_roles & accepted:
-        return MATCH_SCORE
-    specific = title_roles - index.generic
+    for term in free_text:
+        if contains_term(title, term):
+            return OccupationAssessment(MATCH_SCORE, evidence=term)
+    named = index.named_in(title)
+    for role, term in named.items():
+        if role in accepted:
+            return OccupationAssessment(MATCH_SCORE, evidence=term, role=role)
+    specific = {role: term for role, term in named.items() if role not in index.generic}
     if specific:
-        return _family_score(index, specific, chosen.roles)
+        return _family_assessment(index, specific, chosen.roles)
 
-    if title_roles:  # only generic roles
-        title_families = {index.family_of[role] for role in title_roles}
+    if named:  # only generic roles
+        title_families = {index.family_of[role] for role in named}
         in_scope = {role for role in accepted if index.family_of[role] in title_families}
-        if index.body_names(text, in_scope):
-            return MATCH_SCORE
-        return _family_score(index, title_roles, chosen.roles)
+        hit = index.body_term(text, in_scope)
+        if hit:
+            return OccupationAssessment(MATCH_SCORE, evidence=hit[0], role=hit[1])
+        return _family_assessment(index, named, chosen.roles)
 
-    if index.body_names(text, accepted) or any(contains_term(text, t) for t in free_text):
-        return MATCH_SCORE
-    return NO_MATCH_SCORE
+    hit = index.body_term(text, accepted)
+    if hit:
+        return OccupationAssessment(MATCH_SCORE, evidence=hit[0], role=hit[1])
+    for term in free_text:
+        if contains_term(text, term):
+            return OccupationAssessment(MATCH_SCORE, evidence=term)
+    return OccupationAssessment(NO_MATCH_SCORE)
 
 
-def _family_score(
-    index: OccupationIndex, listing_roles: set[str], chosen_roles: frozenset[str]
-) -> int:
+def role_name(role_id: str) -> str:
+    """The English name of a taxonomy role, for explanations."""
+    for family in load_taxonomy().families:
+        for role in family.roles:
+            if role.id == role_id:
+                return role.en
+    raise KeyError(role_id)
+
+
+def _family_assessment(
+    index: OccupationIndex, named: dict[str, str], chosen_roles: frozenset[str]
+) -> OccupationAssessment:
     chosen_families = {index.family_of[role] for role in chosen_roles}
-    if any(index.family_of[role] in chosen_families for role in listing_roles):
-        return SAME_FAMILY_SCORE
-    return NO_MATCH_SCORE
+    for role, term in named.items():
+        if index.family_of[role] in chosen_families:
+            return OccupationAssessment(SAME_FAMILY_SCORE, evidence=term, role=role)
+    role, term = next(iter(named.items()))
+    return OccupationAssessment(NO_MATCH_SCORE, evidence=term, role=role)

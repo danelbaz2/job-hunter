@@ -6,6 +6,7 @@ of its table is one test in tests/test_scoring_seniority.py.
 
 import re
 from collections.abc import Collection
+from dataclasses import dataclass
 from typing import Literal, get_args
 
 from jobhunter.text import contains_term, normalize
@@ -67,6 +68,14 @@ _EXPERIENCE_WORDS = ("experience", "ניסיון", "נסיון")
 _CONTEXT_BEFORE, _CONTEXT_AFTER = 40, 60
 
 
+@dataclass(frozen=True)
+class SeniorityAssessment:
+    score: int
+    # The listing level that decided the score, and the normalized words that showed it.
+    level: Level | None = None
+    evidence: str | None = None
+
+
 def score_seniority(levels: Collection[Level], title: str, text: str) -> int:
     """Whether the listing's level is the one the user is looking for.
 
@@ -75,44 +84,62 @@ def score_seniority(levels: Collection[Level], title: str, text: str) -> int:
     title decides when it names a level; otherwise the minimum experience the body asks
     for does (0-2 years Junior, 3-4 Mid-Level, 5+ Senior).
     """
+    return assess_seniority(levels, title, text).score
+
+
+def assess_seniority(levels: Collection[Level], title: str, text: str) -> SeniorityAssessment:
+    """`score_seniority` with the evidence behind it, for the explanation points."""
     unknown = set(levels) - set(LEVELS)
     if unknown:
         raise ValueError(f"unknown seniority levels: {sorted(unknown)}")
     if not levels:
-        return NEUTRAL_SCORE
+        return SeniorityAssessment(NEUTRAL_SCORE)
 
-    listing_levels = title_levels(normalize(title))
-    if not listing_levels:
-        years = minimum_years(normalize(text))
-        if years is None:
-            return NEUTRAL_SCORE
-        listing_levels = {level_for_years(years)}
+    named = title_level_terms(normalize(title))
+    if named:
+        level = max(named, key=lambda lv: _score(lv, levels))
+        return SeniorityAssessment(_score(level, levels), level=level, evidence=named[level])
 
-    return max(_score(level, levels) for level in listing_levels)
+    asked = years_asked(normalize(text))
+    if not asked:
+        return SeniorityAssessment(NEUTRAL_SCORE)
+    years, phrase = min(asked, key=lambda found: found[0])
+    level = level_for_years(years)
+    return SeniorityAssessment(_score(level, levels), level=level, evidence=phrase)
 
 
 def title_levels(title: str) -> set[Level]:
-    return {
-        level
-        for level, terms in TITLE_TERMS.items()
-        if any(contains_term(title, normalize(term)) for term in terms)
-    }
+    return set(title_level_terms(title))
+
+
+def title_level_terms(title: str) -> dict[Level, str]:
+    """Levels a normalized title names, each with the first term that named it."""
+    named: dict[Level, str] = {}
+    for level, terms in TITLE_TERMS.items():
+        for term in terms:
+            if contains_term(title, normalize(term)):
+                named[level] = normalize(term)
+                break
+    return named
 
 
 def minimum_years(text: str) -> int | None:
     """The least experience a normalized body asks for, or None when it doesn't say."""
-    found: list[int] = []
-    if any(phrase in text for phrase in NO_EXPERIENCE_PHRASES):
-        found.append(0)
+    return min((years for years, _ in years_asked(text)), default=None)
+
+
+def years_asked(text: str) -> list[tuple[int, str]]:
+    """Every (years, phrase) of experience a normalized body asks for."""
+    found = [(0, phrase) for phrase in NO_EXPERIENCE_PHRASES if phrase in text]
     for match in _YEARS.finditer(text):
         if _near_experience(text, match.start(), match.end()):
             n = match["n"]
-            found.append(int(n) if n.isdigit() else _NUMBER_WORDS[n])
+            found.append((int(n) if n.isdigit() else _NUMBER_WORDS[n], match[0]))
     for pattern, years in _FIXED_YEARS.items():
         for match in pattern.finditer(text):
             if _near_experience(text, match.start(), match.end()):
-                found.append(years)
-    return min(found, default=None)
+                found.append((years, match[0]))
+    return found
 
 
 def level_for_years(years: int) -> Level:

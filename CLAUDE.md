@@ -28,7 +28,7 @@ Job-search app for Israel: aggregates listings from several job boards, scores f
 ## What good work looks like
 
 - Judge a change by whether it moves SPEC.md's Part 2 criteria closer to passing, not by whether code compiles or looks clean.
-- A listing always shows at least one matched point, and a gap point unless the score is 100. An empty explanation is a bug.
+- A listing always shows at least one matched point, and a gap point unless the score is 100. An empty explanation is a bug; an invented match is worse, so when nothing matches the listing says so (SPEC criterion 5).
 - Prefer a small pipeline that handles a few real listings correctly over a broad one that handles many unreliably.
 - When a source, resume parse or AI call fails, degrade visibly to the user rather than silently dropping results.
 - Retries stay bounded on purpose: Apify at most 2 per source (reuse a successful run instead of re-running a paid actor); LLM at most 2 and only for network errors, timeouts, 429 and 5xx, never for 4xx or failed quote verification.
